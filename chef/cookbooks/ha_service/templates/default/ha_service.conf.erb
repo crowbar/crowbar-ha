@@ -1,0 +1,10 @@
+[DEFAULT]
+# Show more verbose log output (sets INFO log level output)
+verbose = <%= node[:ha_service][:verbose] %>
+
+# Show debugging output in logs (sets DEBUG log level output)
+debug = <%= node[:ha_service][:debug] %>
+
+[app:ha_service-api]
+paste.app_factory = ha_service.server:app_factory
+
