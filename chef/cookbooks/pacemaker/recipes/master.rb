@@ -9,7 +9,7 @@ package "haveged"
 
 service "haveged" do
   supports :restart => true, :status => :true
-  action :enable, :start
+  action [:enable, :start]
 end
   
 
@@ -30,7 +30,7 @@ ruby_block "Store authkey" do
       contents << f
     end
     packed = Base64.encode64(contents)
-    node['corosync']['authkey'] = packed
+    node.set_unless['corosync']['authkey'] = packed
     node.save
   end
 end
