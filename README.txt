@@ -12,6 +12,10 @@ A Barclamp is a module component that implements functionality for Crowbar.  Cor
 About this Ha service
 -------------------------------------
 
+First initial bits for the ha service barclamp.
+
+This is NOT usable at the moment! Don't even try! I'll update this readme when there's something worth using. -Keith Hudgins
+
 Information for this barclamp is maintained on the Crowbar Framework Wiki: https://github.com/dellcloudedge/crowbar/wiki
 
 

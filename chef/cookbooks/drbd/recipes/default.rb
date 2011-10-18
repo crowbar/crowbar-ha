@@ -1,4 +1,9 @@
-# Copyright 2011, Dell, Inc.
+#
+# Author:: Matt Ray <matt@opscode.com>
+# Cookbook Name:: drbd
+# Recipe:: default
+#
+# Copyright 2009, Opscode, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -11,14 +16,18 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#
 
-override[:ha_service][:user]="ha_service"
+#prime the search to avoid 2 masters
+node.save
 
-# declare what needs to be monitored
-node[:ha_service][:monitor]={}
-node[:ha_service][:monitor][:svcs] = []
-node[:ha_service][:monitor][:ports]={}
+package "drbd8-utils" do
+  action :install
+end
 
-default[:ha_service][:raw_disk] = "/dev/sdb"
-default[:ha_service][:disp_partition] = "/dev/sdb1"
+service "drbd" do
+  supports(
+    :restart => true,
+    :status => true
+  )
+  action :nothing
+end

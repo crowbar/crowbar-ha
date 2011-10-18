@@ -1,0 +1,15 @@
+
+# Prepare the disk for formatting
+# Dig that crazy here document nesting, Scoob!
+script "Format disk" do
+  interpreter "bash"
+  user "root"
+  cwd "/tmp"
+  code <<-EOH
+  sudo sfdisk #{node[:ha][:raw_disk]} -uM << EOF
+  ;
+  EOF
+  EOH
+  
+  not_if "test -f /dev/sdb1"
+end

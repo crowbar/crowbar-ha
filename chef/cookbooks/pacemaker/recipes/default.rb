@@ -1,4 +1,4 @@
-# Copyright 2011, Dell, Inc.
+# Copyright 2011 Dell, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,12 +13,16 @@
 # limitations under the License.
 #
 
-override[:ha_service][:user]="ha_service"
 
-# declare what needs to be monitored
-node[:ha_service][:monitor]={}
-node[:ha_service][:monitor][:svcs] = []
-node[:ha_service][:monitor][:ports]={}
+%w{ pacemaker corosync } do |pkg|
+  package pkg
+end
 
-default[:ha_service][:raw_disk] = "/dev/sdb"
-default[:ha_service][:disp_partition] = "/dev/sdb1"
+template "/etc/ha.cf" do
+  source 'ha.cf.erb'
+  owner 'root'
+  group 'root'
+  mode '0644'
+end
+
+
