@@ -14,7 +14,7 @@
 #
 
 
-%w{ pacemaker corosync } do |pkg|
+%w{ pacemaker corosync }.each do |pkg|
   package pkg
 end
 
