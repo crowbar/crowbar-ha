@@ -11,5 +11,5 @@ sudo sfdisk #{node[:ha_service][:raw_disk]} -uM << EOF
 EOF
   EOH
   
-  not_if "test -f /dev/sdb1"
+  not_if "test -f #{node[:ha_service][:raw_disk]}1"
 end
