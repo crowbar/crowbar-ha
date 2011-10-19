@@ -1,4 +1,4 @@
-name "ha_service-server"
+name "ha_service-active"
 description "Ha service Server Active Role"
 run_list(
          "recipe[ha_service::prepare]",
