@@ -6,9 +6,9 @@ script "Format disk" do
   user "root"
   cwd "/tmp"
   code <<-EOH
-  sudo sfdisk #{node[:ha_service][:raw_disk]} -uM << EOF
-  ;
-  EOF
+sudo sfdisk #{node[:ha_service][:raw_disk]} -uM << EOF
+;
+EOF
   EOH
   
   not_if "test -f /dev/sdb1"
