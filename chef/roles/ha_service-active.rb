@@ -4,6 +4,7 @@ run_list(
          "recipe[ha_service::prepare]",
          "recipe[xfs]",
          "recipe[drbd::pair]",
+         "recipe[pacemaker::master]",
          "recipe[ha_service::monitor]"
 )
 default_attributes()

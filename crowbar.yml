@@ -29,9 +29,9 @@ barclamp:
   # Requires allows you to declare that this barclamp relies on
   # another barclamp to provide some of its functionality.
   # All barclamps implicitly rely on the crowbar barclamp.
-  requires:
-    - another-barclamp # rely on a single other barclamp
-    - @barclamp-group  # rely on another group of barclamps.
+  #requires:
+  #  - another-barclamp # rely on a single other barclamp
+  #  - @barclamp-group  # rely on another group of barclamps.
   # Member allows you to declare that this barclamp is a member
   # of a group of related barclamp.  A barclamp can be a member of 
   # muliple groups, and a group name can be used instead of a barclamp
@@ -44,7 +44,6 @@ barclamp:
   # section, Crowbar will assume the barclamp works on all the operating
   # systems it supports.  
   os_support:
-    - redhat-5.6
     - ubuntu-10.10
 
 crowbar:
@@ -77,6 +76,24 @@ debs:
   # here -- if apt-get install gets all the dependencies, you do not need to list
   # them here.
   pkgs:
+    - libcluster-glue 
+    - libnet1 
+    - libopenhpi2 
+    - libopenipmi0 
+    - cluster-glue 
+    - cluster-agents 
+    - libcorosync4 
+    - corosync 
+    - libesmtp5 
+    - libheartbeat2 
+    - libxslt1.1
+    - openhpid
+    - pacemaker
+    - haveged
+    - drbd8-utils
+    - xfsprogs 
+    - xfsdump
+    - xfslibs-dev
     # put your packages here
     # - mod_fcgid
   # raw_pkgs is a list of URLs to .deb packages that the build system will try to
