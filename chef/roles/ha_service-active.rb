@@ -10,7 +10,7 @@ default_attributes()
 override_attributes(
    "drbd" => {
      "remote_host" => "d00-0c-29-64-10-2c.greenman.org",
-     "dev" => "/dev/drbd0"
+     "dev" => "/dev/drbd0",
      "disk" => "/dev/sdb1",
      "fs_type" => "xfs",
      "mount" => "/shared",
