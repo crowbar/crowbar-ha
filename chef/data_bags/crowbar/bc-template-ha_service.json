@@ -11,7 +11,9 @@
       "crowbar-revision": 0,
       "elements": {},
       "element_order": [
-        [ "ha_service-server" ]
+        [ "ha_service-server",
+          "ha_service-active"
+        ]
       ],
       "config": {
         "environment": "ha_service-base-config",
