@@ -10,7 +10,7 @@ run_list(
 default_attributes()
 override_attributes(
    "drbd" => {
-     "remote_host" => "ubuntu2-1004.vm",
+     "remote_host" => "d00-0c-29-64-10-2c.greenman.org",
      "dev" => "/dev/sdb1",
      "fs_type" => "xfs",
      "mount" => "/shared",

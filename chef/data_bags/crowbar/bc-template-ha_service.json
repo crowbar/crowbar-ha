@@ -12,7 +12,8 @@
       "elements": {},
       "element_order": [
         [ "ha_service-server",
-          "ha_service-active"
+          "ha_service-active",
+          "ha_service-passive"
         ]
       ],
       "config": {
