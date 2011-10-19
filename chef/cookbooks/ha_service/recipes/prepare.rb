@@ -6,7 +6,7 @@ script "Format disk" do
   user "root"
   cwd "/tmp"
   code <<-EOH
-  sudo sfdisk #{node[:ha][:raw_disk]} -uM << EOF
+  sudo sfdisk #{node[:ha_service][:raw_disk]} -uM << EOF
   ;
   EOF
   EOH

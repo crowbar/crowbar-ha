@@ -1,0 +1,37 @@
+totem {
+  version: 2
+  token: 3000
+  token_retransmits_before_loss_const: 10
+  join: 60
+  consensus: 1500
+  vsftype: none
+  max_messages: 20
+  clear_node_high_bit: yes
+  secauth: on
+  threads: 0
+  rrp_mode: passive
+  interface {
+    ringnumber: 0
+    bindnetaddr: 10.0.1.0
+    mcastaddr: 239.94.1.1
+    mcastport: 5405
+  }
+}
+
+logging {
+  to_stderr: yes
+  debug: on
+  timestamp: on
+  to_file: no
+  to_syslog: yes
+  syslog_facility: daemon
+}
+service {
+  ver:       0
+  name:      pacemaker
+  use_mgmtd: yes
+}
+aisexec {
+  user:   root
+  group:  root
+}
