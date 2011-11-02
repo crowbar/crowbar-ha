@@ -36,10 +36,12 @@ Example:
 
 default[pacemaker][services] => {
 	"mysqld" => {
-		"datadir" => "/var/lib/mysql"
+		"datadir" => "/var/lib/mysql",
+    "vip" => "",
+    "active" => "",
+    "passive" => []
 	},
 	"apache2" => {}
-	
 }
 
 
