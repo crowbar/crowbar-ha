@@ -36,9 +36,9 @@ Example:
 
 default[pacemaker][services] => {
 	"mysqld" => {
-    "vip" => "",
-    "active" => "",
-    "passive" => []
+    "vip" => "10.0.111.5",
+    "active" => "10.0.111.2",
+    "passive" => ["10.0.111.3"]
 	},
 	"apache2" => {}
 }

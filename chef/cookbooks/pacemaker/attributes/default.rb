@@ -1,1 +1,1 @@
-default['pacemaker']['master'] = 'd00-0c-29-33-0e-c4.greenman.org'
+default['pacemaker']['services'] = {}

@@ -18,8 +18,48 @@
 # limitations under the License.
 #
 
+# actions :create, :remove
+
+# attribute :service, :kind_of => String, :name_attribute => true
+# attribute :vip, :kind_of => String
+# attribute :active, :kind_of => Boolean, :default => false
+# attribute :path, :kind_of => String
+
 action :create do
+  service = new_resource.service
+  vip = new_resource.vip
+  active = new_resource.active
+  path = new_resource.path
+  oldservice = node['pacemaker']['services'][service]
+  newservice = {}
+  newservice['vip'] = vip
+  if active
+    newservice['active'] = node.name
+  else
+    if oldservice
+      newservice['active'] = oldservice['active']
+      newservice['passive'] = oldservice['passive']
+      newservice['passive'].push(node.name)
+      newservice.uniq!.sort!
+    else
+      newservice['passive'] = [node.name]
+    end
+  end
+  #compare with previous state
+  if newservice != oldservice
+    #put the service into the attributes of the node
+    node['pacemaker']['services'][service] = newservice
+    #figure out how pacemaker handles services
+    new_resource.updated_by_last_action(true)
+  end
 end
 
 action :remove do
+  service = new_resource.service
+  if node['pacemaker']['services'][service]
+    #remove the parameters into the attributes of the node
+    node['pacemaker']['services'].delete(service)
+    #figure out how to restore services from pacemaker control
+    new_resource.updated_by_last_action(true)
+  end
 end
