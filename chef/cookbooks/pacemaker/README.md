@@ -36,7 +36,6 @@ Example:
 
 default[pacemaker][services] => {
 	"mysqld" => {
-		"datadir" => "/var/lib/mysql",
     "vip" => "",
     "active" => "",
     "passive" => []
@@ -50,14 +49,38 @@ be the FQDN of the node designated as the pacemaker cluster master. We store con
 as node attributes (generated at the time of convergence) on this node, and the other
 cluster members read this via chef search. So get the FQDN right!
 
+Resource/Provider
+=================
+pacemaker_service
+---------------
+LWRP for managing services with Pacemaker. Pacemaker will control the services for the node transparently, while other recipes will continue to believe they are managing that service. This is done by removing the init script and symlinking it to /bin/true while Pacemaker actually handles the script (this needs to be sorted out).
 
+# Actions
+- :create: Have Pacemaker manage the service.
+- :remove: Have the service to manage itself.
+
+# Attribute Parameters
+- service: name of the service to manage with pacemaker. Name attribute.
+- vip: virtual IP address to map to the service.
+- active: whether this node is the 'active' node. Defaults to `false` for the 'passive' node.
+- path: path to init script if it does not path to '/etc/init.d/SERVICE'. (optional)
+
+# Examples
+    # add the mysqld service
+    pacemaker_service "mysqld" do
+      vip "10.0.111.5"
+      active true
+      action :create
+    end
 
 LICENSE AND AUTHOR
 ==================
 
 Author:: Keith Hudgins (<keith@dtosolutions.com>)
+Author:: Matt Ray (<matt@opscode.com>)
 
 Copyright 2011, Dell, Inc.
+Copyright 2011, Opscode, Inc.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
