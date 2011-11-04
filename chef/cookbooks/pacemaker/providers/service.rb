@@ -22,7 +22,7 @@
 
 # attribute :service, :kind_of => String, :name_attribute => true
 # attribute :vip, :kind_of => String
-# attribute :active, :kind_of => Boolean, :default => false
+# attribute :active, :default => false
 # attribute :path, :kind_of => String
 
 action :create do
@@ -30,17 +30,20 @@ action :create do
   vip = new_resource.vip
   active = new_resource.active
   path = new_resource.path
+  Chef::Log.info "pacemaker_service #{service} #{vip} #{active} #{path}"
   oldservice = node['pacemaker']['services'][service]
   newservice = {}
   newservice['vip'] = vip
   if active
     newservice['active'] = node.name
   else
+    #search for active?
+    #newservice['active'] =
     if oldservice
       newservice['active'] = oldservice['active']
       newservice['passive'] = oldservice['passive']
       newservice['passive'].push(node.name)
-      newservice.uniq!.sort!
+      newservice['passive'].uniq!.sort!
     else
       newservice['passive'] = [node.name]
     end
