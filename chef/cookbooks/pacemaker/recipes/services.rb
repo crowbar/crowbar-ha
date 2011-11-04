@@ -18,8 +18,17 @@
 # limitations under the License.
 #
 
-
-# go through the list of services managed by the ['pacemaker']['services'] hash
-# remove the /etc/init.d services in place?
-# call out to pacemaker_service LWRP to do the dirty work
-# removing managed services is explicitly not supported in the recipe, LWRP can handle
+node['pacemaker']['services'].keys.each do |svc|
+  Chef::Log.debug "Pacemaker::services #{svc}"
+  Chef::Log.debug node['pacemaker']['services'][svc]
+  isactive = false
+  if node['pacemaker']['services'][svc]['active'].eql?(node.name)
+    isactive = true
+  end
+  pacemaker_service svc do
+    vip node['pacemaker']['services'][svc]['vip']
+    active isactive
+    path node['pacemaker']['services'][svc]['path']
+    action :create
+  end
+end
