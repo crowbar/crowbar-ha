@@ -22,5 +22,5 @@ actions :create, :remove
 
 attribute :service, :kind_of => String, :name_attribute => true
 attribute :vip, :kind_of => String
-attribute :active, :kind_of => Boolean, :default => false
+attribute :active, :default => false
 attribute :path, :kind_of => String
