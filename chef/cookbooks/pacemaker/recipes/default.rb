@@ -13,11 +13,6 @@
 # limitations under the License.
 #
 
-
-%w{ pacemaker corosync }.each do |pkg|
-  package pkg
-end
-
 # template "/etc/ha.cf" do
 #   source 'ha.cf.erb'
 #   owner 'root'
@@ -44,3 +39,12 @@ template "/etc/corosync/corosync.conf" do
   variables :bindnetaddr => bindnetaddr
 end
 
+#start up the corosync service
+service "corosync" do
+  supports :restart => true, :status => :true
+  action [:enable, :start]
+  subscribes :restart, resources(:template => "/etc/corosync/corosync.conf"), :immediately
+end
+
+#disable stonith
+#crm configure property stonith-enabled=false

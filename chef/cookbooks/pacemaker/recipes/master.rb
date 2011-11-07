@@ -1,9 +1,14 @@
-include_recipe "pacemaker::default"
-
 require 'base64'
 
 # Install haveged to create entropy so keygen doesn't take an hour
-package "haveged"
+# odd errors coming out of automated installation, gets restarted next
+package "haveged" do
+  ignore_failure true
+end
+
+%w{ corosync pacemaker }.each do |pkg|
+  package pkg
+end
 
 service "haveged" do
   supports :restart => true, :status => :true
@@ -31,7 +36,8 @@ ruby_block "Store authkey" do
     node.save
   end
   action :nothing
-  subscribes :run, resources(:execute => "corosync-keygen"), :immediately
+  subscribes :create, resources(:execute => "corosync-keygen"), :immediately
 end
 
-
+#manage the corosync services
+include_recipe "pacemaker::default"

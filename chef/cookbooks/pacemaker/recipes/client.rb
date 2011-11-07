@@ -1,6 +1,9 @@
-include_recipe "pacemaker::default"
-
 require 'base64'
+
+# Install haveged to create entropy so keygen doesn't take an hour
+%w{ corosync pacemaker }.each do |pkg|
+  package pkg
+end
 
 authkey = ""
 
@@ -14,25 +17,6 @@ if !File.exists?("/etc/corosync/authkey")
   authkey = Base64.decode64(master[0]['corosync']['authkey'])
 end
 
-# # Read authkey (it's binary) into encoded format and save to chef server
-# ruby_block "Store authkey" do
-#   block do
-#     file = File.new('/etc/corosync/authkey', 'r')
-#     contents = ""
-#     file.each do |f|
-#       contents << f
-#     end
-#     packed = Base64.encode64(contents)
-#     node.set_unless['corosync']['authkey'] = packed
-#     node.save
-#   end
-#   action :nothing
-#   subscribes :run, resources(:execute => "corosync-keygen"), :immediately
-# end
-
-
-
-
 file "/etc/corosync/authkey" do
   not_if {File.exists?("/etc/corosync/authkey")}
   content authkey
@@ -40,3 +24,6 @@ file "/etc/corosync/authkey" do
   mode "0400"
   action :create
 end
+
+#manage the corosync services
+include_recipe "pacemaker::default"
