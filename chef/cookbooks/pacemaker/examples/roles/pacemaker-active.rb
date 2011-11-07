@@ -17,6 +17,6 @@ override_attributes(
   )
 
 run_list(
-  #"recipe[pacemaker::master]",
+  "recipe[pacemaker::master]",
   "recipe[pacemaker::services]"
   )
