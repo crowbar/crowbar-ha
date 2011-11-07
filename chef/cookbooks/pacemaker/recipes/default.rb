@@ -18,11 +18,29 @@
   package pkg
 end
 
-template "/etc/ha.cf" do
-  source 'ha.cf.erb'
-  owner 'root'
-  group 'root'
-  mode '0644'
+# template "/etc/ha.cf" do
+#   source 'ha.cf.erb'
+#   owner 'root'
+#   group 'root'
+#   mode '0644'
+# end
+
+#enable the corosync service
+cookbook_file "/etc/default/corosync" do
+  source "corosync"
+  owner "root"
+  group "root"
+  mode "0644"
 end
 
+#get the first 3 quads of the IP and add '0'
+bindnetaddr = node.ipaddress[0..node.ipaddress.rindex('.')]+'0'
+
+template "/etc/corosync/corosync.conf" do
+  source "corosync.conf.erb"
+  owner "root"
+  group "root"
+  mode "0644"
+  variables :bindnetaddr => bindnetaddr
+end
 
