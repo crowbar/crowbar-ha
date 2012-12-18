@@ -23,7 +23,7 @@ require 'base64'
 
 # install the corosync package
 package "corosync" do
-  action :upgrade
+  action :install
 end
 
 # create the auth key
