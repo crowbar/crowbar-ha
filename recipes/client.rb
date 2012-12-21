@@ -22,40 +22,66 @@ require 'base64'
 # from https://github.com/mattray/barclamp_ha_service/blob/pacemaker_service/chef/cookbooks/pacemaker/recipes/master.rb
 
 # install the corosync package
-package "corosync" do
-  action :upgrade
+%w{corosync haveged}.each do |p|
+  package p do
+    action :install
+  end
 end
 
-authkey = ""
+corosync_authkey = ""
 
-# Find the master node:
+# Find the authkey:
 if !File.exists?("/etc/corosync/authkey")
   if Chef::Config[:solo]
     Chef::Application.fatal! "This recipe uses search. Chef Solo does not support search."
   else
-    if (node.run_list.include? "recipe[corosync::master]")
-      Chef::Log.info("I am the corosync::master so I will use my auth key")
-    else
-      master = search(:node, "chef_environment:#{node.chef_environment} AND corosync:authkey")
-      if master.length == 0
-        Chef::Application.fatal! "You must have one node with the corosync::master recipe in their run list to be a client."
-      elsif master.length == 1
-        Chef::Log.info "Found corosync::master node: #{master[0].name}"
-        authkey = Base64.decode64(master[0]['corosync']['authkey'])
-      elsif master.length >1
-        Chef::Application.fatal! "You have specified more than one corosync master node and this is not a valid configuration."
+    authkey = search(:node, "chef_environment:#{node.chef_environment} AND corosync:authkey")
+    log("authkey contains #{authkey}")
+    if authkey.length == 0
+      # generate the auth key and then save it
+      # create the auth key
+      execute "corosync-keygen" do
+        creates "/etc/corosync/authkey"
+        user "root"
+        group "root"
+        umask "0400"
+        action :run
       end
+      # Read authkey (it's binary) into encoded format and save to chef server
+      ruby_block "Store authkey" do
+        block do
+          file = File.new('/etc/corosync/authkey', 'r')
+          contents = ""
+          file.each do |f|
+            contents << f
+          end
+          packed = Base64.encode64(contents)
+          node.set_unless['corosync']['authkey'] = packed
+          node.save
+        end
+        action :nothing
+        subscribes :create, resources(:execute => "corosync-keygen"), :immediately
+      end
+    elsif authkey.length > 0
+      log("Using corosync authkey from node: #{authkey[0].name}")
+
+      # decode so we can write out to file below
+      corosync_authkey = Base64.decode64(authkey[0]['corosync']['authkey'])
+
+      file "/etc/corosync/authkey" do
+        not_if {File.exists?("/etc/corosync/authkey")}
+        content corosync_authkey
+        owner "root"
+        mode "0400"
+        action :create
+      end
+
+      # set it to our own node hash so we can also be searched in future
+      node.set['corosync']['authkey'] = authkey[0]['corosync']['authkey']
     end
   end
 end
 
-file "/etc/corosync/authkey" do
-  not_if {File.exists?("/etc/corosync/authkey")}
-  content authkey
-  owner "root"
-  mode "0400"
-  action :create
-end
 
 # TODO(breu): need the bindnetaddr for this node.
 #             replace 192.168.0.0 below
