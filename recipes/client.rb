@@ -22,7 +22,7 @@ require 'base64'
 # from https://github.com/mattray/barclamp_ha_service/blob/pacemaker_service/chef/cookbooks/pacemaker/recipes/master.rb
 
 # install the corosync package
-%w{corosync haveged}.each do |p|
+%w{openais corosync haveged}.each do |p|
   package p do
     action :install
   end
@@ -82,7 +82,6 @@ if !File.exists?("/etc/corosync/authkey")
   end
 end
 
-
 # TODO(breu): need the bindnetaddr for this node.
 #             replace 192.168.0.0 below
 # bindnetaddr = node.ipaddress[0..node.ipaddress.rindex('.')]+'0'
@@ -103,7 +102,43 @@ template "/etc/default/corosync" do
   owner "root"
   group "root"
   mode 0600
-  notifies :restart, "service[corosync]", :immediately
+  variables(:enable_openais_service => node['corosync']['enable_openais_service'])
+  notifies :restart, "service[corosync]", :delayed
+end
+
+
+# This block is not really necessary because chef would automatically backup thie file.
+# However, it's good to have the backup file in the same directory. (Easier to find later.)
+ruby_block "backup corosync init script" do
+  block do
+      original_pathname = "/etc/init.d/corosync"
+      backup_pathname = original_pathname + ".old"
+      FileUtils.cp(original_pathname, backup_pathname, :preserve => true)
+  end
+  action :create
+  notifies :create, "cookbook_file[/etc/init.d/corosync]", :immediately
+end
+
+cookbook_file "/etc/init.d/corosync" do
+  source "corosync.init"
+  owner "root"
+  group "root"
+  mode 0755
+  action :nothing
+  notifies :restart, "service[corosync]", :delayed
+end
+
+template "/etc/cluster/cluster.conf" do
+  source "cluster.conf.erb"
+  owner "root"
+  group "root"
+  mode 0600
+  variables(
+    :node1 => node['corosync']['cluster']['node1'],
+    :node2 => node['corosync']['cluster']['node2']
+  )
+  notifies :restart, "service[corosync]", :delayed
+  only_if {node['corosync']['enable_openais_service'] == 'yes'}
 end
 
 service "corosync" do
