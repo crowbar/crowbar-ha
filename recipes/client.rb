@@ -106,29 +106,6 @@ template "/etc/default/corosync" do
   notifies :restart, "service[corosync]", :delayed
 end
 
-
-# This block is not really necessary because chef would automatically backup thie file.
-# However, it's good to have the backup file in the same directory. (Easier to find later.)
-ruby_block "backup corosync init script" do
-  block do
-      original_pathname = "/etc/init.d/corosync"
-      backup_pathname = original_pathname + ".old"
-      FileUtils.cp(original_pathname, backup_pathname, :preserve => true)
-  end
-  action :create
-  notifies :create, "cookbook_file[/etc/init.d/corosync]", :immediately
-  not_if "test -f /etc/init.d/corosync.old"
-end
-
-cookbook_file "/etc/init.d/corosync" do
-  source "corosync.init"
-  owner "root"
-  group "root"
-  mode 0755
-  action :nothing
-  notifies :restart, "service[corosync]", :delayed
-end
-
 directory "/etc/cluster" do
   owner "root"
   group "root"
@@ -152,9 +129,30 @@ template "/etc/cluster/cluster.conf" do
   only_if {node['corosync']['enable_openais_service'] == 'yes'}
 end
 
+# This block is not really necessary because chef would automatically backup thie file.
+# However, it's good to have the backup file in the same directory. (Easier to find later.)
+ruby_block "backup corosync init script" do
+  block do
+      original_pathname = "/etc/init.d/corosync"
+      backup_pathname = original_pathname + ".old"
+      FileUtils.cp(original_pathname, backup_pathname, :preserve => true)
+  end
+  action :create
+  notifies :create, "cookbook_file[/etc/init.d/corosync]", :immediately
+  not_if "test -f /etc/init.d/corosync.old"
+end
+
+cookbook_file "/etc/init.d/corosync" do
+  source "corosync.init"
+  owner "root"
+  group "root"
+  mode 0755
+  action :nothing
+  notifies :restart, "service[corosync]", :immediately
+end
+
 service "corosync" do
   supports :restart => true, :status => :true
   action [:enable, :start]
-  subscribes :restart, resources(:template => "/etc/corosync/corosync.conf"), :immediately
 end
 
