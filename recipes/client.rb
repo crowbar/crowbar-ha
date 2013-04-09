@@ -117,6 +117,7 @@ ruby_block "backup corosync init script" do
   end
   action :create
   notifies :create, "cookbook_file[/etc/init.d/corosync]", :immediately
+  not_if "test -f /etc/init.d/corosync.old"
 end
 
 cookbook_file "/etc/init.d/corosync" do
@@ -128,6 +129,15 @@ cookbook_file "/etc/init.d/corosync" do
   notifies :restart, "service[corosync]", :delayed
 end
 
+directory "/etc/cluster" do
+  owner "root"
+  group "root"
+  mode 0755
+  action :create
+  notifies :create, "template[/etc/cluster/cluster.conf]", :immediately
+  only_if {node['corosync']['enable_openais_service'] == 'yes'}
+end
+
 template "/etc/cluster/cluster.conf" do
   source "cluster.conf.erb"
   owner "root"
@@ -137,6 +147,7 @@ template "/etc/cluster/cluster.conf" do
     :node1 => node['corosync']['cluster']['node1'],
     :node2 => node['corosync']['cluster']['node2']
   )
+  action :nothing
   notifies :restart, "service[corosync]", :delayed
   only_if {node['corosync']['enable_openais_service'] == 'yes'}
 end
