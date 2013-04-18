@@ -121,8 +121,8 @@ template "/etc/cluster/cluster.conf" do
   group "root"
   mode 0600
   variables(
-    :node1 => node['corosync']['cluster']['node1'],
-    :node2 => node['corosync']['cluster']['node2']
+    :node1 => node['corosync']['cluster']['nodes'][0],
+    :node2 => node['corosync']['cluster']['nodes'][1]
   )
   action :nothing
   notifies :restart, "service[corosync]", :delayed
