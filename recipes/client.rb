@@ -94,7 +94,6 @@ template "/etc/corosync/corosync.conf" do
   group "root"
   mode 0600
   variables(:bindnetaddr => bindnetaddr)
-  notifies :restart, "service[corosync]", :delayed
 end
 
 template "/etc/default/corosync" do
@@ -103,7 +102,6 @@ template "/etc/default/corosync" do
   group "root"
   mode 0600
   variables(:enable_openais_service => node['corosync']['enable_openais_service'])
-  notifies :restart, "service[corosync]", :delayed
 end
 
 directory "/etc/cluster" do
@@ -125,7 +123,6 @@ template "/etc/cluster/cluster.conf" do
     :node2 => node['corosync']['cluster']['nodes'][1]
   )
   action :nothing
-  notifies :restart, "service[corosync]", :delayed
   only_if {node['corosync']['enable_openais_service'] == 'yes'}
 end
 
