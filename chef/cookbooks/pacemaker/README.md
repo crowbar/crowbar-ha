@@ -14,14 +14,14 @@ Also, the services being managed (haproxy, httpd, whatever) will be managed by p
 
 Example:
 
-default[pacemaker][services] => {
-	"mysqld" => {
-    "vip" => "10.0.111.5",
-    "active" => "10.0.111.2",
-    "passive" => ["10.0.111.3"]
-	},
-	"apache2" => {}
-}
+    default[pacemaker][services] => {
+        "mysqld" => {
+            "vip" => "10.0.111.5",
+            "active" => "10.0.111.2",
+            "passive" => ["10.0.111.3"]
+        },
+        "apache2" => {}
+    }
 
 
 Currently, the only configurable attribute is the master node. The value for this attribute MUST be the FQDN of the node designated as the pacemaker cluster master. We store configuration data as node attributes (generated at the time of convergence) on this node, and the other cluster members read this via chef search.
