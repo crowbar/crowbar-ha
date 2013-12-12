@@ -1,4 +1,4 @@
-# Copyright 2011, Dell
+# Copyright 2011, Dell, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -23,6 +23,9 @@ barclamp:
   name: pacemaker
   display: Pacemaker
   description: Deploy Pacemaker clusters
+  proposal_schema_version: 1
+  # controls if barclamp is shown in UI list (true=yes)
+  user_managed: true
   version: 0
   # Requires allows you to declare that this barclamp relies on
   # another barclamp to provide some of its functionality.
@@ -47,9 +50,10 @@ barclamp:
 crowbar:
   layout: 1
   order: 1000
+  proposal_schema_version: 2
 
 nav:
-  add:
+  barclamps:
     pacemaker: barclamp_modules_path(:id=>'pacemaker')
 
 # debs, gems, rpms and extra_files allow you declare the OS packages,
@@ -70,9 +74,9 @@ debs:
   ppas:
     - ppa_username/ppa_name 
   # pkgs is a list of extra packages that the build system will try to pull
-  # and cache on the crowbar iso image.  You only have to list top-level packages
-  # here -- if apt-get install gets all the dependencies, you do not need to list
-  # them here.
+  # and cache on the crowbar iso image.  You only have to list top-level
+  # packages here -- if apt-get install gets all the dependencies, you do not
+  # need to list them here.
   pkgs:
     - libcluster-glue 
     - libnet1 
@@ -94,11 +98,19 @@ debs:
     - xfslibs-dev
     # put your packages here
     # - mod_fcgid
-  # raw_pkgs is a list of URLs to .deb packages that the build system will try to
-  # download and add to the iso.  It does not do dependency checking, and it uses
-  # curl to handle the actual download process.
+  # raw_pkgs is a list of URLs to .deb packages that the build system will try
+  # to download and add to the iso.  It does not do dependency checking, and
+  # it uses curl to handle the actual download process.
   raw_pkgs:
     - http://your_site/your_special_deb.deb
+  # You can have multiple OS specific sections as well.  You can declare
+  # dependencies for repos, ppas, pkgs, and raw_pkgs here, and they will
+  # be picked up when building Crowbar on that OS. 
+  os-token:
+    repos:
+    ppas:
+    pkgs:
+    raw_pkgs:
     
 # rpms does the same thing that debs does, except for RPM-based systems.
 rpms:
@@ -114,8 +126,20 @@ rpms:
   pkgs:
     # put your rpms here
     # - httpd
-  raw_pkgs:
+  raw_pkgs: 
     - http://your_site/your_special_rpm.rpm
+  pkg_sources:
+    # This is designed to pull a .src.rpm for use by the rest of the build 
+    # system.  It has the same restrictions that raw_pkgs does, with the
+    # added restriction that you must also manually specify all the packages
+    # needed to build this RPM in build_pkgs.
+  os-token:
+    # build_cmd is called after the rest of the packages and files have been
+    # staged inthe build cache.  This script will be sourced by the build
+    # system in a subshell, and should be written in bash.
+    # Full documentation on how this works is in the README.build in the 
+    # root of the main Crowbar repository.
+    build_cmd: your_shell_script.sh
     
 # gems allows you to declare the gems you need.
 # Unlike the other package types, you can ask for a specific version of a gem
@@ -126,7 +150,7 @@ gems:
   pkgs:
     # put your gems here.
     - i18n
-    - rails-2.3.12 # Will try and pull rails-2.3.12 exactly.
+    - rails-2.3.18 # Will try and pull rails-2.3.18 exactly.
 
 # extra_files downloads and saves a file to be slipstreamed on to the 
 # crowbar .iso in the extra/files directory (or a subdirectory thereof).
