@@ -1,28 +1,43 @@
-Welcome to a Barclamp for the Crowbar Framework project
-=======================================================
-_Copyright 2011, Dell, Inc.
+Welcome to a barclamp for the Crowbar project
+=============================================
 
-The code and documentation is distributed under the Apache 2 license (http://www.apache.org/licenses/LICENSE-2.0.html). Contributions back to the source are encouraged.
+Copyright 2011, Dell, Inc.
 
-The Crowbar Framework (https://github.com/crowbar/crowbar) was developed by the Dell CloudEdge Solutions Team (http://dell.com/openstack) as a OpenStack installer (http://OpenStack.org) but has evolved as a much broader function tool. 
-A Barclamp is a module component that implements functionality for Crowbar.  Core barclamps operate the essential functions of the Crowbar deployment mechanics while other barclamps extend the system for specific applications.
+The code and documentation is distributed under the Apache 2 license
+(http://www.apache.org/licenses/LICENSE-2.0.html).  Contributions back
+to the source are encouraged.
 
-* This functonality of this barclamp DOES NOT stand alone, the Crowbar Framework is required * 
+The Crowbar Framework (https://github.com/crowbar/crowbar) was
+developed by the Dell CloudEdge Solutions Team
+(http://dell.com/openstack) as a OpenStack installer
+(http://OpenStack.org) but has evolved as a much broader function
+tool.
+
+A barclamp is a module component that implements functionality for
+Crowbar.  Core barclamps operate the essential functions of the
+Crowbar deployment mechanics while other barclamps extend the system
+for specific applications.
+
+N.B. The functionality of this barclamp DOES NOT stand alone; the
+Crowbar framework is required.
 
 About this Pacemaker barclamp
--------------------------------------
+-----------------------------
 
-First initial bits for the ha service barclamp.
+This is NOT usable at the moment!  Don't even try unless you
+want to help with the development effort!  (Help is of course
+very welcome - contact the Crowbar mailing list.)
 
-This is NOT usable at the moment! Don't even try! I'll update this readme when there's something worth using. -Keith Hudgins
+This barclamp will automatically deploy and configure Pacemaker
+clusters, with the end goal of making the OpenStack infrastructure
+services and their dependencies highly available.  It will be
+based to a large extent on the architecture documented at:
 
-Information for this barclamp is maintained on the Crowbar Framework Wiki: https://github.com/crowbar/crowbar/wiki
+  http://docs.openstack.org/high-availability-guide/content/
 
+Legalese
+--------
 
-
-
-Legals
--------------------------------------
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
