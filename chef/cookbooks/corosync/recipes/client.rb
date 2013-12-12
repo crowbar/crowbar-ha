@@ -1,6 +1,6 @@
 #
 # Cookbook Name:: corosync
-# Recipe:: default
+# Recipe:: client
 #
 # Copyright 2012, Rackspace US, Inc.
 #
