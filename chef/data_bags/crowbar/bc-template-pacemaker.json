@@ -9,11 +9,12 @@
   "deployment": {
     "pacemaker": {
       "crowbar-revision": 0,
+      "element_states": {
+        "pacemaker-server": [ "readying", "ready", "applying" ]
+      },
       "elements": {},
       "element_order": [
         [ "pacemaker-server",
-          "pacemaker-active",
-          "pacemaker-passive"
         ]
       ],
       "config": {
