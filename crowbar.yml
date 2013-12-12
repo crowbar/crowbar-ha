@@ -12,9 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-# This file directs the installation of the barclamp by the Crowbar Framework
-# The major compoents are
-#    barclamp: detalis about the barclamp
+# This file directs the installation of the barclamp by the Crowbar framework
+# The major components are
+#    barclamp: details about the barclamp
 #    crowbar: installation instructions
 #    nav: (optional) injects items into the Crowbar UI menu
 #    debs/rpms/gems: components needs by the barclamp
