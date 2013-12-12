@@ -12,8 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-# Author: RobHirschfeld
-#
 # This file directs the installation of the barclamp by the Crowbar Framework
 # The major compoents are
 #    barclamp: detalis about the barclamp
