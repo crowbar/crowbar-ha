@@ -14,7 +14,8 @@
       },
       "elements": {},
       "element_order": [
-        [ "pacemaker-server",
+        [
+          "pacemaker-server"
         ]
       ],
       "config": {
