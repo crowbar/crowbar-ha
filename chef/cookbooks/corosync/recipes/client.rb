@@ -19,7 +19,8 @@
 
 require 'base64'
 
-# from https://github.com/mattray/barclamp_ha_service/blob/pacemaker_service/chef/cookbooks/pacemaker/recipes/master.rb
+# This code originally came from:
+# https://github.com/mattray/barclamp_ha_service/blob/pacemaker_service/chef/cookbooks/pacemaker/recipes/master.rb
 
 # install the corosync package
 %w{openais corosync haveged}.each do |p|
