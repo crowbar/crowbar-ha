@@ -105,28 +105,6 @@ template "/etc/default/corosync" do
   variables(:enable_openais_service => node['corosync']['enable_openais_service'])
 end
 
-directory "/etc/cluster" do
-  owner "root"
-  group "root"
-  mode 0755
-  action :create
-  notifies :create, "template[/etc/cluster/cluster.conf]", :immediately
-  only_if {node['corosync']['enable_openais_service'] == 'yes'}
-end
-
-template "/etc/cluster/cluster.conf" do
-  source "cluster.conf.erb"
-  owner "root"
-  group "root"
-  mode 0600
-  variables(
-    :node1 => node['corosync']['cluster']['nodes'][0],
-    :node2 => node['corosync']['cluster']['nodes'][1]
-  )
-  action :nothing
-  only_if {node['corosync']['enable_openais_service'] == 'yes'}
-end
-
 # This block is not really necessary because chef would automatically backup thie file.
 # However, it's good to have the backup file in the same directory. (Easier to find later.)
 ruby_block "backup corosync init script" do
