@@ -13,9 +13,9 @@
 # limitations under the License. 
 # 
 
-class HaServiceController < BarclampController
+class PacemakerController < BarclampController
   def initialize
-    @service_object = HaServiceService.new logger
+    @service_object = PacemakerService.new logger
   end
 end
 

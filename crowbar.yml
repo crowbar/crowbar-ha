@@ -22,9 +22,9 @@
 #    debs/rpms/gems: components needs by the barclamp
 
 barclamp:
-  name: ha_service
-  display: Ha service
-  description: A way to maximize awesomeness for Ha service
+  name: pacemaker
+  display: Pacemaker
+  description: Deploy Pacemaker clusters
   version: 0
   # Requires allows you to declare that this barclamp relies on
   # another barclamp to provide some of its functionality.
@@ -52,7 +52,7 @@ crowbar:
 
 nav:
   add:
-    ha_service: barclamp_modules_path(:id=>'ha_service')
+    pacemaker: barclamp_modules_path(:id=>'pacemaker')
 
 # debs, gems, rpms and extra_files allow you declare the OS packages,
 # gems, and raw files that this barclamp needs.
@@ -151,10 +151,10 @@ extra_files:
 locale_additions:
   en:
     nav:
-      ha_service: Ha service
+      pacemaker: Pacemaker
     barclamp:
-      ha_service_edit_attributes: 
+      pacemaker_edit_attributes: 
         attributes: Attributes
         foo: Comic Choice
-      ha_service_edit_deployment: 
+      pacemaker_edit_deployment: 
         deployment: Deployment

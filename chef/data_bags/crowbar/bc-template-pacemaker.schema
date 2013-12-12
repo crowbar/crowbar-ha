@@ -2,13 +2,13 @@
   "type": "map",
   "required": true,
   "mapping": {
-    "id": { "type": "str", "required": true, "pattern": "/^bc-ha_service-|^bc-template-ha_service$/" },
+    "id": { "type": "str", "required": true, "pattern": "/^bc-pacemaker-|^bc-template-pacemaker$/" },
     "description": { "type": "str", "required": true },
     "attributes": {
       "type": "map",
       "required": true,
       "mapping": {
-        "ha_service": {
+        "pacemaker": {
           "type": "map",
           "required": true,
           "mapping": {
@@ -21,7 +21,7 @@
       "type": "map",
       "required": true,
       "mapping": {
-        "ha_service": {
+        "pacemaker": {
           "type": "map",
           "required": true,
           "mapping": {

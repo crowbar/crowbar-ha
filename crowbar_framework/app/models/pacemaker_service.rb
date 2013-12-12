@@ -13,31 +13,31 @@
 # limitations under the License. 
 # 
 
-class HaServiceService < ServiceObject
+class PacemakerService < ServiceObject
 
   def initialize(thelogger)
-    @bc_name = "ha_service"
+    @bc_name = "pacemaker"
     @logger = thelogger
   end
 
   def create_proposal
-    @logger.debug("Ha service create_proposal: entering")
+    @logger.debug("Pacemaker create_proposal: entering")
     base = super
 
     nodes = NodeObject.all
     nodes.delete_if { |n| n.nil? or n.admin? }
     if nodes.size >= 1
-      base["deployment"]["ha_service"]["elements"] = {
-        "ha_service-server" => [ nodes.first[:fqdn] ]
+      base["deployment"]["pacemaker"]["elements"] = {
+        "pacemaker-server" => [ nodes.first[:fqdn] ]
       }
     end
 
-    @logger.debug("Ha service create_proposal: exiting")
+    @logger.debug("Pacemaker create_proposal: exiting")
     base
   end
 
   def apply_role_pre_chef_call(old_role, role, all_nodes)
-    @logger.debug("Ha service apply_role_pre_chef_call: entering #{all_nodes.inspect}")
+    @logger.debug("Pacemaker apply_role_pre_chef_call: entering #{all_nodes.inspect}")
     return if all_nodes.empty?
 
     # Make sure the bind hosts are in the admin network
@@ -45,12 +45,12 @@ class HaServiceService < ServiceObject
       node = NodeObject.find_node_by_name n
 
       admin_address = node.get_network_by_type("admin")["address"]
-      node.crowbar[:ha_service] = {} if node.crowbar[:ha_service].nil?
-      node.crowbar[:ha_service][:api_bind_host] = admin_address
+      node.crowbar[:pacemaker] = {} if node.crowbar[:pacemaker].nil?
+      node.crowbar[:pacemaker][:api_bind_host] = admin_address
 
       node.save
     end
-    @logger.debug("Ha service apply_role_pre_chef_call: leaving")
+    @logger.debug("Pacemaker apply_role_pre_chef_call: leaving")
   end
 
 end

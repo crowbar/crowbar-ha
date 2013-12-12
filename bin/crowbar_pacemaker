@@ -16,6 +16,6 @@
 
 
 require File.join(File.expand_path(File.dirname(__FILE__)), "barclamp_lib")
-@barclamp = "ha_service"
+@barclamp = "pacemaker"
 
 main

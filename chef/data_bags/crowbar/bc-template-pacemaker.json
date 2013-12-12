@@ -1,23 +1,23 @@
 {
-  "id": "bc-template-ha_service",
-  "description": "Installation for Ha service",
+  "id": "bc-template-pacemaker",
+  "description": "Installation for Pacemaker",
   "attributes": {
-    "ha_service": {
+    "pacemaker": {
       "foo": "bar"
     }
   },
   "deployment": {
-    "ha_service": {
+    "pacemaker": {
       "crowbar-revision": 0,
       "elements": {},
       "element_order": [
-        [ "ha_service-server",
-          "ha_service-active",
-          "ha_service-passive"
+        [ "pacemaker-server",
+          "pacemaker-active",
+          "pacemaker-passive"
         ]
       ],
       "config": {
-        "environment": "ha_service-base-config",
+        "environment": "pacemaker-base-config",
         "mode": "full",
         "transitions": false,
         "transition_list": [

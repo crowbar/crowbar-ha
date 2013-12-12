@@ -9,7 +9,7 @@ A Barclamp is a module component that implements functionality for Crowbar.  Cor
 
 * This functonality of this barclamp DOES NOT stand alone, the Crowbar Framework is required * 
 
-About this Ha service
+About this Pacemaker barclamp
 -------------------------------------
 
 First initial bits for the ha service barclamp.
