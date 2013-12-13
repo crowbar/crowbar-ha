@@ -83,18 +83,17 @@ if !File.exists?("/etc/corosync/authkey")
   end
 end
 
-# TODO(breu): need the bindnetaddr for this node.
-#             replace 192.168.0.0 below
-# bindnetaddr = node.ipaddress[0..node.ipaddress.rindex('.')]+'0'
-
-bindnetaddr = node['osops_networks']['management'].sub! /\/[0-9]+$/,''
-
 template "/etc/corosync/corosync.conf" do
   source "corosync.conf.erb"
   owner "root"
   group "root"
   mode 0600
-  variables(:bindnetaddr => bindnetaddr)
+  variables(
+    :cluster_name => node[:corosync][:cluster_name],
+    :bind_addr    => node[:corosync][:bind_addr],
+    :mcast_addr   => node[:corosync][:mcast_addr],
+    :mcast_port   => node[:corosync][:mcast_port]
+  )
 end
 
 template "/etc/default/corosync" do

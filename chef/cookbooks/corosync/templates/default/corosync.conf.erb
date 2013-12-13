@@ -4,6 +4,8 @@
 totem {
         version: 2
 
+        cluster_name:   <%= @cluster_name %>
+
         # How long before declaring a token lost (ms)
         token: 3000
 
@@ -39,9 +41,9 @@ totem {
 
         interface {
                 ringnumber: 0
-                bindnetaddr: <%= @bindnetaddr %>
-                mcastaddr: 226.94.1.1
-                mcastport: 5405
+                bindnetaddr: <%= @bind_addr  %>
+                mcastaddr: <%= @mcast_addr %>
+                mcastport: <%= @mcast_port %>
         }
 }
 
