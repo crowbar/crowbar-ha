@@ -10,7 +10,7 @@ service {
 }
 
 totem {
-        version: 2
+        version:        2
 
         cluster_name:   <%= @cluster_name %>
 
@@ -48,10 +48,10 @@ totem {
         rrp_mode: none
 
         interface {
-                ringnumber: 0
-                bindnetaddr: <%= @bind_addr  %>
-                mcastaddr: <%= @mcast_addr %>
-                mcastport: <%= @mcast_port %>
+                ringnumber:     0
+                bindnetaddr:    <%= @bind_addr  %>
+                mcastaddr:      <%= @mcast_addr %>
+                mcastport:      <%= @mcast_port %>
         }
 }
 
@@ -65,16 +65,16 @@ aisexec {
 }
 
 logging {
-        fileline: off
-        to_stderr: yes
-        to_logfile: no
-        to_syslog: yes
+        fileline:       off
+        to_stderr:      yes
+        to_logfile:     no
+        to_syslog:      yes
         syslog_facility: daemon
-        debug: off
-        timestamp: on
+        debug:          off
+        timestamp:      on
         logger_subsys {
                 subsys: AMF
-                debug: off
+                debug:  off
                 tags: enter|leave|trace1|trace2|trace3|trace4|trace6
         }
 }
