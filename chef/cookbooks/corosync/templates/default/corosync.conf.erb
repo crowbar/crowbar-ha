@@ -4,6 +4,11 @@
 
 # Please read the corosync.conf.5 manual page
 
+service {
+        ver:            1
+        name:           pacemaker
+}
+
 totem {
         version: 2
 
@@ -52,11 +57,6 @@ totem {
 
 amf {
         mode: disabled
-}
-
-service {
-        ver:  1
-        name: pacemaker
 }
 
 aisexec {
