@@ -27,6 +27,13 @@ require 'base64'
 # This code originally came from:
 # https://github.com/mattray/barclamp_ha_service/blob/pacemaker_service/chef/cookbooks/pacemaker/recipes/master.rb
 
+# chef makes csync2 redundant
+if node[:platform] == "suse"
+  service "csync2" do
+    action [:stop, :disable]
+  end
+end
+
 # install the corosync package
 %w{openais corosync haveged}.each do |p|
   package p do
