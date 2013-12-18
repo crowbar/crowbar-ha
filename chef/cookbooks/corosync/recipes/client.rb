@@ -17,6 +17,11 @@
 # limitations under the License.
 #
 
+# TODO:
+#   - finish handling of /etc/corosync/authkey
+#   - optional shared storage
+#   - optional SBD - /etc/sysconfig/sbd
+
 require 'base64'
 
 # This code originally came from:
