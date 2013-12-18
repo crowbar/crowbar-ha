@@ -108,12 +108,15 @@ template "/etc/corosync/corosync.conf" do
   )
 end
 
-template "/etc/default/corosync" do
-  source "corosync.default.upstart.erb"
-  owner "root"
-  group "root"
-  mode 0600
-  variables(:enable_openais_service => node['corosync']['enable_openais_service'])
+case node.platform
+when %w(debian ubuntu)
+  template "/etc/default/corosync" do
+    source "corosync.default.upstart.erb"
+    owner "root"
+    group "root"
+    mode 0600
+    variables(:enable_openais_service => node['corosync']['enable_openais_service'])
+  end
 end
 
 unless node.platform == 'suse'
