@@ -17,4 +17,8 @@
 # limitations under the License.
 #
 
-include_recipe "corosync::client"
+include_recipe "corosync::config"
+include_recipe "corosync::authkey"
+include_recipe "corosync::service"
+include_recipe "corosync::firewall"
+include_recipe "corosync::sbd"

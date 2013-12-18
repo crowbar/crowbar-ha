@@ -1,4 +1,8 @@
-# Copyright 2011, Dell, Inc.
+#
+# Cookbook Name:: corosync
+# Recipe:: firewall
+#
+# Copyright 2012, Rackspace US, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,11 +17,17 @@
 # limitations under the License.
 #
 
-default[:corosync][:cluster_name] = "hacluster"
+case node.platform
+when 'suse'
+  template "/etc/sysconfig/SuSEfirewall2.d/services/cluster" do
+    source "firewall.erb"
+    mode "0640"
+    owner "root"
+    variables(
+      :mcast_port => node[:corosync][:mcast_port]
+    )
 
-default[:corosync][:bind_addr ]   = "192.168.124.0"
-default[:corosync][:mcast_addr]   = "239.1.2.3"
-default[:corosync][:mcast_port]   = 5405
-
-# values should be 'yes' or 'no'.
-default[:corosync][:enable_openais_service] = "yes"
+    # FIXME: where do I get the name for this from?
+    #notifies :restart, "service[#{node[:corosync][:platform][:firewall_name]}]"
+  end
+end

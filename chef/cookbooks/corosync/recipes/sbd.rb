@@ -1,4 +1,8 @@
-# Copyright 2011, Dell, Inc.
+#
+# Cookbook Name:: corosync
+# Recipe:: sbd
+#
+# Copyright 2013, SUSE GmbH
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,11 +17,5 @@
 # limitations under the License.
 #
 
-default[:corosync][:cluster_name] = "hacluster"
 
-default[:corosync][:bind_addr ]   = "192.168.124.0"
-default[:corosync][:mcast_addr]   = "239.1.2.3"
-default[:corosync][:mcast_port]   = 5405
-
-# values should be 'yes' or 'no'.
-default[:corosync][:enable_openais_service] = "yes"
+# FIXME - /etc/sysconfig/sbd
