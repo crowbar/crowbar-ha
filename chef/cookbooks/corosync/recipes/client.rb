@@ -109,6 +109,18 @@ template "/etc/corosync/corosync.conf" do
 end
 
 case node.platform
+when 'suse'
+  template "/etc/sysconfig/SuSEfirewall2.d/services/cluster" do
+    source "firewall.erb"
+    mode "0640"
+    owner "root"
+    variables(
+      :mcast_port => node[:corosync][:mcast_port]
+    )
+
+    # FIXME: where do I get the name for this from?
+    #notifies :restart, "service[#{node[:corosync][:platform][:firewall_name]}]"
+  end
 when %w(debian ubuntu)
   template "/etc/default/corosync" do
     source "corosync.default.upstart.erb"

@@ -1,0 +1,21 @@
+## Name: Cluster
+## Description: Opens ports for Varies Cluster related services
+
+# space separated list of allowed TCP ports
+# 30865 for csync2
+# 5560 for mgmtd
+# 7630 for hawk
+# 21064 for dlm
+TCP="5560 7630 21064"
+
+# space separated list of allowed UDP ports
+UDP="<%= @mcast_port %>"
+
+# space separated list of allowed RPC services
+RPC=""
+
+# space separated list of allowed IP protocols
+IP="igmp"
+
+# space separated list of allowed UDP broadcast ports
+BROADCAST=""
