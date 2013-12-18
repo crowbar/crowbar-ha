@@ -106,6 +106,10 @@ template "/etc/corosync/corosync.conf" do
     :mcast_addr   => node[:corosync][:mcast_addr],
     :mcast_port   => node[:corosync][:mcast_port]
   )
+
+  unless node[:pacemaker].nil?
+    notifies :restart, "service[#{node[:pacemaker][:platform][:service_name]}]"
+  end
 end
 
 case node.platform
