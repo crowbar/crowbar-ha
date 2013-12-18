@@ -132,7 +132,7 @@ when %w(debian ubuntu)
 end
 
 unless node.platform == 'suse'
-  # This block is not really necessary because chef would automatically backup thie file.
+  # This block is not really necessary because chef would automatically backup the file.
   # However, it's good to have the backup file in the same directory. (Easier to find later.)
   ruby_block "backup corosync init script" do
     block do
