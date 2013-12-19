@@ -27,7 +27,10 @@ if Chef::Config[:solo]
   return
 end
 
-authkey_nodes = search(:node, "chef_environment:#{node.chef_environment} AND corosync:authkey")
+cluster_name = node['corosync']['cluster_name']
+authkey_nodes = search(:node,
+                       "chef_environment:#{node.chef_environment} AND " +
+                        "corosync:authkey AND corosync_cluster_name:#{cluster_name}")
 log("nodes with authkey: #{authkey_nodes}")
 if authkey_nodes.length == 0
   # Generate the auth key and then save it
