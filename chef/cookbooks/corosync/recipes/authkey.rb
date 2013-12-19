@@ -29,9 +29,10 @@ if ! File.exists?("/etc/corosync/authkey")
     authkey = search(:node, "chef_environment:#{node.chef_environment} AND corosync:authkey")
     log("authkey contains #{authkey}")
     if authkey.length == 0
-      # generate the auth key and then save it
+      # Generate the auth key and then save it
 
-      # ensure that the RNG has access to a decent entropy pool
+      # Ensure that the RNG has access to a decent entropy pool,
+      # so that corosync-keygen doesn't take too long.
       package "haveged" do
         action [:install, :start]
       end
