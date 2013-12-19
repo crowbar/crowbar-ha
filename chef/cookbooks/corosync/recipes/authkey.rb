@@ -27,9 +27,9 @@ if Chef::Config[:solo]
   return
 end
 
-authkey = search(:node, "chef_environment:#{node.chef_environment} AND corosync:authkey")
-log("authkey contains #{authkey}")
-if authkey.length == 0
+authkey_nodes = search(:node, "chef_environment:#{node.chef_environment} AND corosync:authkey")
+log("nodes with authkey: #{authkey_nodes}")
+if authkey_nodes.length == 0
   # Generate the auth key and then save it
 
   # Ensure that the RNG has access to a decent entropy pool,
@@ -62,7 +62,7 @@ if authkey.length == 0
     action :nothing
     subscribes :create, resources(:execute => "corosync-keygen"), :immediately
   end
-elsif authkey.length > 0
+elsif authkey_nodes.length > 0
   log("Using corosync authkey from node: #{authkey[0].name}")
 
   # decode so we can write out to file below
