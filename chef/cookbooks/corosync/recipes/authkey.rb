@@ -22,61 +22,62 @@ require 'base64'
 corosync_authkey = ""
 
 # Find the authkey:
-if ! File.exists?("/etc/corosync/authkey")
-  if Chef::Config[:solo]
-    Chef::Application.fatal! "This recipe uses search. Chef Solo does not support search."
-  else
-    authkey = search(:node, "chef_environment:#{node.chef_environment} AND corosync:authkey")
-    log("authkey contains #{authkey}")
-    if authkey.length == 0
-      # Generate the auth key and then save it
+return if File.exists?("/etc/corosync/authkey")
 
-      # Ensure that the RNG has access to a decent entropy pool,
-      # so that corosync-keygen doesn't take too long.
-      package "haveged" do
-        action [:install, :start]
-      end
+if Chef::Config[:solo]
+  Chef::Application.fatal! "This recipe uses search. Chef Solo does not support search."
+  return
+end
 
-      # create the auth key
-      execute "corosync-keygen" do
-        creates "/etc/corosync/authkey"
-        user "root"
-        group "root"
-        umask "0400"
-        action :run
-      end
+authkey = search(:node, "chef_environment:#{node.chef_environment} AND corosync:authkey")
+log("authkey contains #{authkey}")
+if authkey.length == 0
+  # Generate the auth key and then save it
 
-      # Read authkey (it's binary) into encoded format and save to chef server
-      ruby_block "Store authkey" do
-        block do
-          file = File.new('/etc/corosync/authkey', 'r')
-          contents = ""
-          file.each do |f|
-            contents << f
-          end
-          packed = Base64.encode64(contents)
-          node.set_unless['corosync']['authkey'] = packed
-          node.save
-        end
-        action :nothing
-        subscribes :create, resources(:execute => "corosync-keygen"), :immediately
-      end
-    elsif authkey.length > 0
-      log("Using corosync authkey from node: #{authkey[0].name}")
-
-      # decode so we can write out to file below
-      corosync_authkey = Base64.decode64(authkey[0]['corosync']['authkey'])
-
-      file "/etc/corosync/authkey" do
-        not_if {File.exists?("/etc/corosync/authkey")}
-        content corosync_authkey
-        owner "root"
-        mode "0400"
-        action :create
-      end
-
-      # set it to our own node hash so we can also be searched in future
-      node.set['corosync']['authkey'] = authkey[0]['corosync']['authkey']
-    end
+  # Ensure that the RNG has access to a decent entropy pool,
+  # so that corosync-keygen doesn't take too long.
+  package "haveged" do
+    action [:install, :start]
   end
+
+  # create the auth key
+  execute "corosync-keygen" do
+    creates "/etc/corosync/authkey"
+    user "root"
+    group "root"
+    umask "0400"
+    action :run
+  end
+
+  # Read authkey (it's binary) into encoded format and save to chef server
+  ruby_block "Store authkey" do
+    block do
+      file = File.new('/etc/corosync/authkey', 'r')
+      contents = ""
+      file.each do |f|
+        contents << f
+      end
+      packed = Base64.encode64(contents)
+      node.set_unless['corosync']['authkey'] = packed
+      node.save
+    end
+    action :nothing
+    subscribes :create, resources(:execute => "corosync-keygen"), :immediately
+  end
+elsif authkey.length > 0
+  log("Using corosync authkey from node: #{authkey[0].name}")
+
+  # decode so we can write out to file below
+  corosync_authkey = Base64.decode64(authkey[0]['corosync']['authkey'])
+
+  file "/etc/corosync/authkey" do
+    not_if {File.exists?("/etc/corosync/authkey")}
+    content corosync_authkey
+    owner "root"
+    mode "0400"
+    action :create
+  end
+
+  # set it to our own node hash so we can also be searched in future
+  node.set['corosync']['authkey'] = authkey[0]['corosync']['authkey']
 end
