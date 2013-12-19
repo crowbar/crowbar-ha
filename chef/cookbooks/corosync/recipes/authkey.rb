@@ -19,8 +19,6 @@
 
 require 'base64'
 
-corosync_authkey = ""
-
 # Find the authkey:
 return if File.exists?("/etc/corosync/authkey")
 
