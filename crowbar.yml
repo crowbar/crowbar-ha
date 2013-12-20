@@ -22,6 +22,7 @@ barclamp:
   version: 0
   #requires:
   member:
+    - HA
 
 crowbar:
   layout: 1
