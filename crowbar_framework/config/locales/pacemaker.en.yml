@@ -1,0 +1,10 @@
+en:
+  nav:
+    pacemaker: Pacemaker
+  barclamp:
+    pacemaker:
+      edit_attributes:
+        attributes: Attributes
+        foo: Comic Choice
+      edit_deployment:
+        deployment: Deployment

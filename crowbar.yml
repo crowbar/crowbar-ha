@@ -74,14 +74,3 @@ gems:
   pkgs:
     - i18n
     - rails-2.3.18 # Will try and pull rails-2.3.18 exactly.
-
-locale_additions:
-  en:
-    nav:
-      pacemaker: Pacemaker
-    barclamp:
-      pacemaker_edit_attributes: 
-        attributes: Attributes
-        foo: Comic Choice
-      pacemaker_edit_deployment: 
-        deployment: Deployment
