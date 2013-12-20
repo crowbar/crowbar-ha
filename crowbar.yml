@@ -30,9 +30,10 @@ crowbar:
   chef_order: 53
   proposal_schema_version: 2
 
-nav:
-  barclamps:
-    pacemaker: barclamp_modules_path(:id=>'pacemaker')
+# nav:
+#   barclamps:
+#     ha: index_barclamp_path(:controller=>'pacemaker')
+#     pacemaker: barclamp_modules_path(:id=>'pacemaker')
 
 debs:
   repos:
