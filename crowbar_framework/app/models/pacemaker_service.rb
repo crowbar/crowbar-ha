@@ -36,5 +36,31 @@ class PacemakerService < ServiceObject
     @logger.debug("Pacemaker apply_role_pre_chef_call: leaving")
   end
 
+  def validate_proposal_after_save proposal
+    super
+
+    elements = proposal["deployment"]["pacemaker"]["elements"]
+
+    # accept proposal with no allocated node -- ie, initial state
+    if not elements.has_key?("corosync-cluster-member") and
+       not elements.has_key?("corosync-authkey-generator") and
+       not elements.has_key?("hawk-server")
+       return
+    end
+
+    if not elements.has_key?("corosync-authkey-generator") or elements["corosync-authkey-generator"].length != 1
+      validation_error "Need one (and only one) corosync-authkey-generator node."
+    end
+
+    if elements.has_key?("hawk-server")
+      node = NodeObject.find_node_by_name(elements["hawk-server"].first)
+      roles = node.roles()
+
+      unless roles.include?("corosync-cluster-member")
+        validation_error "Node #{node.name} has the hawk-server role but not the corosync-cluster-member role."
+      end
+    end
+  end
+
 end
 
