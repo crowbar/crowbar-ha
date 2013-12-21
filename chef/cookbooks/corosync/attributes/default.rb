@@ -23,6 +23,16 @@ default[:corosync][:log_file]     = "/var/log/cluster/corosync.log"
 case node.platform
 when 'suse'
   default[:corosync][:platform][:packages] = %w(corosync openais)
+
+  # The UNIX user for the cluster is typically determined by the
+  # cluster-glue package:
+  default[:corosync][:platform][:packages].push "cluster-glue"
+
+  # This package is needed so Chef can set the user password, but
+  # unfortunately chef-client can't use it immediately, only
+  # from the next run onwards:
+  default[:corosync][:platform][:packages].push "rubygem-ruby-shadow"
+
   default[:corosync][:platform][:service_name] = "openais"
 else
   # FIXME: untested, probably wrong
@@ -32,3 +42,10 @@ end
 
 # values should be 'yes' or 'no'.
 default[:corosync][:enable_openais_service] = "yes"
+
+default[:corosync][:user] = "hacluster"
+
+# The cloud operator should modify the password at proposal creation
+# time.  We can't set it to something random because that's how Hawk
+# provides authentication.
+default[:corosync][:password] = "crowbar"

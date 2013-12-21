@@ -56,6 +56,11 @@ unless node.platform == 'suse'
   end
 end
 
+user node[:corosync][:user] do
+  action :modify
+  password node[:corosync][:password]
+end
+
 service node[:corosync][:platform][:service_name] do
   supports :restart => true, :status => :true
   action [:enable, :start]
