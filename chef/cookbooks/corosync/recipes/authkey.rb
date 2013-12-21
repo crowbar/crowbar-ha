@@ -38,7 +38,11 @@ if authkey_nodes.length == 0
   # Ensure that the RNG has access to a decent entropy pool,
   # so that corosync-keygen doesn't take too long.
   package "haveged" do
-    action [:install, :start]
+    action :install
+  end
+
+  service "haveged" do
+    action [:enable, :start]
   end
 
   # create the auth key
