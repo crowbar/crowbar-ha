@@ -54,9 +54,9 @@ unless node.platform == 'suse'
     action :nothing
     notifies :restart, "service[corosync]", :immediately
   end
+end
 
-  service "corosync" do
-    supports :restart => true, :status => :true
-    action [:enable, :start]
-  end
+service node[:corosync][:platform][:service_name] do
+  supports :restart => true, :status => :true
+  action [:enable, :start]
 end

@@ -23,9 +23,11 @@ default[:corosync][:log_file]     = "/var/log/cluster/corosync.log"
 case node.platform
 when 'suse'
   default[:corosync][:platform][:packages] = %w(corosync openais)
+  default[:corosync][:platform][:service_name] = "openais"
 else
   # FIXME: untested, probably wrong
   default[:corosync][:platform][:packages] = %w(corosync)
+  default[:corosync][:platform][:service_name] = "corosync"
 end
 
 # values should be 'yes' or 'no'.
