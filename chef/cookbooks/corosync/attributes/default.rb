@@ -20,5 +20,13 @@ default[:corosync][:mcast_addr]   = "239.1.2.3"
 default[:corosync][:mcast_port]   = 5405
 default[:corosync][:log_file]     = "/var/log/cluster/corosync.log"
 
+case node.platform
+when 'suse'
+  default[:corosync][:platform][:packages] = %w(corosync openais)
+else
+  # FIXME: untested, probably wrong
+  default[:corosync][:platform][:packages] = %w(corosync)
+end
+
 # values should be 'yes' or 'no'.
 default[:corosync][:enable_openais_service] = "yes"

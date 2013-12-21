@@ -1,6 +1,6 @@
 #
 # Cookbook Name:: corosync
-# Recipe:: default
+# Recipe:: client
 #
 # Copyright 2012, Rackspace US, Inc.
 #
@@ -17,6 +17,8 @@
 # limitations under the License.
 #
 
-include_recipe "corosync::service"
-include_recipe "corosync::firewall"
-include_recipe "corosync::sbd"
+node[:corosync][:platform][:packages].each do |pkg|
+  package pkg do
+    action :install
+  end
+end

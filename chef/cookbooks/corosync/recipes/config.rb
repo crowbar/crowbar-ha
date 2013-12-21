@@ -17,10 +17,6 @@
 # limitations under the License.
 #
 
-package "corosync" do
-  action :install
-end
-
 # chef makes csync2 redundant
 if node[:platform] == "suse"
   service "csync2" do

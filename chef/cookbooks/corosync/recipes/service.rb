@@ -17,6 +17,10 @@
 # limitations under the License.
 #
 
+include_recipe "corosync::install"
+include_recipe "corosync::config"
+include_recipe "corosync::authkey"
+
 case node.platform
 when %w(debian ubuntu)
   template "/etc/default/corosync" do
