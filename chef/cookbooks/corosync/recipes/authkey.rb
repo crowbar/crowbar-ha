@@ -79,10 +79,12 @@ if authkey_nodes.length == 0
     subscribes :create, resources(:execute => "corosync-keygen"), :immediately
   end
 elsif authkey_nodes.length > 0
-  log("Using corosync authkey from node: #{authkey[0].name}")
+  authkey_node = authkey_nodes[0]
+  authkey = authkey_node['corosync']['authkey']
+  log("Using corosync authkey from node: #{authkey_node.name}")
 
   # decode so we can write out to file below
-  corosync_authkey = Base64.decode64(authkey[0]['corosync']['authkey'])
+  corosync_authkey = Base64.decode64(authkey)
 
   file authkey_file do
     not_if {File.exists? authkey_file}
@@ -93,5 +95,5 @@ elsif authkey_nodes.length > 0
   end
 
   # set it to our own node hash so we can also be searched in future
-  node.set['corosync']['authkey'] = authkey[0]['corosync']['authkey']
+  node.set['corosync']['authkey'] = authkey
 end
