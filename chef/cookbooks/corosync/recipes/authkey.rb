@@ -28,6 +28,11 @@ if Chef::Config[:solo]
 end
 
 cluster_name = node['corosync']['cluster_name']
+unless cluster_name and ! cluster_name.empty?
+  Chef::Application.fatal! "Couldn't figure out corosync cluster name"
+  return
+end
+
 authkey_nodes = search(:node,
                        "chef_environment:#{node.chef_environment} AND " +
                         "corosync:authkey AND corosync_cluster_name:#{cluster_name}")
