@@ -37,10 +37,18 @@ unless cluster_name and ! cluster_name.empty?
   return
 end
 
-authkey_nodes = search(:node,
-                       "chef_environment:#{node.chef_environment} AND " +
-                        "corosync:authkey AND corosync_cluster_name:#{cluster_name}")
+# Find pre-existing authkey on other node(s)
+query  = "chef_environment:#{node.chef_environment}"
+query += " AND corosync_cluster_name:#{cluster_name}"
+
+# Not sure which of these will work better
+query += " AND corosync:authkey"
+#query += " AND roles:corosync-authkey-generator"
+
+log("search query: #{query}")
+authkey_nodes = search(:node, query)
 log("nodes with authkey: #{authkey_nodes}")
+
 if authkey_nodes.length == 0
   # Generate the auth key and then save it
 
