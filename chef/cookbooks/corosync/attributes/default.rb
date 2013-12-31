@@ -49,3 +49,5 @@ default[:corosync][:user] = "hacluster"
 # time.  We can't set it to something random because that's how Hawk
 # provides authentication.
 default[:corosync][:password] = "crowbar"
+
+default[:corosync][:authkey_file] = "/etc/corosync/authkey"

@@ -20,7 +20,11 @@
 require 'base64'
 
 # Find the authkey:
-return if File.exists?("/etc/corosync/authkey")
+authkey_file = node[:corosync][:authkey_file]
+if File.exists? authkey_file
+  log "#{authkey_file} already exists"
+  return
+end
 
 if Chef::Config[:solo]
   Chef::Application.fatal! "This recipe uses search. Chef Solo does not support search."
@@ -52,7 +56,7 @@ if authkey_nodes.length == 0
 
   # create the auth key
   execute "corosync-keygen" do
-    creates "/etc/corosync/authkey"
+    creates authkey_file
     user "root"
     group "root"
     umask "0400"
@@ -62,7 +66,7 @@ if authkey_nodes.length == 0
   # Read authkey (it's binary) into encoded format and save to chef server
   ruby_block "Store authkey" do
     block do
-      file = File.new('/etc/corosync/authkey', 'r')
+      file = File.new(authkey_file, 'r')
       contents = ""
       file.each do |f|
         contents << f
@@ -80,8 +84,8 @@ elsif authkey_nodes.length > 0
   # decode so we can write out to file below
   corosync_authkey = Base64.decode64(authkey[0]['corosync']['authkey'])
 
-  file "/etc/corosync/authkey" do
-    not_if {File.exists?("/etc/corosync/authkey")}
+  file authkey_file do
+    not_if {File.exists? authkey_file}
     content corosync_authkey
     owner "root"
     mode "0400"
