@@ -5,7 +5,8 @@
 # Please read the corosync.conf.5 manual page
 
 service {
-        ver:            1
+        # http://blog.clusterlabs.org/blog/2010/introducing-the-pacemaker-master-control-process-for-corosync-based-clusters/
+        ver:            0  <%# FIXME: what should this be for non-SUSE distros? %>
         name:           pacemaker
 }
 
@@ -15,7 +16,7 @@ totem {
         cluster_name:   <%= @cluster_name %>
 
         # How long before declaring a token lost (ms)
-        token: 3000
+        token: 5000
 
         # How many token retransmits before forming a new configuration
         token_retransmits_before_loss_const: 10
@@ -24,7 +25,7 @@ totem {
         join: 60
 
         # How long to wait for consensus to be achieved before starting a new round of membership configuration (ms)
-        consensus: 5000
+        consensus: 6000
 
         # Turn off the virtual synchrony filter
         vsftype: none
@@ -33,14 +34,9 @@ totem {
         max_messages: 20
 
         # Limit generated nodeids to 31-bits (positive signed integers)
-        clear_node_high_bit: yes
+        clear_node_high_bit: new
 
         secauth: on
-
-        crypto_cipher:  none
-        crypto_hash:    none
-        # How many threads to use for encryption/decryption
-        threads: 0
 
         # This specifies the mode of redundant ring, which may be none, active, or passive.
         rrp_mode: none
@@ -52,13 +48,6 @@ totem {
                 mcastport:      <%= @mcast_port %>
                 ttl:            1
         }
-}
-
-quorum {
-        # Enable and configure quorum subsystem (default: off)
-        # see also corosync.conf.5 and votequorum.5
-        provider: corosync_votequorum
-        expected_votes: 1
 }
 
 amf {
