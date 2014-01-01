@@ -18,10 +18,16 @@
 #
 
 # chef makes csync2 redundant
-if node[:platform] == "suse"
+if platform_family? "suse"
   service "csync2" do
     action [:stop, :disable]
   end
+end
+
+if platform_family? "rhel"
+  # http://clusterlabs.org/quickstart.html
+  Chef::Application.fatal! "FIXME: RedHat-based platforms configure corosync via cluster.conf"
+  return
 end
 
 template "/etc/corosync/corosync.conf" do
