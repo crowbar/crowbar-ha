@@ -31,7 +31,7 @@ if Chef::Config[:solo]
   return
 end
 
-cluster_name = node['corosync']['cluster_name']
+cluster_name = node[:corosync][:cluster_name]
 unless cluster_name and ! cluster_name.empty?
   Chef::Application.fatal! "Couldn't figure out corosync cluster name"
   return
@@ -50,58 +50,13 @@ authkey_nodes = search(:node, query)
 log("nodes with authkey: #{authkey_nodes}")
 
 if authkey_nodes.length == 0
-  # Generate the auth key and then save it
-
-  # Ensure that the RNG has access to a decent entropy pool,
-  # so that corosync-keygen doesn't take too long.
-  package "haveged" do
-    action :install
-  end
-
-  service "haveged" do
-    action [:enable, :start]
-  end
-
-  # create the auth key
-  execute "corosync-keygen" do
-    creates authkey_file
-    user "root"
-    group "root"
-    umask "0400"
-    action :run
-  end
-
-  # Read authkey (it's binary) into encoded format and save to chef server
-  ruby_block "Store authkey" do
-    block do
-      file = File.new(authkey_file, 'r')
-      contents = ""
-      file.each do |f|
-        contents << f
-      end
-      packed = Base64.encode64(contents)
-      node.set_unless['corosync']['authkey'] = packed
-      node.save
-    end
-    action :nothing
-    subscribes :create, resources(:execute => "corosync-keygen"), :immediately
-  end
+  include_recipe "corosync::authkey_generator"
 elsif authkey_nodes.length > 0
   authkey_node = authkey_nodes[0]
-  authkey = authkey_node['corosync']['authkey']
   log("Using corosync authkey from node: #{authkey_node.name}")
+  authkey = authkey_node[:corosync][:authkey]
 
-  # decode so we can write out to file below
-  corosync_authkey = Base64.decode64(authkey)
-
-  file authkey_file do
-    not_if {File.exists? authkey_file}
-    content corosync_authkey
-    owner "root"
-    mode "0400"
-    action :create
-  end
-
-  # set it to our own node hash so we can also be searched in future
-  node.set['corosync']['authkey'] = authkey
+  node.set[:corosync][:authkey] = authkey
+  node.save
+  include_recipe "corosync::authkey_writer"
 end
