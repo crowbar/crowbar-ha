@@ -76,3 +76,4 @@ gems:
   pkgs:
     - i18n
     - rails-2.3.18 # Will try and pull rails-2.3.18 exactly.
+    - ruby-shadow

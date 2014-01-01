@@ -58,6 +58,7 @@ end
 
 user node[:corosync][:user] do
   action :modify
+  # requires ruby-shadow gem
   password node[:corosync][:password]
 end
 
