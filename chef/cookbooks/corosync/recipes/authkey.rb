@@ -43,7 +43,7 @@ query += " AND corosync_cluster_name:#{cluster_name}"
 
 # Not sure which of these will work better
 query += " AND corosync:authkey"
-#query += " AND roles:corosync-authkey-generator"
+#query += " AND roles:pacemaker-cluster-founder"
 
 log("search query: #{query}")
 authkey_nodes = search(:node, query)

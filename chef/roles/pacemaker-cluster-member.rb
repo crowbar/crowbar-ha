@@ -1,5 +1,5 @@
-name "corosync-cluster-member"
-description "Corosync cluster member"
+name "pacemaker-cluster-member"
+description "Pacemaker cluster member"
 run_list(
          "recipe[corosync::default]"
 )
