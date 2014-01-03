@@ -22,7 +22,7 @@ default[:corosync][:log_file]     = "/var/log/cluster/corosync.log"
 
 case node.platform
 when 'suse'
-  default[:corosync][:platform][:packages] = %w(corosync openais)
+  default[:corosync][:platform][:packages] = %w(sle-hae-release corosync openais)
 
   # The UNIX user for the cluster is typically determined by the
   # cluster-glue package:
