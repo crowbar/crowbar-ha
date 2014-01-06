@@ -43,9 +43,8 @@ template "/etc/corosync/corosync.conf" do
     :log_file     => node[:corosync][:log_file]
   )
 
-  unless node[:pacemaker].nil?
-    unless node[:pacemaker][:platform].nil?
-      notifies :restart, "service[#{node[:pacemaker][:platform][:service_name]}]"
-    end
+  service_name = node[:pacemaker][:platform][:service_name] rescue nil
+  if service_name
+    notifies :restart, "service[#{service_name}]"
   end
 end
