@@ -28,11 +28,6 @@ when 'suse'
   # cluster-glue package:
   default[:corosync][:platform][:packages].push "cluster-glue"
 
-  # This package is needed so Chef can set the user password, but
-  # unfortunately chef-client can't use it immediately, only
-  # from the next run onwards:
-  default[:corosync][:platform][:packages].push "rubygem-ruby-shadow"
-
   default[:corosync][:platform][:service_name] = "openais"
 else
   # FIXME: untested, probably wrong

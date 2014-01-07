@@ -56,6 +56,15 @@ unless node.platform == 'suse'
   end
 end
 
+# This package is needed so Chef can set the user password, but
+# chef-client can only use it immediately if we install it at
+# recipe compile-time, not run-time:
+# from the next run onwards:
+pkg = package "rubygem-ruby-shadow" do
+  action :nothing
+end
+pkg.run_action(:install) if node.platform == 'suse'
+
 user node[:corosync][:user] do
   action :modify
   # requires ruby-shadow gem
