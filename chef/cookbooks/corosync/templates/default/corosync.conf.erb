@@ -8,6 +8,10 @@ service {
         # http://blog.clusterlabs.org/blog/2010/introducing-the-pacemaker-master-control-process-for-corosync-based-clusters/
         ver:            0  <%# FIXME: what should this be for non-SUSE distros? %>
         name:           pacemaker
+
+        # This is required for hb_gui (a.k.a. crm_gui) to work
+	use_mgmtd:	yes
+	use_logd:	yes
 }
 
 totem {
