@@ -16,5 +16,6 @@
 default[:hawk][:platform][:packages] = %w(hawk hawk-templates)
 
 # Currently hardcoded in /srv/www/hawk/config/lighttp.conf and
-# /srv/www/hawk/app/views/dashboard/index.html.erb
-#default[:hawk][:server][:port] = 7630
+# /srv/www/hawk/app/views/dashboard/index.html.erb but added
+# here so that the barclamp web UI can build the correct hyperlink.
+default[:hawk][:server][:port] = 7630

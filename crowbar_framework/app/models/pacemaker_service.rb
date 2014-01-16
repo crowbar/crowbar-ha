@@ -31,9 +31,29 @@ class PacemakerService < ServiceObject
     base
   end
 
-  def apply_role_pre_chef_call(old_role, role, all_nodes)
-    @logger.debug("Pacemaker apply_role_pre_chef_call: entering #{all_nodes.inspect}")
-    @logger.debug("Pacemaker apply_role_pre_chef_call: leaving")
+  def apply_role_post_chef_call(old_role, role, all_nodes)
+    @logger.debug("Pacemaker apply_role_post_chef_call: entering #{all_nodes.inspect}")
+
+    # Make sure the nodes have a link to the dashboard on them.  This
+    # needs to be done via apply_role_post_chef_call rather than
+    # apply_role_pre_chef_call, since the server port attribute is not
+    # available until chef-client has run.
+    all_nodes.each do |n|
+      node = NodeObject.find_node_by_name(n)
+
+      next unless node.role? "hawk-server"
+
+      hawk_server_ip = node.get_network_by_type("admin")["address"]
+      hawk_server_port = node["hawk"]["server"]["port"]
+      url = "http://#{hawk_server_ip}:#{hawk_server_port}/"
+
+      node.crowbar["crowbar"] = {} if node.crowbar["crowbar"].nil?
+      node.crowbar["crowbar"]["links"] = {} if node.crowbar["crowbar"]["links"].nil?
+      node.crowbar["crowbar"]["links"]["Pacemaker cluster web UI (Hawk)"] = url
+      node.save
+    end
+
+    @logger.debug("Pacemaker apply_role_post_chef_call: leaving")
   end
 
   def validate_proposal_after_save proposal
