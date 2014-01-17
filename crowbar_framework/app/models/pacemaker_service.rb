@@ -71,11 +71,19 @@ class PacemakerService < ServiceObject
     end
 
     if elements.has_key?("hawk-server")
-      node = NodeObject.find_node_by_name(elements["hawk-server"].first)
-      roles = node.roles()
+      @logger.debug("Pacemaker apply_role_pre_chef_call: elts #{elements.inspect}")
+      members = (elements["pacemaker-cluster-founder"] || []) +
+                (elements["pacemaker-cluster-member" ] || [])
+      @logger.debug("cluster members: #{members}")
 
-      unless roles.include?("pacemaker-cluster-member")
-        validation_error "Node #{node.name} has the hawk-server role but not the pacemaker-cluster-member role."
+      elements["hawk-server"].each do |n|
+        @logger.debug("checking #{n}")
+        node = NodeObject.find_node_by_name(n)
+        name = node.name
+        name = "#{node.alias} (#{name})" if node.alias
+        unless members.include? n
+          validation_error "Node #{name} has the hawk-server role but not either the pacemaker-cluster-founder or pacemaker-cluster-member role."
+        end
       end
     end
 
