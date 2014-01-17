@@ -22,6 +22,8 @@ class PacemakerService < ServiceObject
 
   #if barclamp allows multiple proposals OVERRIDE
   # def self.allow_multiple_proposals?
+  #   true
+  # end
 
   def create_proposal
     @logger.debug("Pacemaker create_proposal: entering")
