@@ -57,8 +57,6 @@ class PacemakerService < ServiceObject
   end
 
   def validate_proposal_after_save proposal
-    super
-
     elements = proposal["deployment"]["pacemaker"]["elements"]
 
     # accept proposal with no allocated node -- ie, initial state
@@ -80,6 +78,8 @@ class PacemakerService < ServiceObject
         validation_error "Node #{node.name} has the hawk-server role but not the pacemaker-cluster-member role."
       end
     end
+
+    super
   end
 
 end
