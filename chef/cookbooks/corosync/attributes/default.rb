@@ -43,6 +43,6 @@ default[:corosync][:user] = "hacluster"
 # The cloud operator should modify the password at proposal creation
 # time.  We can't set it to something random because that's how Hawk
 # provides authentication.
-default[:corosync][:password] = "crowbar"
+default[:corosync][:password] = "$1$0w6d0uZu$QK13Hun/7Xa3NP1bjLfe5/" # crowbar
 
 default[:corosync][:authkey_file] = "/etc/corosync/authkey"
