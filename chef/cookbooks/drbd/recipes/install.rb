@@ -17,15 +17,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-#prime the search to avoid 2 masters
-node.save
+node[:drbd][:packages].each do |pkg|
+  package pkg do
+    action :install
+  end
+end
 
-include_recipe "drbd::install"
-
-service "drbd" do
-  supports(
-    :restart => true,
-    :status => true
-  )
-  action :nothing
+ruby_block "load drbd module" do
+  block do
+    %x[ modprobe drbd ]
+    raise 'problem with loading drbd module' unless $?.exitstatus == 0    
+  end
+  not_if { ::File.exists?("/sys/module/drbd") }
 end

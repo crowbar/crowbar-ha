@@ -20,3 +20,10 @@ default[:drbd][:pacemaker][:ms][:meta][:clone_node_max] = "1"
 default[:drbd][:pacemaker][:ms][:meta][:notify] = "true"
 default[:drbd][:pacemaker][:ms][:meta][:resource_stickiness] = "100"
 default[:drbd][:pacemaker][:ms][:meta][:target_role] = "Started"
+
+case node.platform
+when 'suse'
+  default[:drbd][:packages] = %w(drbd-utils drbd-bash-completion drbd-kmp-default drbd-pacemaker drbd-udev)
+else
+  default[:drbd][:packages] = %w(drbd8-utils)
+end
