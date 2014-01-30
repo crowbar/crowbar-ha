@@ -20,18 +20,16 @@
 
 require 'chef/shell_out'
 
-include_recipe "drbd"
-
-resource = "pair"
+resource = node['drbd']['resource']
 
 if node['drbd']['remote_host'].nil?
-  Chef::Application.fatal! "You must have a ['drbd']['remote_host'] defined to use the drbd::pair recipe."
+  Chef::Application.fatal! "You must have a ['drbd']['remote_host'] defined to use the drbd::resource recipe."
 end
 
 remote = search(:node, "name:#{node['drbd']['remote_host']}")[0]
 
 template "/etc/drbd.d/#{resource}.res" do
-  source "res.erb"
+  source "resource.erb"
   variables(
     :resource => resource,
     :remote_ip => remote.ipaddress
@@ -55,7 +53,7 @@ execute "drbdadm create-md #{resource}" do
 end
 
 #claim primary based off of node['drbd']['master']
-execute "drbdadm -- --overwrite-data-of-peer primary all" do
+execute "drbdadm -- --overwrite-data-of-peer primary #{resource}" do
   subscribes :run, resources(:execute => "drbdadm create-md #{resource}")
   only_if { node['drbd']['master'] && !node['drbd']['configured'] }
   action :nothing
@@ -63,7 +61,7 @@ end
 
 #You may now create a filesystem on the device, use it as a raw block device
 execute "mkfs -t #{node['drbd']['fs_type']} #{node['drbd']['dev']}" do
-  subscribes :run, resources(:execute => "drbdadm -- --overwrite-data-of-peer primary all")
+  subscribes :run, resources(:execute => "drbdadm -- --overwrite-data-of-peer primary #{resource}")
   only_if { node['drbd']['master'] && !node['drbd']['configured'] }
   action :nothing
 end

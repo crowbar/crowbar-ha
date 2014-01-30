@@ -1,4 +1,5 @@
 default[:drbd][:remote_host] = nil
+default[:drbd][:resource] = "pair"
 default[:drbd][:disk] = nil
 default[:drbd][:mount] = nil
 default[:drbd][:fs_type] = "ext3"
@@ -13,7 +14,7 @@ default[:drbd][:pacemaker][:op][:monitor][:interval] = "5s"
 default[:drbd][:pacemaker][:op][:monitor][:role] = "Master"
 
 default[:drbd][:pacemaker][:ms][:rsc_name] = "drbd"
-default[:drbd][:pacemaker][:ms][:meta][:master_max] = "2"
+default[:drbd][:pacemaker][:ms][:meta][:master_max] = "1"
 default[:drbd][:pacemaker][:ms][:meta][:master_node_max] = "1"
 default[:drbd][:pacemaker][:ms][:meta][:clone_max] = "2"
 default[:drbd][:pacemaker][:ms][:meta][:clone_node_max] = "1"

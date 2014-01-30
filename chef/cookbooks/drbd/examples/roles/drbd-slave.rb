@@ -1,9 +1,9 @@
-name "drbd-pair"
-description "DRBD pair role."
+name "drbd-slave"
+description "DRBD slave role."
 
 override_attributes(
   "drbd" => {
-    "remote_host" => "ubuntu1-1004.vm",
+    "remote_host" => "ha-node2",
     "disk" => "/dev/sdb1",
     "fs_type" => "xfs",
     "mount" => "/shared"
@@ -12,5 +12,5 @@ override_attributes(
 
 run_list(
   "recipe[xfs]",
-  "recipe[drbd::pair]"
+  "recipe[drbd::default]"
   )
