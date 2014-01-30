@@ -17,9 +17,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-#prime the search to avoid 2 masters
-node.save
-
 include_recipe "drbd::install"
 include_recipe "drbd::config"
 

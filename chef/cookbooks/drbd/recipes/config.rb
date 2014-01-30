@@ -1,7 +1,6 @@
 #
-# Author:: Matt Ray <matt@opscode.com>
 # Cookbook Name:: drbd
-# Recipe:: default
+# Recipe:: config
 #
 # Copyright 2009, Opscode, Inc.
 #

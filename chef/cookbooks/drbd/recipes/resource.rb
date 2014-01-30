@@ -1,7 +1,7 @@
 #
 # Author:: Matt Ray <matt@opscode.com>
 # Cookbook Name:: drbd
-# Recipe:: pair
+# Recipe:: resource
 #
 # Copyright 2011, Opscode, Inc
 #
@@ -84,7 +84,8 @@ end
 #hack to get around the mount failing
 ruby_block "set drbd configured flag" do
   block do
-    node['drbd']['configured'] = true
+    node.normal['drbd']['configured'] = true
+    node.save
   end
   subscribes :create, resources(:execute => "mkfs -t #{node['drbd']['fs_type']} -f #{node['drbd']['dev']}")
   action :nothing
