@@ -39,8 +39,9 @@ template "/etc/drbd.d/#{resource}.res" do
   action :create
 end
 
-#first pass only, initialize drbd
-execute "drbdadm create-md #{resource}" do
+#first pass only, initialize drbd 
+#for disks re-usage from old resources we will run with force option
+execute "drbdadm -- --force create-md #{resource}" do
   subscribes :run, resources(:template => "/etc/drbd.d/#{resource}.res")
   notifies :restart, resources(:service => "drbd"), :immediate
   only_if do
@@ -54,13 +55,14 @@ end
 
 #claim primary based off of node['drbd']['master']
 execute "drbdadm -- --overwrite-data-of-peer primary #{resource}" do
-  subscribes :run, resources(:execute => "drbdadm create-md #{resource}")
+  subscribes :run, resources(:execute => "drbdadm -- --force create-md #{resource}")
   only_if { node['drbd']['master'] && !node['drbd']['configured'] }
   action :nothing
 end
 
-#You may now create a filesystem on the device, use it as a raw block device
-execute "mkfs -t #{node['drbd']['fs_type']} #{node['drbd']['dev']}" do
+#you may now create a filesystem on the device, use it as a raw block device
+#for disks re-usage from old resources we will run with force option
+execute "mkfs -t #{node['drbd']['fs_type']} -f #{node['drbd']['dev']}" do
   subscribes :run, resources(:execute => "drbdadm -- --overwrite-data-of-peer primary #{resource}")
   only_if { node['drbd']['master'] && !node['drbd']['configured'] }
   action :nothing
@@ -84,6 +86,6 @@ ruby_block "set drbd configured flag" do
   block do
     node['drbd']['configured'] = true
   end
-  subscribes :create, resources(:execute => "mkfs -t #{node['drbd']['fs_type']} #{node['drbd']['dev']}")
+  subscribes :create, resources(:execute => "mkfs -t #{node['drbd']['fs_type']} -f #{node['drbd']['dev']}")
   action :nothing
 end
