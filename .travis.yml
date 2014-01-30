@@ -1,0 +1,9 @@
+language: ruby
+rvm:
+  - "1.9.3"
+  - "2.1.0"
+gemfile: chef/cookbooks/pacemaker/Gemfile
+# overridden by install: value
+#bundler_args: --without development
+install: cd chef/cookbooks/pacemaker && bundle install --without development
+script: exec rspec
