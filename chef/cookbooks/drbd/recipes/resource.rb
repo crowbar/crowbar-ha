@@ -1,7 +1,7 @@
 #
 # Author:: Matt Ray <matt@opscode.com>
 # Cookbook Name:: drbd
-# Recipe:: pair
+# Recipe:: resource
 #
 # Copyright 2011, Opscode, Inc
 #
@@ -20,18 +20,16 @@
 
 require 'chef/shell_out'
 
-include_recipe "drbd"
-
-resource = "pair"
+resource = node['drbd']['resource']
 
 if node['drbd']['remote_host'].nil?
-  Chef::Application.fatal! "You must have a ['drbd']['remote_host'] defined to use the drbd::pair recipe."
+  Chef::Application.fatal! "You must have a ['drbd']['remote_host'] defined to use the drbd::resource recipe."
 end
 
 remote = search(:node, "name:#{node['drbd']['remote_host']}")[0]
 
 template "/etc/drbd.d/#{resource}.res" do
-  source "res.erb"
+  source "resource.erb"
   variables(
     :resource => resource,
     :remote_ip => remote.ipaddress
@@ -41,8 +39,9 @@ template "/etc/drbd.d/#{resource}.res" do
   action :create
 end
 
-#first pass only, initialize drbd
-execute "drbdadm create-md #{resource}" do
+#first pass only, initialize drbd 
+#for disks re-usage from old resources we will run with force option
+execute "drbdadm -- --force create-md #{resource}" do
   subscribes :run, resources(:template => "/etc/drbd.d/#{resource}.res")
   notifies :restart, resources(:service => "drbd"), :immediate
   only_if do
@@ -55,15 +54,16 @@ execute "drbdadm create-md #{resource}" do
 end
 
 #claim primary based off of node['drbd']['master']
-execute "drbdadm -- --overwrite-data-of-peer primary all" do
-  subscribes :run, resources(:execute => "drbdadm create-md #{resource}")
+execute "drbdadm -- --overwrite-data-of-peer primary #{resource}" do
+  subscribes :run, resources(:execute => "drbdadm -- --force create-md #{resource}")
   only_if { node['drbd']['master'] && !node['drbd']['configured'] }
   action :nothing
 end
 
-#You may now create a filesystem on the device, use it as a raw block device
-execute "mkfs -t #{node['drbd']['fs_type']} #{node['drbd']['dev']}" do
-  subscribes :run, resources(:execute => "drbdadm -- --overwrite-data-of-peer primary all")
+#you may now create a filesystem on the device, use it as a raw block device
+#for disks re-usage from old resources we will run with force option
+execute "mkfs -t #{node['drbd']['fs_type']} -f #{node['drbd']['dev']}" do
+  subscribes :run, resources(:execute => "drbdadm -- --overwrite-data-of-peer primary #{resource}")
   only_if { node['drbd']['master'] && !node['drbd']['configured'] }
   action :nothing
 end
@@ -84,8 +84,9 @@ end
 #hack to get around the mount failing
 ruby_block "set drbd configured flag" do
   block do
-    node['drbd']['configured'] = true
+    node.normal['drbd']['configured'] = true
+    node.save
   end
-  subscribes :create, resources(:execute => "mkfs -t #{node['drbd']['fs_type']} #{node['drbd']['dev']}")
+  subscribes :create, resources(:execute => "mkfs -t #{node['drbd']['fs_type']} -f #{node['drbd']['dev']}")
   action :nothing
 end

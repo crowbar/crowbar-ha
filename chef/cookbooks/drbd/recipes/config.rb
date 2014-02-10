@@ -1,7 +1,6 @@
 #
-# Author:: Matt Ray <matt@opscode.com>
 # Cookbook Name:: drbd
-# Recipe:: default
+# Recipe:: config
 #
 # Copyright 2009, Opscode, Inc.
 #
@@ -17,15 +16,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-include_recipe "drbd::install"
-include_recipe "drbd::config"
-
-service "drbd" do
-  supports(
-    :restart => true,
-    :status => true
-  )
-  action :nothing
+template "/etc/drbd.conf" do
+  source "drbd_conf.erb"
+  owner "root"
+  group "root"
+  action :create
 end
 
-include_recipe "drbd::default"
+template "/etc/drbd.d/global_common.conf" do
+  source "global_conf.erb"
+  owner "root"
+  group "root"
+  action :create
+end

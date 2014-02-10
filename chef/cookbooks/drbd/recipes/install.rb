@@ -1,7 +1,6 @@
 #
-# Author:: Matt Ray <matt@opscode.com>
 # Cookbook Name:: drbd
-# Recipe:: default
+# Recipe:: install
 #
 # Copyright 2009, Opscode, Inc.
 #
@@ -17,15 +16,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-include_recipe "drbd::install"
-include_recipe "drbd::config"
-
-service "drbd" do
-  supports(
-    :restart => true,
-    :status => true
-  )
-  action :nothing
+node[:drbd][:packages].each do |pkg|
+  package pkg do
+    action :install
+  end
 end
 
-include_recipe "drbd::default"
+ruby_block "load drbd module" do
+  block do
+    %x[ modprobe drbd ]
+    raise 'problem with loading drbd module' unless $?.exitstatus == 0    
+  end
+  not_if { ::File.exists?("/sys/module/drbd") }
+end
