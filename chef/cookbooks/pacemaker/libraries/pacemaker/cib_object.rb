@@ -4,7 +4,7 @@ module Pacemaker
   class CIBObject
     attr_accessor :name, :definition
 
-    @@subclasses = { }
+    @@subclasses = { } unless class_variable_defined?(:@@subclasses)
 
     class << self
       attr_reader :object_type
@@ -39,8 +39,16 @@ module Pacemaker
         from_definition(definition)
       end
 
+      # Make sure this works on Ruby 1.8.7 which is missing
+      # Object#singleton_class.
+      def singleton_class
+        class << self; self; end
+      end
+
       def from_definition(definition)
-        if method(__method__).owner == self.singleton_class
+        calling_class = self.singleton_class
+        this_class = method(__method__).owner
+        if calling_class == this_class
           # Invoked via (this) base class
           obj_type = type(definition)
           subclass = @@subclasses[obj_type]
@@ -75,6 +83,14 @@ module Pacemaker
       self
     end
 
+    def copy_attrs_to_chef_resource(resource, *attrs)
+      attrs.each do |attr|
+        value = send(attr.to_sym)
+        writer = attr.to_sym
+        resource.send(writer, value)
+      end
+    end
+
     def load_definition
       @definition = self.class.get_definition(name)
 
@@ -94,6 +110,33 @@ module Pacemaker
 
     def type
       self.class.type(definition)
+    end
+
+    def to_s
+      "%s '%s'" % [self.class.description, name]
+    end
+
+    def definition_indent
+      ' ' * 9
+    end
+
+    def continuation_line(text)
+      " \\\n#{definition_indent}#{text}"
+    end
+
+    # Returns a single-quoted shell-escaped version of the definition
+    # string, suitable for use in a command like:
+    #
+    #     echo '...' | crm configure load update -
+    def quoted_definition_string
+      "'%s'" % \
+      definition_string \
+        .gsub('\\') { '\\\\' } \
+        .gsub("'")  { "\\'" }
+    end
+
+    def reconfigure_command
+      "echo #{quoted_definition_string} | crm configure load update -"
     end
 
     def delete_command

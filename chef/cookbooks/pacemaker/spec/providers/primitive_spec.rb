@@ -1,12 +1,14 @@
 require 'chef/application'
-require_relative File.join(%w(.. spec_helper))
-require_relative File.join(%w(.. fixtures keystone_primitive))
+require File.expand_path('../spec_helper', File.dirname(__FILE__))
+require File.expand_path('../helpers/cib_object', File.dirname(__FILE__))
+require File.expand_path('../helpers/runnable_resource', File.dirname(__FILE__))
+require File.expand_path('../fixtures/keystone_primitive', File.dirname(__FILE__))
 
 describe "Chef::Provider::PacemakerPrimitive" do
   # for use inside examples:
-  let(:rsc) { Chef::RSpec::Pacemaker::Config::KEYSTONE_PRIMITIVE }
+  let(:fixture) { Chef::RSpec::Pacemaker::Config::KEYSTONE_PRIMITIVE }
   # for use outside examples (e.g. when invoking shared_examples)
-  rsc = Chef::RSpec::Pacemaker::Config::KEYSTONE_PRIMITIVE
+  fixture = Chef::RSpec::Pacemaker::Config::KEYSTONE_PRIMITIVE
 
   before(:each) do
     runner_opts = {
@@ -17,43 +19,26 @@ describe "Chef::Provider::PacemakerPrimitive" do
     @node = @chef_run.node
     @run_context = @chef_run.run_context
 
-    @resource = Chef::Resource::PacemakerPrimitive.new(rsc.name, @run_context)
-    @resource.agent  rsc.agent
-    @resource.params Hash[rsc.params]
-    @resource.meta   Hash[rsc.meta]
-    @resource.op     Hash[rsc.op]
+    @resource = Chef::Resource::PacemakerPrimitive.new(fixture.name, @run_context)
+    @resource.agent  fixture.agent
+    @resource.params Hash[fixture.params]
+    @resource.meta   Hash[fixture.meta]
+    @resource.op     Hash[fixture.op]
   end
 
   let (:provider) { Chef::Provider::PacemakerPrimitive.new(@resource, @run_context) }
 
-  # "crm configure show" is executed by load_current_resource, and
-  # again later on for the :create action, to see whether to create or
-  # modify.
-  def expect_definition(definition)
-    Mixlib::ShellOut.any_instance.stub(:run_command)
-    Mixlib::ShellOut.any_instance.stub(:error!)
-    expect_any_instance_of(Mixlib::ShellOut) \
-      .to receive(:stdout) \
-      .and_return(definition)
+  def cib_object_class
+    Pacemaker::Resource::Primitive
   end
 
-  def expect_exists(exists)
-    expect_any_instance_of(Pacemaker::Resource::Primitive) \
-      .to receive(:exists?) \
-      .and_return(exists)
-  end
-
-  def expect_running(running)
-    expect_any_instance_of(Pacemaker::Resource::Primitive) \
-      .to receive(:running?) \
-      .and_return(running)
-  end
+  include Chef::RSpec::Pacemaker::CIBObject
 
   describe ":create action" do
     def test_modify(expected_cmds)
       yield
 
-      expect_definition(rsc.definition_string)
+      expect_definitions(fixture.definition_string)
 
       provider.run_action :create
 
@@ -67,22 +52,22 @@ describe "Chef::Provider::PacemakerPrimitive" do
       expected_configure_cmd_args = [
         %'--set-parameter "os_password" --parameter-value "newpasswd"',
         %'--delete-parameter "os_tenant_name"',
-      ].map { |args| "crm_resource --resource #{rsc.name} #{args}" }
+      ].map { |args| "crm_resource --resource #{fixture.name} #{args}" }
       test_modify(expected_configure_cmd_args) do
-        new_params = Hash[rsc.params].merge("os_password" => "newpasswd")
+        new_params = Hash[fixture.params].merge("os_password" => "newpasswd")
         new_params.delete("os_tenant_name")
         @resource.params new_params
-        @resource.meta Hash[rsc.meta].merge("target-role" => "Stopped")
+        @resource.meta Hash[fixture.meta].merge("target-role" => "Stopped")
       end
     end
 
     it "should modify the primitive if it has different meta" do
       expected_configure_cmd_args = [
         %'--set-parameter "target-role" --parameter-value "Stopped" --meta',
-      ].map { |args| "crm_resource --resource #{rsc.name} #{args}" }
+      ].map { |args| "crm_resource --resource #{fixture.name} #{args}" }
       test_modify(expected_configure_cmd_args) do
-        @resource.params Hash[rsc.params]
-        @resource.meta Hash[rsc.meta].merge("target-role" => "Stopped")
+        @resource.params Hash[fixture.params]
+        @resource.meta Hash[fixture.meta].merge("target-role" => "Stopped")
       end
     end
 
@@ -91,23 +76,21 @@ describe "Chef::Provider::PacemakerPrimitive" do
         %'--set-parameter "os_password" --parameter-value "newpasswd"',
         %'--delete-parameter "os_tenant_name"',
         %'--set-parameter "target-role" --parameter-value "Stopped" --meta',
-      ].map { |args| "crm_resource --resource #{rsc.name} #{args}" }
+      ].map { |args| "crm_resource --resource #{fixture.name} #{args}" }
       test_modify(expected_configure_cmd_args) do
-        new_params = Hash[rsc.params].merge("os_password" => "newpasswd")
+        new_params = Hash[fixture.params].merge("os_password" => "newpasswd")
         new_params.delete("os_tenant_name")
         @resource.params new_params
-        @resource.meta Hash[rsc.meta].merge("target-role" => "Stopped")
+        @resource.meta Hash[fixture.meta].merge("target-role" => "Stopped")
       end
     end
 
     it "should modify the primitive if it has different op values" do
-      echo_string = rsc.definition_string.chomp
-      echo_string.gsub!('\\') { '\\\\' }.gsub!('60', '120')
       expected_configure_cmd_args = [
-        "echo '#{echo_string}' | crm configure load update -"
+        fixture.reconfigure_command.gsub('60', '120')
       ]
       test_modify(expected_configure_cmd_args) do
-        new_op = Hash[rsc.op]
+        new_op = Hash[fixture.op]
         # Ensure we're not modifying our expectation as well as the input
         new_op['monitor'] = new_op['monitor'].dup
         new_op['monitor']['timeout'] = '120'
@@ -116,24 +99,24 @@ describe "Chef::Provider::PacemakerPrimitive" do
     end
 
     it "should create a primitive if it doesn't already exist" do
-      expect_definition("")
-      # Later, the :create action calls Pacemaker::Resource::Primitive#exists? to check
-      # that creation succeeded.
-      expect_exists(true)
+      # The first time, Mixlib::ShellOut needs to return an empty definition.
+      # Then the resource gets created so the second time it needs to return
+      # the definition used for creation.
+      expect_definitions("", fixture.definition_string)
 
       provider.run_action :create
 
-      expect(@chef_run).to run_execute(rsc.crm_configure_command)
+      expect(@chef_run).to run_execute(fixture.crm_configure_command)
       expect(@resource).to be_updated
     end
 
     it "should barf if the primitive is already defined with the wrong agent" do
       existing_agent = "ocf:openstack:something-else"
-      definition = rsc.definition_string.sub(rsc.agent, existing_agent)
-      expect_definition(definition)
+      definition = fixture.definition_string.sub(fixture.agent, existing_agent)
+      expect_definitions(definition)
 
       expected_error = \
-        "Existing resource primitive '#{rsc.name}' has agent '#{existing_agent}' " \
+        "Existing #{fixture} has agent '#{existing_agent}' " \
         "but recipe wanted '#{@resource.agent}'"
       expect { provider.run_action :create }.to \
         raise_error(RuntimeError, expected_error)
@@ -142,108 +125,6 @@ describe "Chef::Provider::PacemakerPrimitive" do
     end
   end
 
-  shared_examples "action on non-existent resource" do |action, cmd, expected_error|
-    it "should not attempt to #{action.to_s} a non-existent resource" do
-      expect_definition("")
-
-      if expected_error
-        expect { provider.run_action action }.to \
-          raise_error(RuntimeError, expected_error)
-      else
-        provider.run_action action
-      end
-
-      expect(@chef_run).not_to run_execute(cmd)
-      expect(@resource).not_to be_updated
-    end
-  end
-
-  describe ":delete action" do
-    it_should_behave_like "action on non-existent resource", \
-      :delete, "crm configure delete #{rsc.name}", nil
-
-    it "should not delete a running resource" do
-      expect_definition(rsc.definition_string)
-      expect_running(true)
-
-      expected_error = "Cannot delete running resource primitive #{rsc.name}"
-      expect { provider.run_action :delete }.to \
-        raise_error(RuntimeError, expected_error)
-
-      cmd = "crm configure delete '#{rsc.name}'"
-      expect(@chef_run).not_to run_execute(cmd)
-      expect(@resource).not_to be_updated
-    end
-
-    it "should delete a non-running resource" do
-      expect_definition(rsc.definition_string)
-      expect_running(false)
-
-      provider.run_action :delete
-
-      cmd = "crm configure delete '#{rsc.name}'"
-      expect(@chef_run).to run_execute(cmd)
-      expect(@resource).to be_updated
-    end
-  end
-
-  describe ":start action" do
-    it_should_behave_like "action on non-existent resource", \
-      :start,
-      "crm resource start #{rsc.name}", \
-      "Cannot start non-existent resource primitive '#{rsc.name}'"
-
-    it "should do nothing to a started resource" do
-      expect_definition(rsc.definition_string)
-      expect_running(true)
-
-      provider.run_action :start
-
-      cmd = "crm resource start #{rsc.name}"
-      expect(@chef_run).not_to run_execute(cmd)
-      expect(@resource).not_to be_updated
-    end
-
-    it "should start a stopped resource" do
-      config = rsc.definition_string.sub("Started", "Stopped")
-      expect_definition(config)
-      expect_running(false)
-
-      provider.run_action :start
-
-      cmd = "crm resource start '#{rsc.name}'"
-      expect(@chef_run).to run_execute(cmd)
-      expect(@resource).to be_updated
-    end
-  end
-
-  describe ":stop action" do
-    it_should_behave_like "action on non-existent resource", \
-      :stop,
-      "crm resource stop #{rsc.name}", \
-      "Cannot stop non-existent resource primitive '#{rsc.name}'"
-
-    it "should do nothing to a stopped resource" do
-      expect_definition(rsc.definition_string)
-      expect_running(false)
-
-      provider.run_action :stop
-
-      cmd = "crm resource start #{rsc.name}"
-      expect(@chef_run).not_to run_execute(cmd)
-      expect(@resource).not_to be_updated
-    end
-
-    it "should stop a started resource" do
-      expect_definition(rsc.definition_string)
-      expect_running(true)
-
-      provider.run_action :stop
-
-      cmd = "crm resource stop '#{rsc.name}'"
-      expect(@chef_run).to run_execute(cmd)
-      expect(@resource).to be_updated
-    end
-  end
+  it_should_behave_like "a runnable resource", fixture
 
 end

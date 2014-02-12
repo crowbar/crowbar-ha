@@ -1,8 +1,7 @@
-# Author:: Robert Choi
 # Cookbook Name:: pacemaker
-# Provider:: colocation
+# Provider:: group
 #
-# Copyright:: 2013, Robert Choi
+# Copyright:: 2014, SUSE
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -21,7 +20,7 @@ require ::File.expand_path('../libraries/pacemaker', ::File.dirname(__FILE__))
 require ::File.expand_path('../libraries/chef/mixin/pacemaker',
                            ::File.dirname(__FILE__))
 
-include Chef::Mixin::Pacemaker::StandardCIBObject
+include Chef::Mixin::Pacemaker::RunnableResource
 
 action :create do
   name = new_resource.name
@@ -34,13 +33,19 @@ action :create do
 end
 
 action :delete do
-  name = new_resource.name
-  next unless @current_resource
-  standard_delete_resource
+  delete_runnable_resource
+end
+
+action :start do
+  start_runnable_resource
+end
+
+action :stop do
+  stop_runnable_resource
 end
 
 def cib_object_class
-  ::Pacemaker::Constraint::Colocation
+  ::Pacemaker::Resource::Group
 end
 
 def load_current_resource
@@ -49,8 +54,8 @@ end
 
 def init_current_resource
   name = @new_resource.name
-  @current_resource = Chef::Resource::PacemakerColocation.new(name)
-  attrs = [:score, :resources]
+  @current_resource = Chef::Resource::PacemakerGroup.new(name)
+  attrs = [:members]
   @current_cib_object.copy_attrs_to_chef_resource(@current_resource, *attrs)
 end
 
@@ -61,10 +66,10 @@ end
 def maybe_modify_resource(name)
   Chef::Log.info "Checking existing #{@current_cib_object} for modifications"
 
-  desired_colocation = cib_object_class.from_chef_resource(new_resource)
-  if desired_colocation.definition_string != @current_cib_object.definition_string
-    Chef::Log.debug "changed from [#{@current_cib_object.definition_string}] to [#{desired_colocation.definition_string}]"
-    cmd = desired_colocation.reconfigure_command
+  desired_group = cib_object_class.from_chef_resource(new_resource)
+  if desired_group.definition_string != @current_cib_object.definition_string
+    Chef::Log.debug "changed from [#{@current_cib_object.definition_string}] to [#{desired_group.definition_string}]"
+    cmd = desired_group.reconfigure_command
     execute cmd do
       action :nothing
     end.run_action(:run)

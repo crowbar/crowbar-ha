@@ -39,8 +39,7 @@ template "/etc/corosync/corosync.conf" do
     :cluster_name => node[:corosync][:cluster_name],
     :bind_addr    => node[:corosync][:bind_addr],
     :mcast_addr   => node[:corosync][:mcast_addr],
-    :mcast_port   => node[:corosync][:mcast_port],
-    :log_file     => node[:corosync][:log_file]
+    :mcast_port   => node[:corosync][:mcast_port]
   )
 
   service_name = node[:pacemaker][:platform][:service_name] rescue nil

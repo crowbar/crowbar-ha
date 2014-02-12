@@ -1,8 +1,8 @@
 require 'spec_helper'
 require 'mixlib/shellout'
 
-require_relative File.join(%w(.. .. .. libraries pacemaker))
-require_relative File.join(%w(.. .. fixtures keystone_primitive))
+require File.expand_path('../../../libraries/pacemaker', File.dirname(__FILE__))
+require File.expand_path('../../fixtures/keystone_primitive', File.dirname(__FILE__))
 
 describe Pacemaker::CIBObject do
 

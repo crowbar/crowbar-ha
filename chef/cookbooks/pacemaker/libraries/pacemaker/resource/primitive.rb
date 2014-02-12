@@ -1,12 +1,14 @@
 require 'shellwords'
-require_relative File::join(%w(.. resource))
+require File.expand_path('../resource', File.dirname(__FILE__))
+require File.expand_path('../mixins/resource_meta', File.dirname(__FILE__))
 
 class Pacemaker::Resource::Primitive < Pacemaker::Resource
   TYPE = 'primitive'
-
   register_type TYPE
 
-  attr_accessor :agent, :params, :meta, :op
+  include Pacemaker::Resource::Meta
+
+  attr_accessor :agent, :params, :op
 
   def initialize(*args)
     super(*args)
@@ -34,7 +36,8 @@ class Pacemaker::Resource::Primitive < Pacemaker::Resource
 
     self.op = {}
     %w(start stop monitor).each do |op|
-      self.op[op] = self.class.extract_hash(definition, "op #{op}")
+      h = self.class.extract_hash(definition, "op #{op}")
+      self.op[op] = h unless h.empty?
     end
   end
 
@@ -42,21 +45,19 @@ class Pacemaker::Resource::Primitive < Pacemaker::Resource
     self.class.params_string(params)
   end
 
-  def meta_string
-    self.class.meta_string(meta)
-  end
-
   def op_string
     self.class.op_string(op)
   end
 
   def definition_string
-    return <<EOF
-primitive #{name} #{agent} \\
-         #{params_string} \\
-         #{meta_string} \\
-         #{op_string}
-EOF
+    str = "#{TYPE} #{name} #{agent}"
+    %w(params meta op).each do |data_type|
+      unless send(data_type).empty?
+        data_string = send("#{data_type}_string")
+        str << continuation_line(data_string)
+      end
+    end
+    str
   end
 
   def crm_configure_command
@@ -73,14 +74,6 @@ EOF
     end.join(' ')
   end
 
-  def self.meta_string(meta)
-    return "" if ! meta or meta.empty?
-    "meta " +
-    meta.sort.map do |key, value|
-      %'#{key}="#{value}"'
-    end.join(' ')
-  end
-
   def self.op_string(ops)
     return "" if ! ops or ops.empty?
     ops.sort.map do |op, attrs|
@@ -89,32 +82,6 @@ EOF
         %'#{key}="#{value}"'
       end.join(' ')
     end.compact.join(' ')
-  end
-
-  # CIB object definitions look something like:
-  #
-  # primitive keystone ocf:openstack:keystone \
-  #         params os_username="crowbar" os_password="crowbar" os_tenant_name="openstack" \
-  #         meta target-role="Started" is-managed="true" \
-  #         op monitor interval="10" timeout=30s \
-  #         op start interval="10s" timeout="240" \
-  #
-  # This method extracts a Hash from one of the params / meta / op lines.
-  def self.extract_hash(obj_definition, data_type)
-    unless obj_definition =~ /\s+#{data_type} (.+?)\s*\\?$/
-      return {}
-    end
-
-    h = {}
-    Shellwords.split($1).each do |kvpair|
-      break if kvpair == 'op'
-      unless kvpair =~ /^(.+?)=(.+)$/
-        raise "Couldn't understand '#{kvpair}' for '#{data_type}' section "\
-          "of #{name} primitive (definition was [#{obj_definition}])"
-      end
-      h[$1] = $2.sub(/^"(.*)"$/, "\1")
-    end
-    h
   end
 
 end
