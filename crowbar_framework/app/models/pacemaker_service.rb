@@ -61,13 +61,6 @@ class PacemakerService < ServiceObject
   def validate_proposal_after_save proposal
     elements = proposal["deployment"]["pacemaker"]["elements"]
 
-    # accept proposal with no allocated node -- ie, initial state
-    if not elements.has_key?("pacemaker-cluster-member") and
-       not elements.has_key?("pacemaker-cluster-founder") and
-       not elements.has_key?("hawk-server")
-       return
-    end
-
     if not elements.has_key?("pacemaker-cluster-founder") or elements["pacemaker-cluster-founder"].length != 1
       validation_error "Need one (and only one) pacemaker-cluster-founder node."
     end
