@@ -16,8 +16,8 @@
 class PacemakerService < ServiceObject
 
   def initialize(thelogger)
+    super(thelogger)
     @bc_name = "pacemaker"
-    @logger = thelogger
   end
 
   #if barclamp allows multiple proposals OVERRIDE
