@@ -80,6 +80,16 @@ class PacemakerService < ServiceObject
       end
     end
 
+    nodes = NodeObject.find("roles:provisioner-server")
+    unless nodes.nil? or nodes.length < 1
+      provisioner_server_node = nodes[0]
+      if provisioner_server_node[:platform] == "suse"
+        if (provisioner_server_node[:provisioner][:suse][:missing_hae] rescue false)
+          validation_error "The HAE repositories have not been setup."
+        end
+      end
+    end
+
     super
   end
 
