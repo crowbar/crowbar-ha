@@ -16,8 +16,8 @@
 class PacemakerService < ServiceObject
 
   def initialize(thelogger)
+    super(thelogger)
     @bc_name = "pacemaker"
-    @logger = thelogger
   end
 
   #if barclamp allows multiple proposals OVERRIDE
@@ -59,18 +59,9 @@ class PacemakerService < ServiceObject
   end
 
   def validate_proposal_after_save proposal
+    validate_one_for_role proposal, "pacemaker-cluster-founder"
+
     elements = proposal["deployment"]["pacemaker"]["elements"]
-
-    # accept proposal with no allocated node -- ie, initial state
-    if not elements.has_key?("pacemaker-cluster-member") and
-       not elements.has_key?("pacemaker-cluster-founder") and
-       not elements.has_key?("hawk-server")
-       return
-    end
-
-    if not elements.has_key?("pacemaker-cluster-founder") or elements["pacemaker-cluster-founder"].length != 1
-      validation_error "Need one (and only one) pacemaker-cluster-founder node."
-    end
 
     if elements.has_key?("hawk-server")
       @logger.debug("Pacemaker apply_role_pre_chef_call: elts #{elements.inspect}")
@@ -85,6 +76,16 @@ class PacemakerService < ServiceObject
         name = "#{node.alias} (#{name})" if node.alias
         unless members.include? n
           validation_error "Node #{name} has the hawk-server role but not either the pacemaker-cluster-founder or pacemaker-cluster-member role."
+        end
+      end
+    end
+
+    nodes = NodeObject.find("roles:provisioner-server")
+    unless nodes.nil? or nodes.length < 1
+      provisioner_server_node = nodes[0]
+      if provisioner_server_node[:platform] == "suse"
+        if (provisioner_server_node[:provisioner][:suse][:missing_hae] rescue true)
+          validation_error "The HAE repositories have not been setup."
         end
       end
     end
