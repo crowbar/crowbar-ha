@@ -1,18 +1,1 @@
-
-%p
-  = render :partial => "barclamp/node_selector"
-
-:javascript
-  $(document).ready(function(){
-    var constraints = {
-      // "unique": true means that once the node is assigend to that role,
-      // it can't be assigned to any other roles.
-      // "count" is the maximum number of nodes which can be assigned to
-      // the role; -1 is unlimited.
-      "pacemaker-cluster-founder": { "unique": false, "count":  1 },
-      "pacemaker-cluster-member" : { "unique": false, "count": -1 },
-      "hawk-server"              : { "unique": false, "count": -1 }
-    };
-    node_selector($('#drag_drop'), constraints);
-  });
-
+= render :partial => "barclamp/node_selector", :locals => { :constraints => pacemaker_role_constraints }
