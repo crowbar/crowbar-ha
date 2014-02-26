@@ -47,7 +47,7 @@ class PacemakerService < ServiceObject
 
       hawk_server_ip = node.get_network_by_type("admin")["address"]
       hawk_server_port = node["hawk"]["server"]["port"]
-      url = "http://#{hawk_server_ip}:#{hawk_server_port}/"
+      url = "https://#{hawk_server_ip}:#{hawk_server_port}/"
 
       node.crowbar["crowbar"] = {} if node.crowbar["crowbar"].nil?
       node.crowbar["crowbar"]["links"] = {} if node.crowbar["crowbar"]["links"].nil?
