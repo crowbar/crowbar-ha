@@ -33,6 +33,25 @@ class PacemakerService < ServiceObject
     base
   end
 
+  def apply_role_pre_chef_call(old_role, role, all_nodes)
+    @logger.debug("Pacemaker apply_role_pre_chef_call: entering #{all_nodes.inspect}")
+
+    unless role.default_attributes["pacemaker"]["corosync"]["password"].empty?
+      old_role_password = old_role.default_attributes["pacemaker"]["corosync"]["password"]
+      role_password = role.default_attributes["pacemaker"]["corosync"]["password"]
+
+      role.default_attributes["corosync"] ||= {}
+      if old_role && role_password == old_role_password
+        role.default_attributes["corosync"]["password"] = old_role.default_attributes["corosync"]["password"]
+      else
+        role.default_attributes["corosync"]["password"] = %x[openssl passwd -1 "#{role_password}" | tr -d "\n"]
+      end
+      role.save
+    end
+
+    @logger.debug("Pacemaker apply_role_pre_chef_call: leaving")
+  end
+
   def apply_role_post_chef_call(old_role, role, all_nodes)
     @logger.debug("Pacemaker apply_role_post_chef_call: entering #{all_nodes.inspect}")
 

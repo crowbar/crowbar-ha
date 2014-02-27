@@ -3,7 +3,10 @@
   "description": "Installation for Pacemaker",
   "attributes": {
     "pacemaker": {
-      "setup_hb_gui": false
+      "setup_hb_gui": false,
+      "corosync": {
+        "password": "crowbar"
+      }
     }
   },
   "deployment": {
