@@ -90,10 +90,10 @@ class PacemakerService < ServiceObject
 
       elements["hawk-server"].each do |n|
         @logger.debug("checking #{n}")
-        node = NodeObject.find_node_by_name(n)
-        name = node.name
-        name = "#{node.alias} (#{name})" if node.alias
         unless members.include? n
+          node = NodeObject.find_node_by_name(n)
+          name = node.name
+          name = "#{node.alias} (#{name})" if node.alias
           validation_error "Node #{name} has the hawk-server role but not either the pacemaker-cluster-founder or pacemaker-cluster-member role."
         end
       end
