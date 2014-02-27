@@ -12,7 +12,8 @@
           "type": "map",
           "required": true,
           "mapping": {
-            "foo": { "type": "str", "required": true }
+            "foo": { "type": "str", "required": true },
+            "setup_hb_gui": { "type": "bool", "required": true }
           }
         }
       }
