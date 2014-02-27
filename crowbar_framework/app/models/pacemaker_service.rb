@@ -70,7 +70,7 @@ class PacemakerService < ServiceObject
 
       node.crowbar["crowbar"] = {} if node.crowbar["crowbar"].nil?
       node.crowbar["crowbar"]["links"] = {} if node.crowbar["crowbar"]["links"].nil?
-      node.crowbar["crowbar"]["links"]["Pacemaker cluster web UI (Hawk)"] = url
+      node.crowbar["crowbar"]["links"]["Pacemaker Cluster (Hawk)"] = url
       node.save
     end
 
