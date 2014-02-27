@@ -3,7 +3,6 @@
   "description": "Installation for Pacemaker",
   "attributes": {
     "pacemaker": {
-      "foo": "bar",
       "setup_hb_gui": false
     }
   },
