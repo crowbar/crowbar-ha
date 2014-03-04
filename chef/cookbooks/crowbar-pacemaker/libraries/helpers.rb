@@ -1,3 +1,21 @@
+#
+# Copyright 2014, SUSE
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+require 'timeout'
+
 # Functions to help recipes register resources in the Pacemaker cluster
 # via the LWRPs provided by the pacemaker cookbook.
 #
@@ -180,5 +198,60 @@ module CrowbarPacemakerHelper
     end
 
     servers
+  end
+
+  def self.wait_for_mark_from_founder(node, cookbook, mark, revision, fatal = false, timeout = 60)
+    return unless cluster_enabled?(node)
+    return if node.roles.include? "pacemaker-cluster-founder"
+
+    cluster_name = cluster_name(node)
+
+    Chef::Log.info("Checking if cluster founder has set #{cookbook}/#{mark} to #{revision}...")
+
+    begin
+      Timeout.timeout(timeout) do
+        while true
+          founders = cluster_nodes(node, "pacemaker-cluster-founder")
+          raise "No cluster founders found!" if founders.empty?
+          raise "Multiple cluster founders found!" if founders.length > 1
+          founder = founders.first
+
+          if !founder.nil? && (founder[:pacemaker][:sync_marks][cluster_name][cookbook][mark] rescue nil) == revision
+            Chef::Log.info("Cluster founder has set #{cookbook}/#{mark} to #{revision}.")
+            break
+          end
+
+          Chef::Log.debug("Waiting for cluster founder to set #{cookbook}/#{mark} to #{revision}...")
+          sleep(10)
+        end # while true
+      end # Timeout
+    rescue Timeout::Error
+      if fatal
+        message = "Cluster founder didn't set #{cookbook}/#{mark} to #{revision}!"
+        Chef::Log.fatal(message)
+        raise message
+      else
+        message = "Cluster founder didn't set #{cookbook}/#{mark} to #{revision}! Going on..."
+        Chef::Log.warn(message)
+      end
+    end
+  end
+
+  def self.set_mark_if_founder(node, cookbook, mark, revision)
+    return unless cluster_enabled?(node)
+    return unless node.roles.include? "pacemaker-cluster-founder"
+
+    cluster_name = cluster_name(node)
+
+    node[:pacemaker][:sync_marks] ||= {}
+    node[:pacemaker][:sync_marks][cluster_name] ||= {}
+    node[:pacemaker][:sync_marks][cluster_name][cookbook] ||= {}
+    if node[:pacemaker][:sync_marks][cluster_name][cookbook][mark] != revision
+      node[:pacemaker][:sync_marks][cluster_name][cookbook][mark] = revision
+      node.save
+      Chef::Log.info("Setting founder cluster mark #{cookbook}/#{mark} to #{revision}.")
+    else
+      Chef::Log.info("Founder cluster mark #{cookbook}/#{mark} already set to #{revision}.")
+    end
   end
 end
