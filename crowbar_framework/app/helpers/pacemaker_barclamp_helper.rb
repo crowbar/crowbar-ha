@@ -17,23 +17,6 @@
 #
 
 module PacemakerBarclampHelper
-  def pacemaker_role_constraints
-    {
-      "pacemaker-cluster-founder" => {
-        "unique" => false,
-        "count" => 1
-      },
-      "pacemaker-cluster-member" => {
-        "unique" => false,
-        "count" => -1
-      },
-      "hawk-server" => {
-        "unique" => false,
-        "count" => -1
-      }
-    }
-  end
-
   def foo_for_pacemaker(selected)
     options_for_select(
       [
