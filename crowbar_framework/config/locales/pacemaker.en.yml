@@ -4,4 +4,6 @@ en:
   barclamp:
     pacemaker:
       edit_attributes:
-        foo: Comic Choice
+        setup_hb_gui: Setup non-web GUI (hb_gui)
+        corosync:
+          password: Password for hacluster user in Hawk

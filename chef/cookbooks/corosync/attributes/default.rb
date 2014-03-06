@@ -21,8 +21,7 @@ default[:corosync][:mcast_port]   = 5405
 
 case node.platform
 when 'suse'
-  default[:corosync][:platform][:packages] = \
-    %w(sle-hae-release corosync openais pacemaker)
+  default[:corosync][:platform][:packages] = %w(sle-hae-release corosync openais)
 
   # The UNIX user for the cluster is typically determined by the
   # cluster-glue package:

@@ -18,12 +18,6 @@
 # limitations under the License.
 #
 
-node[:pacemaker][:platform][:packages].each do |pkg|
-  package pkg do
-    action :install
-  end
-end
-
 crm_conf = node[:pacemaker][:crm][:initial_config_file]
 template crm_conf do
   source "crm-initial.conf.erb"
@@ -35,23 +29,4 @@ end
 execute "crm initial configuration" do
   user "root"
   command "crm configure load replace #{crm_conf}"
-end
-
-if platform_family? "rhel"
-  execute "sleep 2"
-
-  service "pacemaker" do
-    action [ :enable, :start ]
-    notifies :restart, "service[clvm]", :immediately
-  end
-end
-
-# required to run hb_gui
-if platform_family? "suse"
-  cmd = "SuSEconfig --module gtk2"
-  execute cmd do
-    user "root"
-    command cmd
-    not_if { File.exists? "/etc/gtk-2.0/gdk-pixbuf64.loaders" }
-  end
 end

@@ -3,4 +3,5 @@
     = header @dep_raw, true
 
   .panel-body
-    = select_field :foo, :collection => :foo_for_pacemaker
+    = password_field %w(corosync password)
+    = boolean_field :setup_hb_gui

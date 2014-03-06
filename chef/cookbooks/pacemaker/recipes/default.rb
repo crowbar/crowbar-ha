@@ -18,4 +18,41 @@
 # limitations under the License.
 #
 
-include_recipe "pacemaker::setup"
+node[:pacemaker][:platform][:packages].each do |pkg|
+  package pkg
+end
+
+if node[:pacemaker][:setup_hb_gui]
+  node[:pacemaker][:platform][:graphical_packages].each do |pkg|
+    package pkg
+  end
+
+  # required to run hb_gui
+  if platform_family? "suse"
+    cmd = "SuSEconfig --module gtk2"
+    execute cmd do
+      user "root"
+      command cmd
+      not_if { File.exists? "/etc/gtk-2.0/gdk-pixbuf64.loaders" }
+    end
+  end
+end
+
+if Chef::Config[:solo]
+  ::Chef::Log.warn "Using Chef Solo, you are expected to manually include the corosync default recipe!"
+else
+  include_recipe "corosync::default"
+end
+
+if node[:pacemaker][:founder]
+  include_recipe "pacemaker::setup"
+end
+
+if platform_family? "rhel"
+  execute "sleep 2"
+
+  service "pacemaker" do
+    action [ :enable, :start ]
+    notifies :restart, "service[clvm]", :immediately
+  end
+end

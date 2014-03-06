@@ -12,7 +12,14 @@
           "type": "map",
           "required": true,
           "mapping": {
-            "foo": { "type": "str", "required": true }
+            "setup_hb_gui": { "type": "bool", "required": true },
+            "corosync": {
+              "type": "map",
+              "required": true,
+              "mapping": {
+                "password": { "type": "str", "required": true }
+              }
+            }
           }
         }
       }

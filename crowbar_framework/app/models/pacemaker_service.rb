@@ -33,6 +33,30 @@ class PacemakerService < ServiceObject
     base
   end
 
+  def apply_role_pre_chef_call(old_role, role, all_nodes)
+    @logger.debug("Pacemaker apply_role_pre_chef_call: entering #{all_nodes.inspect}")
+
+    admin_net = ProposalObject.find_data_bag_item "crowbar/admin_network"
+
+    role.default_attributes["corosync"] ||= {}
+    role.default_attributes["corosync"]["bind_addr"] = admin_net["network"]["subnet"]
+
+    unless role.default_attributes["pacemaker"]["corosync"]["password"].empty?
+      old_role_password = old_role.default_attributes["pacemaker"]["corosync"]["password"]
+      role_password = role.default_attributes["pacemaker"]["corosync"]["password"]
+
+      if old_role && role_password == old_role_password
+        role.default_attributes["corosync"]["password"] = old_role.default_attributes["corosync"]["password"]
+      else
+        role.default_attributes["corosync"]["password"] = %x[openssl passwd -1 "#{role_password}" | tr -d "\n"]
+      end
+    end
+
+    role.save
+
+    @logger.debug("Pacemaker apply_role_pre_chef_call: leaving")
+  end
+
   def apply_role_post_chef_call(old_role, role, all_nodes)
     @logger.debug("Pacemaker apply_role_post_chef_call: entering #{all_nodes.inspect}")
 
@@ -51,7 +75,7 @@ class PacemakerService < ServiceObject
 
       node.crowbar["crowbar"] = {} if node.crowbar["crowbar"].nil?
       node.crowbar["crowbar"]["links"] = {} if node.crowbar["crowbar"]["links"].nil?
-      node.crowbar["crowbar"]["links"]["Pacemaker cluster web UI (Hawk)"] = url
+      node.crowbar["crowbar"]["links"]["Pacemaker Cluster (Hawk)"] = url
       node.save
     end
 
@@ -71,10 +95,10 @@ class PacemakerService < ServiceObject
 
       elements["hawk-server"].each do |n|
         @logger.debug("checking #{n}")
-        node = NodeObject.find_node_by_name(n)
-        name = node.name
-        name = "#{node.alias} (#{name})" if node.alias
         unless members.include? n
+          node = NodeObject.find_node_by_name(n)
+          name = node.name
+          name = "#{node.alias} (#{name})" if node.alias
           validation_error "Node #{name} has the hawk-server role but not either the pacemaker-cluster-founder or pacemaker-cluster-member role."
         end
       end
