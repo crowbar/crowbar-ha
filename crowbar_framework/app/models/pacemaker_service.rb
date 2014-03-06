@@ -36,18 +36,23 @@ class PacemakerService < ServiceObject
   def apply_role_pre_chef_call(old_role, role, all_nodes)
     @logger.debug("Pacemaker apply_role_pre_chef_call: entering #{all_nodes.inspect}")
 
+    admin_net = ProposalObject.find_data_bag_item "crowbar/admin_network"
+
+    role.default_attributes["corosync"] ||= {}
+    role.default_attributes["corosync"]["bind_addr"] = admin_net["network"]["subnet"]
+
     unless role.default_attributes["pacemaker"]["corosync"]["password"].empty?
       old_role_password = old_role.default_attributes["pacemaker"]["corosync"]["password"]
       role_password = role.default_attributes["pacemaker"]["corosync"]["password"]
 
-      role.default_attributes["corosync"] ||= {}
       if old_role && role_password == old_role_password
         role.default_attributes["corosync"]["password"] = old_role.default_attributes["corosync"]["password"]
       else
         role.default_attributes["corosync"]["password"] = %x[openssl passwd -1 "#{role_password}" | tr -d "\n"]
       end
-      role.save
     end
+
+    role.save
 
     @logger.debug("Pacemaker apply_role_pre_chef_call: leaving")
   end
