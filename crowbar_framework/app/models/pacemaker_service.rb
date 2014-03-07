@@ -25,6 +25,27 @@ class PacemakerService < ServiceObject
   #   true
   # end
 
+  class << self
+    def role_constraints
+      @role_constraints ||= begin
+        {
+          "pacemaker-cluster-founder" => {
+            "unique" => false,
+            "count" => 1
+          },
+          "pacemaker-cluster-member" => {
+            "unique" => false,
+            "count" => -1
+          },
+          "hawk-server" => {
+            "unique" => false,
+            "count" => -1
+          }
+        }
+      end
+    end
+  end
+
   def create_proposal
     @logger.debug("Pacemaker create_proposal: entering")
     base = super
