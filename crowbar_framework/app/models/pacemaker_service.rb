@@ -42,7 +42,12 @@ class PacemakerService < ServiceObject
     role.default_attributes["corosync"]["bind_addr"] = admin_net["network"]["subnet"]
 
     unless role.default_attributes["pacemaker"]["corosync"]["password"].empty?
-      old_role_password = old_role.default_attributes["pacemaker"]["corosync"]["password"]
+      if old_role
+        old_role_password = old_role.default_attributes["pacemaker"]["corosync"]["password"]
+      else
+        old_role_password = nil
+      end
+
       role_password = role.default_attributes["pacemaker"]["corosync"]["password"]
 
       if old_role && role_password == old_role_password
