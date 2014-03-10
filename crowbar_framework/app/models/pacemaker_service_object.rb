@@ -35,17 +35,19 @@ class PacemakerServiceObject < ServiceObject
       "cluster"
     end
 
+    # Note that we cannot cache the list of clusters here as we're in a
+    # eigenclass, and so the cache will be longer term than a single request
+    # (hence we won't notice new clusters). It's therefore up to the callers to
+    # cache this.
     # Returns: list of available clusters
     def available_clusters
-      @available_clusters ||= begin
-        clusters = {}
-        # we only care about the deployed clusters, not about existing
-        # proposals
-        RoleObject.find_roles_by_name("pacemaker-config-*").each do |role|
-          clusters["#{cluster_key}:#{role.inst}"] = role
-        end
-        clusters
+      clusters = {}
+      # we only care about the deployed clusters, not about existing
+      # proposals
+      RoleObject.find_roles_by_name("pacemaker-config-*").each do |role|
+        clusters["#{cluster_key}:#{role.inst}"] = role
       end
+      clusters
     end
 
     # Returns: name of the barclamp and of the proposal for this cluster
@@ -70,17 +72,14 @@ class PacemakerServiceObject < ServiceObject
       end
     end
 
-    def cluster_exists?(element)
-      !available_clusters[element].nil?
-    end
-
     # Returns: list of nodes in the cluster, or nil if the cluster doesn't exist
     def expand_nodes(cluster)
-      unless cluster_exists? cluster
+      clusters = available_clusters
+      if clusters[cluster].nil?
         nil
       else
         nodes = []
-        pacemaker_proposal = available_clusters[cluster]
+        pacemaker_proposal = clusters[cluster]
         %w(pacemaker-cluster-founder pacemaker-cluster-member).each do |role_name|
           cluster_nodes = pacemaker_proposal.override_attributes["pacemaker"]["elements"][role_name]
           nodes.concat(cluster_nodes) if cluster_nodes
@@ -240,7 +239,7 @@ class PacemakerServiceObject < ServiceObject
     end
 
     if ha_enabled
-      dirty ||= prepare_role_for_cluster_vip_networks(role, networks)
+      dirty = prepare_role_for_cluster_vip_networks(role, networks) || dirty
     end
 
     dirty
