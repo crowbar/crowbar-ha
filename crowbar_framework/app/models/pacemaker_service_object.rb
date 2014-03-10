@@ -239,7 +239,7 @@ class PacemakerServiceObject < ServiceObject
     end
 
     if ha_enabled
-      dirty ||= prepare_role_for_cluster_vip_networks(role, networks)
+      dirty = prepare_role_for_cluster_vip_networks(role, networks) || dirty
     end
 
     dirty
