@@ -20,10 +20,9 @@ class PacemakerService < ServiceObject
     @bc_name = "pacemaker"
   end
 
-  #if barclamp allows multiple proposals OVERRIDE
-  # def self.allow_multiple_proposals?
-  #   true
-  # end
+  def self.allow_multiple_proposals?
+    true
+  end
 
   class << self
     def role_constraints
