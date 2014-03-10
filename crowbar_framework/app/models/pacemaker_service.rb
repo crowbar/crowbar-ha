@@ -48,6 +48,32 @@ class PacemakerService < ServiceObject
     @logger.debug("Pacemaker create_proposal: entering")
     base = super
 
+    used_mcast_addrs = {}
+
+    proposals_raw.each do |p|
+      mcast_addr = p["attributes"][@bc_name]["corosync"]["mcast_addr"]
+      used_mcast_addrs[mcast_addr] = true
+    end
+    RoleObject.find_roles_by_name("pacemaker-config-*").each do |r|
+      mcast_addr = role.default_attributes["pacemaker"]["corosync"]["mcast_addr"]
+      used_mcast_addrs[mcast_addr] = true
+    end
+
+    free_mcast_addr_found = false
+    (0..255).each do |mcast_third|
+      (1..254).each do |mcast_fourth|
+        mcast_addr = "239.255.#{mcast_third}.#{mcast_fourth}"
+        unless used_mcast_addrs.has_key? mcast_addr
+          base["attributes"][@bc_name]["corosync"]["mcast_addr"] = mcast_addr
+          free_mcast_addr_found = true
+          break
+        end
+      end
+      break if free_mcast_addr_found
+    end
+
+    raise "Cannot find an available multicast address!" unless free_mcast_addr_found
+
     @logger.debug("Pacemaker create_proposal: exiting")
     base
   end
@@ -59,6 +85,9 @@ class PacemakerService < ServiceObject
 
     role.default_attributes["corosync"] ||= {}
     role.default_attributes["corosync"]["bind_addr"] = admin_net["network"]["subnet"]
+
+    role.default_attributes["corosync"]["mcast_addr"] = role.default_attributes["pacemaker"]["corosync"]["mcast_addr"]
+    role.default_attributes["corosync"]["mcast_port"] = role.default_attributes["pacemaker"]["corosync"]["mcast_port"]
 
     unless role.default_attributes["pacemaker"]["corosync"]["password"].empty?
       if old_role
