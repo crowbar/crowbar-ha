@@ -9,6 +9,20 @@
         "mcast_port": 5405,
         "password": "crowbar"
       },
+      "stonith": {
+        "mode": "manual",
+        "clone": {
+          "plugin": "",
+          "params": ""
+        },
+        "per_node": {
+          "plugin": "",
+          "nodes": {}
+        },
+        "libvirt": {
+          "hypervisor_ip": ""
+        }
+      },
       "haproxy": {
         "public_name": ""
       }

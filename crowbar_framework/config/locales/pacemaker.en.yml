@@ -28,3 +28,21 @@ en:
           to make the GUI accessible.
         corosync:
           password: Password for hacluster user in Hawk
+        stonith_header: STONITH
+        stonith_modes:
+          manual: Configured manually
+          ipmi_barclamp: Configured with IPMI data from IPMI barclamp
+          clone: Configured with a clone resource
+          per_node: Configured with a resource per node
+          libvirt: Configured for nodes running in libvirt
+        stonith:
+          mode: Configuration mode for STONITH
+          clone:
+            plugin: STONITH plugin
+            params: Parameters for plugin
+          per_node:
+            plugin: STONITH plugin
+          libvirt:
+            dev_only: The libvirt STONITH configuration is not supported, it should be used for development or testing purposes only!
+            hypervisor_ip: IP address of hypervisor
+            hypervisor_ip_hint: Note that libvirt on your host needs to be configured to listen on TCP, with no TLS and no authentication. The firewall should also be configured to allow communication from the virtual machines.

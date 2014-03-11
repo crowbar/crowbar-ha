@@ -17,4 +17,16 @@
 #
 
 module PacemakerBarclampHelper
+  def stonith_mode_for_pacemaker(selected)
+    options_for_select(
+      [
+        [t(".stonith_modes.manual"), "manual"],
+        [t(".stonith_modes.ipmi_barclamp"), "ipmi_barclamp"],
+        [t(".stonith_modes.clone"), "clone"],
+        [t(".stonith_modes.per_node"), "per_node"],
+        [t(".stonith_modes.libvirt"), "libvirt"]
+      ],
+      selected.to_s
+    )
+  end
 end

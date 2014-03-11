@@ -5,6 +5,27 @@
   .panel-body
     %fieldset
       %legend
+        = t(".stonith_header")
+
+      = select_field %w(stonith mode), :collection => :stonith_mode_for_pacemaker, "data-showit" => ["clone", "per_node", "libvirt"].join(";"), "data-showit-target" => "#stonith_clone_container;#stonith_per_node_container;#stonith_libvirt_container", "data-showit-direct" => "true"
+
+      #stonith_clone_container
+        = string_field %w(stonith clone plugin)
+        = string_field %w(stonith clone params)
+
+      #stonith_per_node_container
+        = string_field %w(stonith per_node plugin)
+        - # FIXME: here we need the table with a row per node, and two columns (first one is for node name, second one is for parameters)
+
+      #stonith_libvirt_container
+        .alert.alert-warning
+          = t('.stonith.libvirt.dev_only')
+        = string_field %w(stonith libvirt hypervisor_ip)
+        %span.help-block
+          = t('.stonith.libvirt.hypervisor_ip_hint')
+
+    %fieldset
+      %legend
         = t(".haproxy_header")
 
       .alert.alert-info
