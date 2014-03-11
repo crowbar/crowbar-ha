@@ -214,15 +214,14 @@ class PacemakerServiceObject < ServiceObject
     dirty
   end
 
-  # This prepares attributes for HA, with haproxy. It will call
-  # prepare_role_for_cluster_vip_networks if HA is wanted.
+  # This prepares attributes for HA.
   #
-  # attribute_path is a the path (in terms of attributes) to set to true/false
+  # attribute_path is the path (in terms of attributes) to set to true/false
   # depending on ha_enabled. For instance: with ["keystone", "ha", "enabled"],
   # the method will set role.default_attributes["keystone"]["ha"]["enabled"]
   #
   # Returns: whether the role needs to be saved or not
-  def prepare_role_for_ha_with_haproxy(role, attribute_path, ha_enabled, networks)
+  def prepare_role_for_ha(role, attribute_path, ha_enabled)
     dirty = false
 
     data = role.default_attributes
@@ -237,6 +236,20 @@ class PacemakerServiceObject < ServiceObject
       data[attribute_path[-1]] = ha_enabled
       dirty = true
     end
+
+    dirty
+  end
+
+  # This prepares attributes for HA, with haproxy. It will call
+  # prepare_role_for_ha and, if HA is wanted,
+  # prepare_role_for_cluster_vip_networks.
+  #
+  # See prepare_role_for_ha documentation for description of how attribute_path
+  # works.
+  #
+  # Returns: whether the role needs to be saved or not
+  def prepare_role_for_ha_with_haproxy(role, attribute_path, ha_enabled, networks)
+    dirty = prepare_role_for_ha(role, attribute_path, ha_enabled)
 
     if ha_enabled
       dirty = prepare_role_for_cluster_vip_networks(role, networks) || dirty
