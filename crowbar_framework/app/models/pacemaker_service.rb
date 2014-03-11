@@ -54,7 +54,7 @@ class PacemakerService < ServiceObject
       used_mcast_addrs[mcast_addr] = true
     end
     RoleObject.find_roles_by_name("pacemaker-config-*").each do |r|
-      mcast_addr = role.default_attributes["pacemaker"]["corosync"]["mcast_addr"]
+      mcast_addr = r.default_attributes["pacemaker"]["corosync"]["mcast_addr"]
       used_mcast_addrs[mcast_addr] = true
     end
 
