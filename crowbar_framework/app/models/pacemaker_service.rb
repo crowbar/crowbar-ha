@@ -134,17 +134,68 @@ class PacemakerService < ServiceObject
     @logger.debug("Pacemaker apply_role_post_chef_call: leaving")
   end
 
+  def validate_proposal_stonith stonith_attributes, members
+    case stonith_attributes["mode"]
+    when "manual"
+      # nothing to do
+    when "clone"
+      plugin = stonith_attributes["clone"]["plugin"]
+      params = stonith_attributes["clone"]["params"]
+      validation_error "Missing STONITH plugin for clone setup" if plugin.blank?
+      validation_error "Missing STONITH parameters for clone setup" if params.blank?
+    when "per_node"
+      plugin = stonith_attributes["per_node"]["plugin"]
+      nodes = stonith_attributes["per_node"]["nodes"]
+
+      validation_error "Missing STONITH plugin for per-node setup" if plugin.blank?
+
+      members.each do |member|
+        validation_error "Missing STONITH parameters for node #{member}" unless nodes.has_key?(member)
+      end
+
+      nodes.keys.each do |node_name|
+        if members.include? node_name
+          params = nodes[node_name]["params"]
+          validation_error "Missing STONITH parameters for node #{node_name}" if params.blank?
+        else
+          validation_error "STONITH parameters for node #{node_name}, while this node is a not a member of the cluster"
+        end
+      end
+    when "ipmi_barclamp"
+      members.each do |member|
+        node = NodeObject.find_node_by_name(member)
+        unless !node[:ipmi].nil? && node[:ipmi][:bmc_enable]
+          validation_error "Automatic IPMI setup not available for node #{member}"
+        end
+      end
+    when "libvirt"
+      hypervisor_ip = stonith_attributes["libvirt"]["hypervisor_ip"]
+      # FIXME: we really need to have crowbar provide a helper to validate IP addresses
+      if hypervisor_ip.blank? || hypervisor_ip =~ /[^\.0-9]/
+        validation_error "Hypervisor IP \"#{hypervisor_ip}\" is invalid."
+      end
+      members.each do |member|
+        node = NodeObject.find_node_by_name(member)
+        unless node[:dmi][:system][:manufacturer] == "Bochs"
+          validation_error "Node  #{member} does not seem to be running in libvirt."
+        end
+      end
+    else
+      validation_error "Unknown STONITH mode: #{stonith_attributes["mode"]}."
+    end
+  end
+
   def validate_proposal_after_save proposal
     validate_one_for_role proposal, "pacemaker-cluster-founder"
 
     elements = proposal["deployment"]["pacemaker"]["elements"]
 
-    if elements.has_key?("hawk-server")
-      @logger.debug("Pacemaker apply_role_pre_chef_call: elts #{elements.inspect}")
-      members = (elements["pacemaker-cluster-founder"] || []) +
-                (elements["pacemaker-cluster-member" ] || [])
-      @logger.debug("cluster members: #{members}")
+    @logger.debug("Pacemaker apply_role_pre_chef_call: elts #{elements.inspect}")
+    members = (elements["pacemaker-cluster-founder"] || []) +
+              (elements["pacemaker-cluster-member" ] || [])
+    @logger.debug("cluster members: #{members}")
 
+    if elements.has_key?("hawk-server")
       elements["hawk-server"].each do |n|
         @logger.debug("checking #{n}")
         unless members.include? n
@@ -165,6 +216,9 @@ class PacemakerService < ServiceObject
         end
       end
     end
+
+    stonith_attributes = proposal["attributes"][@bc_name]["stonith"]
+    validate_proposal_stonith stonith_attributes, members
 
     super
   end
