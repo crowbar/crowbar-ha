@@ -18,9 +18,10 @@
 #
 
 
+case node[:pacemaker][:stonith][:mode]
 # Translate IPMI stonith mode from the barclamp into something that can be
 # understood from the pacemaker cookbook
-if node[:pacemaker][:stonith][:mode] == "ipmi_barclamp"
+when "ipmi_barclamp"
   node.default[:pacemaker][:stonith][:mode] = "per_node"
   node.default[:pacemaker][:stonith][:per_node][:plugin] = "external/ipmi"
   node.default[:pacemaker][:stonith][:per_node][:nodes] = {}
@@ -40,5 +41,52 @@ if node[:pacemaker][:stonith][:mode] == "ipmi_barclamp"
 
     node.default[:pacemaker][:stonith][:per_node][:nodes][cluster_node[:hostname]] ||= {}
     node.default[:pacemaker][:stonith][:per_node][:nodes][cluster_node[:hostname]][:params] = params
+  end
+
+# Similarly with the libvirt stonith mode from the barclamp.
+when "libvirt"
+  node.default[:pacemaker][:stonith][:mode] = "per_node"
+  node.default[:pacemaker][:stonith][:per_node][:plugin] = "external/libvirt"
+  node.default[:pacemaker][:stonith][:per_node][:nodes] = {}
+
+  hypervisor_ip = node[:pacemaker][:stonith][:libvirt][:hypervisor_ip]
+  hypervisor_uri = "qemu+tcp://#{hypervisor_ip}/system"
+
+  CrowbarPacemakerHelper.cluster_nodes(node).each do |cluster_node|
+    unless cluster_node[:dmi][:system][:manufacturer] == "Bochs"
+      message = "Node #{cluster_node[:hostname]} does not seem to be running in libvirt."
+      Chef::Log.fatal(message)
+      raise message
+    end
+
+    # We need to know the domain to interact with for each cluster member; it
+    # turns out that libvirt puts the domain UUID in DMI
+    domain_id = cluster_node[:dmi][:system][:uuid]
+
+    params = {}
+    params["hostlist"] = "#{cluster_node[:hostname]}:#{domain_id}"
+    params["hypervisor_uri"] = hypervisor_uri
+
+    node.default[:pacemaker][:stonith][:per_node][:nodes][cluster_node[:hostname]] ||= {}
+    node.default[:pacemaker][:stonith][:per_node][:nodes][cluster_node[:hostname]][:params] = params
+  end
+
+  # The plugin requires virsh
+  package "libvirt-client"
+
+  # validate that the IP address looks a minimum like an IP address, to avoid
+  # command injection
+  # FIXME: we really need a helper to validate IP addresses; it's not critical
+  # here, though as the later test will fail if the IP address is not valid
+  if hypervisor_ip =~ /[^\.0-9]/
+    message = "Hypervisor IP \"#{hypervisor_ip}\" is invalid."
+    Chef::Log.fatal(message)
+    raise message
+  end
+
+  execute "test if libvirt connection is working for STONITH" do
+    user "root"
+    command "nc -w 3 #{hypervisor_ip} 16509 < /dev/null && virsh --connect=#{hypervisor_uri} hostname &> /dev/null"
+    action :run
   end
 end
