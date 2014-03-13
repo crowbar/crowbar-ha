@@ -17,6 +17,19 @@
 # limitations under the License.
 #
 
+# Compute no-quorum-policy, based on the number of members in the clusters
+# We know that for 2 members (or 1, where it doesn't matter), the setting
+# should be "ignore". If we have more members, then we use the default (which
+# is "stop").
+# For details on the different policies, see
+# http://doc.opensuse.org/products/draft/SLE-HA/SLE-ha-guide_sd_draft/cha.ha.configuration.basics.html#sec.ha.configuration.basics.global.quorum
+cluster_members_nb = CrowbarPacemakerHelper.cluster_nodes(node).length
+if cluster_members_nb <= 2
+  node.default[:pacemaker][:crm][:no_quorum_policy] = "ignore"
+else
+  node.default[:pacemaker][:crm][:no_quorum_policy] = "stop"
+end
+
 include_recipe "pacemaker::default"
 
 # if we ever want to not have a hard dependency on openstack here, we can have
