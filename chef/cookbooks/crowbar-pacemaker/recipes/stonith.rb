@@ -19,6 +19,25 @@
 
 
 case node[:pacemaker][:stonith][:mode]
+# Need to add the hostlist param for clone
+when "clone"
+  params = node[:pacemaker][:stonith][:clone][:params]
+
+  if params.respond_to?('to_hash')
+    params = params.to_hash
+  elsif params.is_a?(String)
+    params = ::Pacemaker::Resource.extract_hash("params #{params}", "params")
+  else
+    message = "Unknown format for STONITH clone parameters: #{params.inspect}."
+    Chef::Log.fatal(message)
+    raise message
+  end
+
+  member_names = CrowbarPacemakerHelper.cluster_nodes(node).map { |n| n.name }
+  params["hostlist"] = member_names.join(" ")
+
+  node.default[:pacemaker][:stonith][:clone][:params] = params
+
 # Translate IPMI stonith mode from the barclamp into something that can be
 # understood from the pacemaker cookbook
 when "ipmi_barclamp"
