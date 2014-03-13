@@ -6,7 +6,7 @@ description "Pacemaker / Corosync cluster founder"
 # to generate the authkey and set up the cluster. Once that is done, the other
 # nodes can join the cluster using the same key.
 run_list(
-         "recipe[pacemaker::default]"
+         "recipe[crowbar-pacemaker::default]"
 )
 default_attributes()
 override_attributes "pacemaker" => { "founder" => "true" }
