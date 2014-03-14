@@ -138,14 +138,21 @@ class PacemakerServiceObject < ServiceObject
         [false, false]
       else
         n = NodeObject.find_node_by_name(nodes.first)
-        vip_hostname = "cluster-#{PacemakerServiceObject.cluster_name(cluster)}.#{n[:domain]}"
+        # We know that the proposal name cannot contain a dash, and we know that
+        # a hostname cannot contain an underscore, so we're lucky and we can
+        # substitute one with the other.
+        # Similar code is in the cookbook:
+        # CrowbarPacemakerHelper.cluster_vhostname
+        cluster_hostname = "cluster-#{PacemakerServiceObject.cluster_name(cluster)}".gsub("_", "-")
+
+        vip_fqdn = "#{cluster_hostname}.#{n[:domain]}"
 
         net_svc = NetworkService.new @logger
         new_allocation = false
 
         networks.each do |network|
-          next if net_svc.virtual_ip_assigned? "default", network, "host", vip_hostname
-          net_svc.allocate_virtual_ip "default", network, "host", vip_hostname
+          next if net_svc.virtual_ip_assigned? "default", network, "host", vip_fqdn
+          net_svc.allocate_virtual_ip "default", network, "host", vip_fqdn
           new_allocation = true
         end
 

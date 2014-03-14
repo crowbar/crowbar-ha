@@ -31,7 +31,12 @@ module CrowbarPacemakerHelper
   # hostname.
   def self.cluster_vhostname(node)
     if cluster_enabled?(node)
-      "cluster-#{cluster_name(node)}"
+      # We know that the proposal name cannot contain a dash, and we know that
+      # a hostname cannot contain an underscore, so we're lucky and we can
+      # substitute one with the other
+      # Similar code is in the barclamp side:
+      # allocate_virtual_ips_for_cluster_in_networks
+      "cluster-#{cluster_name(node)}".gsub("_", "-")
     else
       nil
     end
