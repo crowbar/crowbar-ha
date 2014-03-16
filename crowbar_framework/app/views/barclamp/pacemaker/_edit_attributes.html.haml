@@ -7,6 +7,9 @@
       %legend
         = t(".haproxy_header")
 
+      .alert.alert-info
+        = t(".haproxy.ssl_info", :vhostname => PacemakerServiceObject.cluster_vhostname_from_name(proposal.name))
+
       = string_field %w(haproxy public_name)
       %span.help-block
         = t(".haproxy.public_name_hint")
