@@ -6,13 +6,11 @@ class Pacemaker::Constraint::Colocation < Pacemaker::Constraint
 
   attr_accessor :score, :resources
 
-  def self.from_chef_resource(resource)
-    attrs = %w(score resources)
-    new(resource.name).copy_attrs_from_chef_resource(resource, *attrs)
+  def self.attrs_to_copy_from_chef
+    %w(score resources)
   end
 
   def parse_definition
-    rsc_re = /(\S+?)(?::(Started|Stopped))?/
     unless definition =~ /^#{TYPE} (\S+) (\d+|[-+]?inf): (.+?)\s*$/
       raise Pacemaker::CIBObject::DefinitionParseError, \
         "Couldn't parse definition '#{definition}'"

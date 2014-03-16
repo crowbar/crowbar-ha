@@ -1,15 +1,15 @@
 require 'spec_helper'
-require File.expand_path('../../../../libraries/pacemaker/resource/group',
+require File.expand_path('../../../../libraries/pacemaker/resource/clone',
                          File.dirname(__FILE__))
-require File.expand_path('../../../fixtures/resource_group', File.dirname(__FILE__))
+require File.expand_path('../../../fixtures/clone_resource', File.dirname(__FILE__))
 require File.expand_path('../../../helpers/cib_object', File.dirname(__FILE__))
 require File.expand_path('../../../helpers/meta_examples',
                          File.dirname(__FILE__))
 
-describe Pacemaker::Resource::Group do
-  let(:fixture) { Chef::RSpec::Pacemaker::Config::RESOURCE_GROUP.dup }
+describe Pacemaker::Resource::Clone do
+  let(:fixture) { Chef::RSpec::Pacemaker::Config::CLONE_RESOURCE.dup }
   let(:fixture_definition) {
-    Chef::RSpec::Pacemaker::Config::RESOURCE_GROUP_DEFINITION
+    Chef::RSpec::Pacemaker::Config::CLONE_RESOURCE_DEFINITION
   }
 
   before(:each) do
@@ -17,15 +17,15 @@ describe Pacemaker::Resource::Group do
   end
 
   def object_type
-    'group'
+    'clone'
   end
 
   def pacemaker_object_class
-    Pacemaker::Resource::Group
+    Pacemaker::Resource::Clone
   end
 
   def fields
-    %w(name members)
+    %w(name rsc)
   end
 
   it_should_behave_like "a CIB object"
@@ -38,26 +38,26 @@ describe Pacemaker::Resource::Group do
     end
 
     it "should return a short definition string" do
-      group = Pacemaker::Resource::Group.new('foo')
-      group.definition = \
-        %!group foo member1 member2 meta target-role="Started"!
-      group.parse_definition
-      expect(group.definition_string).to eq(<<'EOF'.chomp)
-group foo member1 member2 \
-         meta target-role="Started"
+      clone = Pacemaker::Resource::Clone.new('foo')
+      clone.definition = \
+        %!clone clone1 primitive1 meta globally-unique="true"!
+      clone.parse_definition
+      expect(clone.definition_string).to eq(<<'EOF'.chomp)
+clone clone1 primitive1 \
+         meta globally-unique="true"
 EOF
     end
   end
 
   describe "#parse_definition" do
     before(:each) do
-      @parsed = Pacemaker::Resource::Group.new(fixture.name)
+      @parsed = Pacemaker::Resource::Clone.new(fixture.name)
       @parsed.definition = fixture_definition
       @parsed.parse_definition
     end
 
-    it "should parse the members" do
-      expect(@parsed.members).to eq(fixture.members)
+    it "should parse the rsc" do
+      expect(@parsed.rsc).to eq(fixture.rsc)
     end
   end
 end

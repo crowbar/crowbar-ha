@@ -9,13 +9,11 @@ class Pacemaker::Resource::Group < Pacemaker::Resource
 
   attr_accessor :members
 
-  def self.from_chef_resource(resource)
-    attrs = %w(members meta)
-    new(resource.name).copy_attrs_from_chef_resource(resource, *attrs)
+  def self.attrs_to_copy_from_chef
+    %w(members meta)
   end
 
   def parse_definition
-    rsc_re = /(\S+?)(?::(Started|Stopped))?/
     unless definition =~ /^#{TYPE} (\S+) (.+?)(\s+\\)?$/
       raise Pacemaker::CIBObject::DefinitionParseError, \
         "Couldn't parse definition '#{definition}'"
@@ -34,10 +32,6 @@ class Pacemaker::Resource::Group < Pacemaker::Resource
       str << continuation_line(meta_string)
     end
     str
-  end
-
-  def crm_configure_command
-    "crm configure " + definition_string
   end
 
 end
