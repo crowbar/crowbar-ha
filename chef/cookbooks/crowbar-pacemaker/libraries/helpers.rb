@@ -42,6 +42,24 @@ module CrowbarPacemakerHelper
     end
   end
 
+  # The virtual public name for the cluster is a name picked by the operator as
+  # an alias for the generated virtual FQDN. It might be wanted if the operator
+  # does not want to expose "cluster-foo.domain" to end users.
+  # This returns nil if there is no defined virtual public name or if node is
+  # not member of a cluster.
+  def self.cluster_haproxy_vpublic_name(node)
+    if cluster_enabled?(node)
+      vpublic_name = node[:pacemaker][:haproxy][:public_name]
+      if vpublic_name.nil? || vpublic_name.empty?
+        nil
+      else
+        vpublic_name
+      end
+    else
+      nil
+    end
+  end
+
   # Performs a Chef search and returns an Array of Node objects for
   # all nodes in the same cluster as the given node, or an empty array
   # if the node isn't in a cluster.  Can optionally filter by role.

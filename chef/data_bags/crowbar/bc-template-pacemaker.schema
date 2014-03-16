@@ -21,6 +21,13 @@
                 "mcast_port": { "type": "int", "required": true },
                 "password": { "type": "str", "required": true }
               }
+            },
+            "haproxy": {
+              "type": "map",
+              "required": true,
+              "mapping": {
+                "public_name": { "type": "str", "required": true }
+              }
             }
           }
         }

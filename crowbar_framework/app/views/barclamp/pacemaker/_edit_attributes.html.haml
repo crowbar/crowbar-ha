@@ -3,6 +3,10 @@
     = header @dep_raw, true
 
   .panel-body
+    = string_field %w(haproxy public_name)
+    %span.help-block
+      = t(".haproxy.public_name_hint")
+
     = password_field %w(corosync password)
     = boolean_field :setup_hb_gui
     %span.help-block
