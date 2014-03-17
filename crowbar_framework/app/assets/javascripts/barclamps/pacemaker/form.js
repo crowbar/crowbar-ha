@@ -4,7 +4,7 @@
   function StonithNodePlugins(el, options) {
     this.root = $(el);
     this.html = {
-       table_row: '<tr data-id="{0}"><td>{0}</td><td><input type="text" class="form-control input-sm" value="{1}"/></td></tr>'
+       table_row: '<tr data-id="{0}"><td>{0}</td><td><input type="text" class="form-control" value="{1}"/></td></tr>'
     };
 
     this.options = $.extend(
