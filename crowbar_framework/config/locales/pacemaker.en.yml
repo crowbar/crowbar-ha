@@ -40,11 +40,14 @@ en:
           libvirt: Configured for nodes running in libvirt
         stonith:
           mode: Configuration mode for STONITH
+          no_nodes: No nodes have been assigned a pacemaker role.
           clone:
             plugin: STONITH plugin
             params: Parameters for plugin
           per_node:
             plugin: STONITH plugin
+            name: Node name
+            params: Parameters for plugin
           libvirt:
             dev_only: The libvirt STONITH configuration is not supported, it should be used for development or testing purposes only!
             hypervisor_ip: IP address of hypervisor

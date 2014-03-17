@@ -1,3 +1,5 @@
+- register_javascripts 'barclamps/pacemaker/form'
+
 = attributes_for @proposal do
   .panel-sub
     = header @dep_raw, true
@@ -19,7 +21,14 @@
 
       #stonith_per_node_container
         = string_field %w(stonith per_node plugin)
-        - # FIXME: here we need the table with a row per node, and two columns (first one is for node name, second one is for parameters)
+        %table.table.table-middle
+          %thead
+            %tr
+              %th.col-sm-3
+                = t ".stonith.per_node.name"
+              %th.col-sm-9
+                = t ".stonith.per_node.params"
+          %tbody
 
       #stonith_libvirt_container
         .alert.alert-warning
