@@ -155,4 +155,51 @@
   };
 }(jQuery, document, window));
 
-$(document).ready(function($) { $('#stonith_per_node_container').stonithNodePlugins(); });
+function update_no_quorum_policy(evt, init) {
+  var no_quorum_policy_el = $('#crm_no_quorum_policy');
+  var non_forced_policy = no_quorum_policy_el.data('non-forced');
+  var was_forced_policy = no_quorum_policy_el.data('is-forced');
+  var non_founder_members = $('#pacemaker-cluster-member').children().length;
+
+  if (non_forced_policy == undefined) {
+    non_forced_policy = "stop";
+  }
+
+  if (evt != undefined) {
+    // 'nodeListNodeAllocated' is fired after the element has been added, so
+    // nothing to do. However, 'nodeListNodeUnallocated' is fired before the
+    // element is removed, so we need to fix the count.
+    if (evt.type == 'nodeListNodeUnallocated') { non_founder_members -= 1; }
+  }
+
+  if (non_founder_members > 1) {
+    if (was_forced_policy) {
+      no_quorum_policy_el.val(non_forced_policy);
+      no_quorum_policy_el.removeData('non-forced');
+    }
+    no_quorum_policy_el.data('is-forced', false)
+    no_quorum_policy_el.removeAttr('disabled');
+  } else {
+    if (!init && !was_forced_policy) {
+      no_quorum_policy_el.data('non-forced', no_quorum_policy_el.val());
+    }
+    no_quorum_policy_el.data('is-forced', true)
+    no_quorum_policy_el.val("ignore");
+    no_quorum_policy_el.attr('disabled', 'disabled');
+  }
+}
+
+$(document).ready(function($) {
+  $('#stonith_per_node_container').stonithNodePlugins();
+
+  // FIXME: apparently using something else than
+  // $('#stonith_per_node_container') breaks the per-node table :/
+  $('#stonith_per_node_container').on('nodeListNodeAllocated', function(evt, data) {
+    update_no_quorum_policy(evt, false)
+  });
+  $('#stonith_per_node_container').on('nodeListNodeUnallocated', function(evt, data) {
+    update_no_quorum_policy(evt, false)
+  });
+
+  update_no_quorum_policy(undefined, true)
+});
