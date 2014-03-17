@@ -9,6 +9,9 @@
         "mcast_port": 5405,
         "password": "crowbar"
       },
+      "crm": {
+        "no_quorum_policy": "stop"
+      },
       "stonith": {
         "mode": "manual",
         "clone": {

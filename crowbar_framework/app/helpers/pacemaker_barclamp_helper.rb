@@ -17,6 +17,20 @@
 #
 
 module PacemakerBarclampHelper
+  def no_quorum_policy_for_pacemaker(selected)
+    # no translation for the strings as we simply show the values that will end
+    # up in the config file
+    options_for_select(
+      [
+        ["ignore", "ignore"],
+        ["freeze", "freeze"],
+        ["stop", "stop"],
+        ["suicide", "suicide"]
+      ],
+      selected.to_s
+    )
+  end
+
   def stonith_mode_for_pacemaker(selected)
     options_for_select(
       [

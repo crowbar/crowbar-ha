@@ -22,6 +22,13 @@
                 "password": { "type": "str", "required": true }
               }
             },
+            "crm": {
+              "type": "map",
+              "required": true,
+              "mapping": {
+                "no_quorum_policy": { "type": "str", "required": true }
+              }
+            },
             "stonith": {
               "type": "map",
               "required": true,

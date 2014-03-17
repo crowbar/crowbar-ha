@@ -217,6 +217,11 @@ class PacemakerService < ServiceObject
       end
     end
 
+    no_quorum_policy = proposal["attributes"][@bc_name]["crm"]["no_quorum_policy"]
+    unless %w(ignore freeze stop suicide).include?(no_quorum_policy)
+      validation_error "Invalid no-quorum-policy value: #{no_quorum_policy}."
+    end
+
     stonith_attributes = proposal["attributes"][@bc_name]["stonith"]
     validate_proposal_stonith stonith_attributes, members
 

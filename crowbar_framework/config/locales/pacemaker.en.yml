@@ -28,6 +28,9 @@ en:
           to make the GUI accessible.
         corosync:
           password: Password for hacluster user in Hawk
+        crm:
+          no_quorum_policy: Policy when cluster does not have quorum
+          no_quorum_policy_hint: 'Refer to the <a href="http://clusterlabs.org/doc/en-US/Pacemaker/1.1-crmsh/html/Pacemaker_Explained/_available_cluster_options.html">pacemaker documentation</a> for a description of each value.'
         stonith_header: STONITH
         stonith_modes:
           manual: Configured manually
