@@ -38,6 +38,20 @@ when "clone"
 
   node.default[:pacemaker][:stonith][:clone][:params] = params
 
+# Crowbar is using FQDN, but crm seems to only know about the hostname without
+# the domain, so we need to translate this here
+when "per_node"
+  nodes = node.default[:pacemaker][:stonith][:per_node][:nodes]
+  new_nodes = {}
+  domain = node[:domain]
+
+  nodes.keys.each do |fqdn|
+    hostname = fqdn.chomp(".#{domain}")
+    new_nodes[hostname] = nodes[fqdn]
+  end
+
+  node.default[:pacemaker][:stonith][:per_node][:nodes] = new_nodes
+
 # Translate IPMI stonith mode from the barclamp into something that can be
 # understood from the pacemaker cookbook
 when "ipmi_barclamp"
