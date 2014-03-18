@@ -33,7 +33,7 @@ class PacemakerService < ServiceObject
         },
         "pacemaker-cluster-member" => {
           "unique" => false,
-          "count" => -1
+          "count" => 31
         },
         "hawk-server" => {
           "unique" => false,
