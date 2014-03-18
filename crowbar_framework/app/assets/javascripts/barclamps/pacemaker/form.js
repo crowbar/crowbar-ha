@@ -4,7 +4,7 @@
   function StonithNodePlugins(el, options) {
     this.root = $(el);
     this.html = {
-       table_row: '<tr data-id="{0}"><td>{0}</td><td><input type="text" class="form-control" value="{1}"/></td></tr>'
+      table_row: '<tr data-id="{0}" data-alias="{1}"><td>{1}</td><td><input type="text" class="form-control" value="{2}"/></td></tr>'
     };
 
     this.options = $.extend(
@@ -60,7 +60,7 @@
     this.root.on('nodeListNodeAllocated', function(evt, data) {
       if (self._ignore_event(evt, data)) { return; }
 
-      $(this).find('tbody').append(self.html.table_row.format(data.id, ''));
+      $(this).find('tbody').append(self.html.table_row.format(data.id, self._node_name_to_alias(data.id), ''));
 
       var key = '{0}/params'.format(data.id);
       var val = "";
@@ -109,22 +109,28 @@
     }
   };
 
+  StonithNodePlugins.prototype._node_name_to_alias = function(name) {
+    var node_info = this.root.data('nodes')[name];
+    return !!node_info ? node_info.alias : name.split('.')[0]
+  };
+
   StonithNodePlugins.prototype.sortPluginParams = function() {
     var self = this;
 
     var rows = [];
     $.each(this.root.find('tbody tr'), function(index, tr) {
-      rows.push([$(tr).data('id'), $(tr).find('input').val()]);
+      rows.push([$(tr).data('id'), $(tr).data('alias'), $(tr).find('input').val()]);
     });
 
+    // Sort by node alias
     rows.sort(function(a, b) {
-      if (a[0] > b[0]) { return 1;  }
-      if (a[0] < b[0]) { return -1; }
+      if (a[1] > b[1]) { return 1;  }
+      if (a[1] < b[1]) { return -1; }
       return 0;
     });
 
     var params = $.map(rows, function(row) {
-      return self.html.table_row.format(row[0], row[1]);
+      return self.html.table_row.format(row[0], row[1], row[2]);
     });
     this.root.find('tbody').html(params.join(''));
   };
@@ -134,7 +140,7 @@
     var self = this;
 
     var params = $.map(self.retrievePluginParams(), function(value, node_id) {
-      return self.html.table_row.format(node_id, value.params);
+      return self.html.table_row.format(node_id, self._node_name_to_alias(node_id), value.params);
     });
 
     this.root.find('tbody').html(params.join(''));

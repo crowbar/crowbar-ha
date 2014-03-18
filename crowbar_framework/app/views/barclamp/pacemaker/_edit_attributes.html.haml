@@ -19,7 +19,7 @@
         = string_field %w(stonith clone plugin)
         = string_field %w(stonith clone params)
 
-      #stonith_per_node_container
+      #stonith_per_node_container{ "data-nodes" => Hash[nodes_hash].to_json }
         = string_field %w(stonith per_node plugin)
         %table.table.table-middle
           %thead
