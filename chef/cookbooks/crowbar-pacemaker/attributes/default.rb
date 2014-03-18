@@ -19,6 +19,8 @@
 
 # We're in the pacemaker barclamp, so we're using the pacemaker namespace
 
+default[:pacemaker][:platform][:resource_packages][:openstack] = %w(openstack-resource-agents)
+
 default[:pacemaker][:haproxy][:enabled] = false
 default[:pacemaker][:haproxy][:agent] = "lsb:haproxy"
 default[:pacemaker][:haproxy][:networks] = {}

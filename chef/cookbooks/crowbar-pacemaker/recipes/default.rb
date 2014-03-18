@@ -19,6 +19,18 @@
 
 include_recipe "pacemaker::default"
 
+# if we ever want to not have a hard dependency on openstack here, we can have
+# Crowbar set a node[:pacemaker][:resource_agents] attribute based on available
+# barclamps, and do:
+# node[:pacemaker][:resource_agents].each do |resource_agent|
+#   node[:pacemaker][:platform][:resource_packages][resource_agent].each do |pkg|
+#     package pkg
+#   end
+# end
+node[:pacemaker][:platform][:resource_packages][:openstack].each do |pkg|
+  package pkg
+end
+
 #FIXME: delete group when it's not needed anymore 
 #FIXME: need to find/write OCF for haproxy  
 
