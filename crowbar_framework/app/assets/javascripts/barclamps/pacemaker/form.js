@@ -22,8 +22,8 @@
   StonithNodePlugins.prototype._ignore_event = function(evt, data) {
     var self = this;
 
-    var row_id = '[data-id="{0}"]'.format(data.id);
-    var row    = $(evt.target).find(row_id)
+    var row_id = 'tr[data-id="{0}"]'.format(data.id);
+    var row    = this.root.find(row_id)
 
     if (self.options.watchedRoles.indexOf(data.role) == -1) { return true; }
     if (evt.type == 'nodeListNodeAllocated' && row.length > 0) { return true; }
@@ -66,6 +66,7 @@
       var val = "";
 
       self.writeJson(key, val, "string");
+      self.sortPluginParams();
     });
 
     // Remove the table row and update JSON on node dealloc
@@ -108,6 +109,26 @@
     }
   };
 
+  StonithNodePlugins.prototype.sortPluginParams = function() {
+    var self = this;
+
+    var rows = [];
+    $.each(this.root.find('tbody tr'), function(index, tr) {
+      rows.push([$(tr).data('id'), $(tr).find('input').val()]);
+    });
+
+    rows.sort(function(a, b) {
+      if (a[0] > b[0]) { return 1;  }
+      if (a[0] < b[0]) { return -1; }
+      return 0;
+    });
+
+    var params = $.map(rows, function(row) {
+      return self.html.table_row.format(row[0], row[1]);
+    });
+    this.root.find('tbody').html(params.join(''));
+  };
+
   // Initial render
   StonithNodePlugins.prototype.renderPluginParams = function() {
     var self = this;
@@ -115,7 +136,9 @@
     var params = $.map(self.retrievePluginParams(), function(value, node_id) {
       return self.html.table_row.format(node_id, value.params);
     });
+
     this.root.find('tbody').html(params.join(''));
+    self.sortPluginParams();
   };
 
   // FIXME: these could be refactored into a common plugin
