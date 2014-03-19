@@ -72,6 +72,23 @@ class PacemakerServiceObject < ServiceObject
       end
     end
 
+    def cluster_vhostname_from_name(name)
+      # We know that the proposal name cannot contain a dash, and we know that
+      # a hostname cannot contain an underscore, so we're lucky and we can
+      # substitute one with the other.
+      # Similar code is in the cookbook:
+      # CrowbarPacemakerHelper.cluster_vhostname
+      "cluster-#{name.gsub("_", "-")}.#{ChefObject.cloud_domain}"
+    end
+
+    def cluster_vhostname_from_element(element)
+      if is_cluster? element
+        cluster_vhostname_from_name(cluster_name(element))
+      else
+        nil
+      end
+    end
+
     # Returns: list of nodes in the cluster, or nil if the cluster doesn't exist
     def expand_nodes(cluster)
       clusters = available_clusters
@@ -137,22 +154,14 @@ class PacemakerServiceObject < ServiceObject
       if nodes.empty?
         [false, false]
       else
-        n = NodeObject.find_node_by_name(nodes.first)
-        # We know that the proposal name cannot contain a dash, and we know that
-        # a hostname cannot contain an underscore, so we're lucky and we can
-        # substitute one with the other.
-        # Similar code is in the cookbook:
-        # CrowbarPacemakerHelper.cluster_vhostname
-        cluster_hostname = "cluster-#{PacemakerServiceObject.cluster_name(cluster)}".gsub("_", "-")
-
-        vip_fqdn = "#{cluster_hostname}.#{n[:domain]}"
+        cluster_vhostname = PacemakerServiceObject.cluster_vhostname_from_element(cluster)
 
         net_svc = NetworkService.new @logger
         new_allocation = false
 
         networks.each do |network|
-          next if net_svc.virtual_ip_assigned? "default", network, "host", vip_fqdn
-          net_svc.allocate_virtual_ip "default", network, "host", vip_fqdn
+          next if net_svc.virtual_ip_assigned? "default", network, "host", cluster_vhostname
+          net_svc.allocate_virtual_ip "default", network, "host", cluster_vhostname
           new_allocation = true
         end
 

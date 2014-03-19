@@ -8,6 +8,9 @@
         "mcast_addr": "239.255.0.1",
         "mcast_port": 5405,
         "password": "crowbar"
+      },
+      "haproxy": {
+        "public_name": ""
       }
     }
   },

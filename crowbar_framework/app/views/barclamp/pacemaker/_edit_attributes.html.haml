@@ -3,7 +3,22 @@
     = header @dep_raw, true
 
   .panel-body
-    = password_field %w(corosync password)
-    = boolean_field :setup_hb_gui
-    %span.help-block
-      = t(".hb_gui_hint")
+    %fieldset
+      %legend
+        = t(".haproxy_header")
+
+      .alert.alert-info
+        = t(".haproxy.ssl_info", :vhostname => PacemakerServiceObject.cluster_vhostname_from_name(proposal.name))
+
+      = string_field %w(haproxy public_name)
+      %span.help-block
+        = t(".haproxy.public_name_hint")
+
+    %fieldset
+      %legend
+        = t(".gui_header")
+
+      = password_field %w(corosync password)
+      = boolean_field :setup_hb_gui
+      %span.help-block
+        = t(".hb_gui_hint")
