@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-actions :create, :wait
+actions :create, :wait, :sync
 default_action :wait
 
 # we cannot use mark as the name attribute because we generally will have two

@@ -254,4 +254,57 @@ module CrowbarPacemakerHelper
       Chef::Log.info("Founder cluster mark #{cookbook}/#{mark} already set to #{revision}.")
     end
   end
+
+  # This method is called when the node is ready to go on and only waits for
+  # other nodes in the cluster reach a similar state
+  # This method can be used to have the chef runs on all nodes of a cluster
+  # synchronized: nodes calling this method will block until all other nodes in
+  # the cluster reach the same state.
+  def self.synchronize_on_mark(node, cookbook, mark, revision, fatal = false, timeout = 60)
+    return unless cluster_enabled?(node)
+
+    cluster_name = cluster_name(node)
+
+    node[:pacemaker][:sync_marks] ||= {}
+    node[:pacemaker][:sync_marks][cluster_name] ||= {}
+    node[:pacemaker][:sync_marks][cluster_name][cookbook] ||= {}
+    if node[:pacemaker][:sync_marks][cluster_name][cookbook][mark] != revision
+      node[:pacemaker][:sync_marks][cluster_name][cookbook][mark] = revision
+      node.save
+      Chef::Log.info("Setting synchronization cluster mark #{cookbook}/#{mark} to #{revision}.")
+    else
+      Chef::Log.info("Synchronization cluster mark #{cookbook}/#{mark} already set to #{revision}.")
+    end
+
+    node_count = cluster_nodes(node).length
+    raise "No member in the cluster!" if node_count == 0
+
+    Chef::Log.info("Checking if all cluster nodes have set #{cookbook}/#{mark} to #{revision}...")
+
+    begin
+      Timeout.timeout(timeout) do
+        while true
+          search_result = []
+          Chef::Search::Query.new.search(:node, "pacemaker_config_environment:#{node[:pacemaker][:config][:environment]} AND pacemaker_sync_marks_#{cluster_name}_#{cookbook}_#{mark}:#{revision}") { |o| search_result << o }
+
+          if node_count <= search_result.length
+            Chef::Log.info("All cluster nodes have set #{cookbook}/#{mark} to #{revision}.")
+            break
+          end
+
+          Chef::Log.debug("Waiting for all cluster nodes to set #{cookbook}/#{mark} to #{revision}...")
+          sleep(10)
+        end # while true
+      end # Timeout
+    rescue Timeout::Error
+      if fatal
+        message = "Some cluster nodes didn't set #{cookbook}/#{mark} to #{revision}!"
+        Chef::Log.fatal(message)
+        raise message
+      else
+        message = "Some cluster nodes didn't set #{cookbook}/#{mark} to #{revision}! Going on..."
+        Chef::Log.warn(message)
+      end
+    end
+  end
 end

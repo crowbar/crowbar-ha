@@ -23,6 +23,8 @@ def get_options resource
       mark = new_resource.name.gsub("wait-", "")
     elsif new_resource.name.start_with? "create-"
       mark = new_resource.name.gsub("create-", "")
+    elsif new_resource.name.start_with? "sync-"
+      mark = new_resource.name.gsub("sync-", "")
     end
   else
     mark = new_resource.mark
@@ -44,12 +46,15 @@ end
 
 action :wait do
   mark, revision = get_options(new_resource)
-
   CrowbarPacemakerHelper.wait_for_mark_from_founder(node, cookbook_name, mark, revision, new_resource.fatal, new_resource.timeout)
 end
 
 action :create do
   mark, revision = get_options(new_resource)
-
   CrowbarPacemakerHelper.set_mark_if_founder(node, cookbook_name, mark, revision)
+end
+
+action :sync do
+  mark, revision = get_options(new_resource)
+  CrowbarPacemakerHelper.synchronize_on_mark(node, cookbook_name, mark, revision, new_resource.fatal, new_resource.timeout)
 end
