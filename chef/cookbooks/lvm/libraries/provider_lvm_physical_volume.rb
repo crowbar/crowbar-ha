@@ -36,14 +36,20 @@ class Chef
       # The create action
       #
       def action_create
-        require 'lvm'
-        lvm = LVM::LVM.new
-        if lvm.physical_volumes[new_resource.name].nil?
-          Chef::Log.info "Creating physical volume '#{new_resource.name}'"
-          lvm.raw "pvcreate #{new_resource.name}"
-          new_resource.updated_by_last_action(true)
-        else
+        physical_volumes = []
+        output = %x[pvdisplay]
+        output.split("\n").each do |line|
+          args = line.split()
+          if args[0] == "PV" and args[1] == "Name"
+            physical_volumes << args[2]
+          end
+        end
+        if physical_volumes.include?(new_resource.name)
           Chef::Log.info "Physical volume '#{new_resource.name}' found. Not creating..."
+        else
+          Chef::Log.info "Creating physical volume '#{new_resource.name}'"
+          %x[pvcreate #{new_resource.name}]
+          new_resource.updated_by_last_action(true)
         end
       end
     end

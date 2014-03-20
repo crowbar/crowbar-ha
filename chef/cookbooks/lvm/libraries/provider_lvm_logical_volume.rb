@@ -38,16 +38,31 @@ class Chef
       # The create action
       #
       def action_create # rubocop:disable MethodLength
-        require 'lvm'
-        lvm = LVM::LVM.new
         name = new_resource.name
         group = new_resource.group
         fs_type = new_resource.filesystem
         device_name = "/dev/mapper/#{to_dm_name(group)}-#{to_dm_name(name)}"
 
-        vg = lvm.volume_groups[new_resource.group]
+        lvm_map = {}
+        output = %x[vgs]
+        output.split("\n").each_with_index do |line, index|
+          unless index == 0
+            args = line.split()
+            lvm_map[args[0]] = []
+          end
+        end
+        output = %x[lvs]
+        output.split("\n").each_with_index do |line, index|
+          unless index == 0
+            args = line.split()
+            lvm_map[args[1]] << args[0]
+          end
+        end
+
         # Create the logical volume
-        if vg.nil? || vg.logical_volumes.select { |lv| lv.name == name }.empty?
+        if not lvm_map.include?(group) || lvm_map[group].include?(name)
+          Chef::Log.info "Logical volume '#{name}' already exists or volume group '#{group}' problem. Not creating..."
+        else
           device_name = "/dev/mapper/#{to_dm_name(group)}-#{to_dm_name(name)}"
           size =
             case new_resource.size
@@ -68,11 +83,9 @@ class Chef
 
           command = "lvcreate #{size} #{stripes} #{stripe_size} #{mirrors} #{contiguous} #{readahead} --name #{name} #{group} #{physical_volumes}"
           Chef::Log.debug "Executing lvm command: '#{command}'"
-          output = lvm.raw(command)
+          output = %x[#{command}]
           Chef::Log.debug "Command output: '#{output}'"
           new_resource.updated_by_last_action(true)
-        else
-          Chef::Log.info "Logical volume '#{name}' already exists. Not creating..."
         end
 
         # If file system is specified, format the logical volume

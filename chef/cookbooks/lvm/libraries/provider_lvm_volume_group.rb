@@ -38,7 +38,6 @@ class Chef
       # The create action
       #
       def action_create
-        require 'lvm'
         name = new_resource.name
         physical_volume_list = [new_resource.physical_volumes].flatten
 
@@ -60,17 +59,24 @@ class Chef
           end
         end
 
-        lvm = LVM::LVM.new
+        volume_groups = []
+        output = %x[vgdisplay]
+        output.split("\n").each do |line|
+          args = line.split()
+          if args[0] == "VG" and args[1] == "Name"
+            volume_groups << args[2]
+          end
+        end
+
         # Create the volume group
-        if lvm.volume_groups[name]
+        if volume_groups.include?(name)
           Chef::Log.info "Volume group '#{name}' already exists. Not creating..."
         else
           physical_volumes = physical_volume_list.join(' ')
           physical_extent_size = new_resource.physical_extent_size ? "-s #{new_resource.physical_extent_size}" : ''
           command = "vgcreate #{name} #{physical_extent_size} #{physical_volumes}"
-
           Chef::Log.debug "Executing lvm command: '#{command}'"
-          output = lvm.raw command
+          output = %x[#{command}]
           Chef::Log.debug "Command output: '#{output}'"
           # Create the logical volumes specified as sub-resources
           new_resource.logical_volumes.each do |lv|

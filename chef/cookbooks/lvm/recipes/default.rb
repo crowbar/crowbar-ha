@@ -18,4 +18,3 @@
 #
 
 package 'lvm2'
-chef_gem 'di-ruby-lvm'

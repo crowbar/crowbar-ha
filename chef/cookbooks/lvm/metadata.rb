@@ -8,7 +8,7 @@ version           '1.0.5'
 supports 'centos'
 supports 'debian'
 supports 'redhat'
-supports 'sles'
 supports 'ubuntu'
+supports 'suse'
 
 recipe 'lvm', 'Installs lvm2 package'
