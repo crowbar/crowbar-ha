@@ -48,7 +48,7 @@ execute "drbdadm -- --force create-md #{resource}" do
     cmd = Chef::ShellOut.new("drbd-overview")
     overview = cmd.run_command
     Chef::Log.info overview.stdout
-    overview.stdout.include?("drbd not loaded")
+    overview.stdout.include?("Unconfigured")
   end
   action :nothing
 end
