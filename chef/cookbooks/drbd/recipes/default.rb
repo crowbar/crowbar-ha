@@ -28,4 +28,4 @@ service "drbd" do
   action :nothing
 end
 
-include_recipe "drbd::default"
+include_recipe "drbd::resource"
