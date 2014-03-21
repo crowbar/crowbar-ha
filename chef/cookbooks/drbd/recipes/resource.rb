@@ -68,20 +68,22 @@ execute "mkfs -t #{node['drbd']['fs_type']} -f #{node['drbd']['dev']}" do
   action :nothing
 end
 
-directory node['drbd']['mount']
+unless node['drbd']['mount'].nil? or node['drbd']['mount'].empty?
+  directory node['drbd']['mount']
 
-#mount -t xfs -o rw /dev/drbd0 /shared
-mount node['drbd']['mount'] do
-  device node['drbd']['dev']
-  fstype node['drbd']['fs_type']
-  only_if { node['drbd']['master'] && node['drbd']['configured'] }
-  action :mount
+  #mount -t xfs -o rw /dev/drbd0 /shared
+  mount node['drbd']['mount'] do
+    device node['drbd']['dev']
+    fstype node['drbd']['fs_type']
+    only_if { node['drbd']['master'] && node['drbd']['configured'] }
+    action :mount
+  end
 end
 
 #hack to get around the mount failing
 ruby_block "set drbd configured flag" do
   block do
-    node['drbd']['configured'] = true
+    node.set['drbd']['configured'] = true
     node.save
   end
   subscribes :create, resources(:execute => "mkfs -t #{node['drbd']['fs_type']} -f #{node['drbd']['dev']}")
