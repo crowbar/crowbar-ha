@@ -9,4 +9,4 @@ run_list(
          "recipe[crowbar-pacemaker::default]"
 )
 default_attributes()
-override_attributes "pacemaker" => { "founder" => "true" }
+override_attributes "pacemaker" => { "founder" => true }
