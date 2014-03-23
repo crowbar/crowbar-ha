@@ -24,7 +24,6 @@ authkey_file = node[:corosync][:authkey_file]
 corosync_authkey = Base64.decode64(authkey)
 
 file authkey_file do
-  not_if {File.exists? authkey_file}
   content corosync_authkey
   owner "root"
   mode "0400"

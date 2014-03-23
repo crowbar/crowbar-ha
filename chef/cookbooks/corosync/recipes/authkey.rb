@@ -19,13 +19,6 @@
 
 require 'base64'
 
-# Find the authkey:
-authkey_file = node[:corosync][:authkey_file]
-if File.exists? authkey_file
-  log "#{authkey_file} already exists"
-  return
-end
-
 if Chef::Config[:solo]
   Chef::Application.fatal! "This recipe uses search. Chef Solo does not support search."
   return
