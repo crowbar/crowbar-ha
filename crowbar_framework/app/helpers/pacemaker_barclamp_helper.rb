@@ -17,13 +17,4 @@
 #
 
 module PacemakerBarclampHelper
-  def foo_for_pacemaker(selected)
-    options_for_select(
-      [
-        ['XKCD','xkcd'],
-        ['Dilbert', 'dilbert']
-      ],
-      selected.to_s
-    )
-  end
 end

@@ -23,13 +23,7 @@ require ::File.expand_path('../libraries/chef/mixin/pacemaker',
 include Chef::Mixin::Pacemaker::RunnableResource
 
 action :create do
-  name = new_resource.name
-
-  if @current_resource_definition.nil?
-    create_resource(name)
-  else
-    maybe_modify_resource(name)
-  end
+  standard_create_action
 end
 
 action :delete do
@@ -55,8 +49,7 @@ end
 def init_current_resource
   name = @new_resource.name
   @current_resource = Chef::Resource::PacemakerGroup.new(name)
-  attrs = [:members]
-  @current_cib_object.copy_attrs_to_chef_resource(@current_resource, *attrs)
+  @current_cib_object.copy_attrs_to_chef_resource(@current_resource, :members)
 end
 
 def create_resource(name)

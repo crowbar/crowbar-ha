@@ -71,6 +71,14 @@ user node[:corosync][:user] do
   password node[:corosync][:password]
 end
 
+# After installation of ruby-shadow, we have a new path for the new gem, so we
+# need to reset the paths if we can't load ruby-shadow
+begin
+  require 'shadow'
+rescue LoadError
+  Gem.clear_paths
+end
+
 service node[:corosync][:platform][:service_name] do
   supports :restart => true, :status => :true
   action [:enable, :start]

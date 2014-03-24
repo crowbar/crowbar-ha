@@ -26,7 +26,7 @@ module Pacemaker
         end
       end
 
-      def type(definition)
+      def definition_type(definition)
         unless definition =~ /\A(\w+)\s/
           raise "Couldn't extract CIB object type from '#{definition}'"
         end
@@ -50,7 +50,7 @@ module Pacemaker
         this_class = method(__method__).owner
         if calling_class == this_class
           # Invoked via (this) base class
-          obj_type = type(definition)
+          obj_type = definition_type(definition)
           subclass = @@subclasses[obj_type]
           unless subclass
             raise "No subclass of #{self.name} was registered with type '#{obj_type}'"
@@ -66,6 +66,15 @@ module Pacemaker
           obj.parse_definition
           obj
         end
+      end
+
+      def from_chef_resource(resource)
+        new(resource.name).copy_attrs_from_chef_resource(resource,
+                                                         *attrs_to_copy_from_chef)
+      end
+
+      def attrs_to_copy_from_chef
+        raise NotImplementedError, "#{self.class} didn't implement attrs_to_copy_from_chef"
       end
     end
 
@@ -109,7 +118,7 @@ module Pacemaker
     end
 
     def type
-      self.class.type(definition)
+      self.class.definition_type(definition)
     end
 
     def to_s
@@ -133,6 +142,10 @@ module Pacemaker
       definition_string \
         .gsub('\\') { '\\\\' } \
         .gsub("'")  { "\\'" }
+    end
+
+    def configure_command
+      "crm configure " + definition_string
     end
 
     def reconfigure_command

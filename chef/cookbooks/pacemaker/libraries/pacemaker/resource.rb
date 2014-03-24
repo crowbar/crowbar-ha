@@ -16,11 +16,11 @@ module Pacemaker
       !! cmd.stdout.include?("resource #{name} is running")
     end
 
-    def start_command
+    def crm_start_command
       "crm resource start '#{name}'"
     end
 
-    def stop_command
+    def crm_stop_command
       "crm resource stop '#{name}'"
     end
 
@@ -41,7 +41,7 @@ module Pacemaker
       h = {}
       Shellwords.split($1).each do |kvpair|
         break if kvpair == 'op'
-        unless kvpair =~ /^(.+?)=(.+)$/
+        unless kvpair =~ /^(.+?)=(.*)$/
           raise "Couldn't understand '#{kvpair}' for '#{data_type}' section "\
             "of #{name} primitive (definition was [#{obj_definition}])"
         end
@@ -49,6 +49,5 @@ module Pacemaker
       end
       h
     end
-
   end
 end

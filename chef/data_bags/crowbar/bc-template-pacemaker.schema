@@ -12,7 +12,23 @@
           "type": "map",
           "required": true,
           "mapping": {
-            "foo": { "type": "str", "required": true }
+            "setup_hb_gui": { "type": "bool", "required": true },
+            "corosync": {
+              "type": "map",
+              "required": true,
+              "mapping": {
+                "mcast_addr": { "type": "str", "required": true },
+                "mcast_port": { "type": "int", "required": true },
+                "password": { "type": "str", "required": true }
+              }
+            },
+            "haproxy": {
+              "type": "map",
+              "required": true,
+              "mapping": {
+                "public_name": { "type": "str", "required": true }
+              }
+            }
           }
         }
       }

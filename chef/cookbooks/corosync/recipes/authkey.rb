@@ -19,13 +19,6 @@
 
 require 'base64'
 
-# Find the authkey:
-authkey_file = node[:corosync][:authkey_file]
-if File.exists? authkey_file
-  log "#{authkey_file} already exists"
-  return
-end
-
 if Chef::Config[:solo]
   Chef::Application.fatal! "This recipe uses search. Chef Solo does not support search."
   return
@@ -41,18 +34,39 @@ end
 query  = "chef_environment:#{node.chef_environment}"
 query += " AND corosync_cluster_name:#{cluster_name}"
 
-# Not sure which of these will work better
-query += " AND corosync:authkey"
-#query += " AND roles:pacemaker-cluster-founder"
+is_crowbar = !(node[:crowbar].nil?)
+authkey_node = nil
 
-log("search query: #{query}")
-authkey_nodes = search(:node, query)
-log("nodes with authkey: #{authkey_nodes}")
+if is_crowbar
+  if node[:pacemaker][:founder]
+    if node[:corosync][:authkey].nil?
+      include_recipe "corosync::authkey_generator"
+    else
+      # make sure the authkey stays written
+      include_recipe "corosync::authkey_writer"
+    end
+  else
+    query += " AND pacemaker_founder:true"
+    founder_nodes = search(:node, query)
+    raise "No founder node found!" if founder_nodes.length == 0
+    raise "Multiple founder nodes found!" if founder_nodes.length > 1
+    authkey_node = founder_nodes[0]
+  end
+else
+  query += " AND corosync:authkey"
 
-if authkey_nodes.length == 0
-  include_recipe "corosync::authkey_generator"
-elsif authkey_nodes.length > 0
-  authkey_node = authkey_nodes[0]
+  log("search query: #{query}")
+  authkey_nodes = search(:node, query)
+  log("nodes with authkey: #{authkey_nodes}")
+
+  if authkey_nodes.length == 0
+    include_recipe "corosync::authkey_generator"
+  elsif authkey_nodes.length > 0
+    authkey_node = authkey_nodes[0]
+  end
+end
+
+unless authkey_node.nil?
   log("Using corosync authkey from node: #{authkey_node.name}")
   authkey = authkey_node[:corosync][:authkey]
 
