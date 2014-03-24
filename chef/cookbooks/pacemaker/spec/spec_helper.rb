@@ -1,5 +1,7 @@
 require 'chefspec'
 
+ENV['RSPEC_RUNNING'] = 'true'
+
 RSpec.configure do |config|
   # config.mock_with :rspec do |mocks|
   #   # This option should be set when all dependencies are being loaded
@@ -40,6 +42,11 @@ end
 
 # FIXME
 #running_guard = ENV['GUARD_NOTIFY'] && ! ENV['GUARD_NOTIFY'].empty?
+
+if ENV['RUBYDEPS']
+  require 'rubydeps'
+  Rubydeps.start
+end
 
 if false # ! running_guard
   at_exit { ChefSpec::Coverage.report! }

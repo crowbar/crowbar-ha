@@ -1,11 +1,22 @@
 require 'chef/application'
-require ::File.expand_path('../../../pacemaker', ::File.dirname(__FILE__))
+require ::File.expand_path('../../../pacemaker/cib_object',
+                           ::File.dirname(__FILE__))
 
 # Common code used by Pacemaker LWRP providers
 
 class Chef
   module Mixin::Pacemaker
     module StandardCIBObject
+      def standard_create_action
+        name = new_resource.name
+
+        if @current_resource_definition.nil?
+          create_resource(name)
+        else
+          maybe_modify_resource(name)
+        end
+      end
+
       # Instantiate @current_resource and read details about the existing
       # primitive (if any) via "crm configure show" into it, so that we
       # can compare it against the resource requested by the recipe, and
@@ -37,7 +48,7 @@ class Chef
 
       def standard_create_resource
         cib_object = cib_object_class.from_chef_resource(new_resource)
-        cmd = cib_object.crm_configure_command
+        cmd = cib_object.configure_command
 
         ::Chef::Log.info "Creating new #{cib_object}"
 
@@ -45,13 +56,16 @@ class Chef
           action :nothing
         end.run_action(:run)
 
-        cib_object = Pacemaker::CIBObject.from_name(new_resource.name)
-        if cib_object.exists?
-          new_resource.updated_by_last_action(true)
-          ::Chef::Log.info "Successfully configured #{cib_object}"
-        else
-          ::Chef::Log.error "Failed to configure #{cib_object}"
+        created_cib_object = Pacemaker::CIBObject.from_name(new_resource.name)
+
+        raise "Failed to create #{cib_object}" if created_cib_object.nil?
+        unless created_cib_object.exists?
+          # This case seems pretty unlikely
+          raise "Definition missing for #{created_cib_object} after creation"
         end
+
+        new_resource.updated_by_last_action(true)
+        ::Chef::Log.info "Successfully configured #{created_cib_object}"
       end
 
       def standard_delete_resource

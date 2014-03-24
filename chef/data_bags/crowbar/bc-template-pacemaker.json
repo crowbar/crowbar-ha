@@ -3,7 +3,15 @@
   "description": "Installation for Pacemaker",
   "attributes": {
     "pacemaker": {
-      "foo": "bar"
+      "setup_hb_gui": false,
+      "corosync": {
+        "mcast_addr": "239.255.0.1",
+        "mcast_port": 5405,
+        "password": "crowbar"
+      },
+      "haproxy": {
+        "public_name": ""
+      }
     }
   },
   "deployment": {

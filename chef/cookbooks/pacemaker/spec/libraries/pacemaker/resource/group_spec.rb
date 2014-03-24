@@ -38,11 +38,11 @@ describe Pacemaker::Resource::Group do
     end
 
     it "should return a short definition string" do
-      primitive = Pacemaker::Resource::Group.new('foo')
-      primitive.definition = \
+      group = pacemaker_object_class.new('foo')
+      group.definition = \
         %!group foo member1 member2 meta target-role="Started"!
-      primitive.parse_definition
-      expect(primitive.definition_string).to eq(<<'EOF'.chomp)
+      group.parse_definition
+      expect(group.definition_string).to eq(<<'EOF'.chomp)
 group foo member1 member2 \
          meta target-role="Started"
 EOF
@@ -51,7 +51,7 @@ EOF
 
   describe "#parse_definition" do
     before(:each) do
-      @parsed = Pacemaker::Resource::Group.new(fixture.name)
+      @parsed = pacemaker_object_class.new(fixture.name)
       @parsed.definition = fixture_definition
       @parsed.parse_definition
     end

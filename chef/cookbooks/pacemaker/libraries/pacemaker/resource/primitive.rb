@@ -6,7 +6,7 @@ class Pacemaker::Resource::Primitive < Pacemaker::Resource
   TYPE = 'primitive'
   register_type TYPE
 
-  include Pacemaker::Resource::Meta
+  include Pacemaker::Mixins::Resource::Meta
 
   attr_accessor :agent, :params, :op
 
@@ -16,12 +16,12 @@ class Pacemaker::Resource::Primitive < Pacemaker::Resource
     @agent = nil
   end
 
-  def self.from_chef_resource(resource)
-    new(resource.name).copy_attrs_from_chef_resource(resource, *%w(agent params meta op))
+  def self.attrs_to_copy_from_chef
+    %w(agent params meta op)
   end
 
   def parse_definition
-    unless definition =~ /\Aprimitive (\S+) (\S+)/
+    unless definition =~ /\A#{self.class::TYPE} (\S+) (\S+)/
       raise Pacemaker::CIBObject::DefinitionParseError, \
         "Couldn't parse definition '#{definition}'"
     end
@@ -50,7 +50,7 @@ class Pacemaker::Resource::Primitive < Pacemaker::Resource
   end
 
   def definition_string
-    str = "#{TYPE} #{name} #{agent}"
+    str = "#{self.class::TYPE} #{name} #{agent}"
     %w(params meta op).each do |data_type|
       unless send(data_type).empty?
         data_string = send("#{data_type}_string")
@@ -60,7 +60,7 @@ class Pacemaker::Resource::Primitive < Pacemaker::Resource
     str
   end
 
-  def crm_configure_command
+  def configure_command
     args = %w(crm configure primitive)
     args << [name, agent, params_string, meta_string, op_string]
     args.join " "

@@ -1,0 +1,74 @@
+global
+	log 127.0.0.1   local0
+	log 127.0.0.1   local1 notice
+	maxconn <%= node[:haproxy][:global][:maxconn] %>
+	chroot /var/lib/haproxy
+	user <%= node[:haproxy][:platform][:user] %>
+	group <%= node[:haproxy][:platform][:group] %>
+	daemon
+
+defaults
+	log     global
+	mode    tcp
+	option  tcplog
+	option  dontlognull
+	option  redispatch
+	retries 3
+	timeout http-request 5s
+	timeout queue 1m
+	timeout connect 5s
+	timeout client 50s
+	timeout server 50s
+	timeout check 5s
+	balance roundrobin
+
+<% # if stats are not enabled, but there's no configured section, we setup stats on 127.0.0.1 to generate a valid config file (it needs at least one section) -%>
+<% if node[:haproxy][:stats][:enabled] || node[:haproxy][:sections].empty? -%>
+listen  admin-stats <%= node[:haproxy][:stats][:enabled] ? node[:haproxy][:stats][:address] : "127.0.0.1" %>:<%= node[:haproxy][:stats][:port] %>
+	mode http
+	option httplog
+	stats uri /
+
+<% end -%>
+<% node[:haproxy][:sections].keys.sort.each do |type| -%>
+  <% node[:haproxy][:sections][type].keys.sort.each do |name| -%>
+    <% content = node[:haproxy][:sections][type][name] -%>
+<%= type %> <%= name %> <%= content[:address] %>:<%= content[:port] %>
+    <% if content[:use_ssl] # http://blog.exceliance.fr/2011/07/04/maintain-affinity-based-on-ssl-session-id/ -%>
+	mode tcp
+
+	# maximum SSL session ID length is 32 bytes.
+	stick-table type binary len 32 size 30k expire 30m
+
+	acl clienthello req_ssl_hello_type 1
+	acl serverhello rep_ssl_hello_type 2
+
+	# use tcp content accepts to detects ssl client and server hello.
+	tcp-request inspect-delay 5s
+	tcp-request content accept if clienthello
+
+	# no timeout on response inspect delay by default.
+	tcp-response content accept if serverhello
+
+	# SSL session ID (SSLID) may be present on a client or server hello.
+	# Its length is coded on 1 byte at offset 43 and its value starts
+	# at offset 44.
+	# Match and learn on request if client hello.
+	stick on payload_lv(43,1) if clienthello
+
+	# Learn on response if server hello.
+	stick store-response payload_lv(43,1) if serverhello
+    <% else -%>
+	mode <%= content[:mode] %>
+    <% end -%>
+
+    <% content[:options].each do |option| -%>
+	option <%= option %>
+    <% end -%>
+
+    <% content[:servers].each do |server| -%>
+	server <%= server[:name] %> <%= server[:address] %>:<%= server[:port] %> check inter 2000 rise 2 fall 5
+    <% end -%>
+
+  <% end -%>
+<% end -%>
