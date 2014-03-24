@@ -15,7 +15,7 @@
 #
 
 actions :create, :wait, :sync
-default_action :wait
+default_action :sync
 
 # we cannot use mark as the name attribute because we generally will have two
 # resources: one for wait and one for create. However, we detect some magic
