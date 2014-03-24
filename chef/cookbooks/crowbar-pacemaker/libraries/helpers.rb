@@ -200,6 +200,46 @@ module CrowbarPacemakerHelper
     servers
   end
 
+  #
+  # Synchronization helpers
+  #
+  # With crowbar, we will need chef runs on different nodes of a cluster to
+  # "synchronize" to avoid some resources being created too early, or to allow
+  # one cluster member (the founder) to do something first, before the others.
+  #
+  # Therefore we offer two sets of helpers:
+  #
+  #  - "founder goes first" synchronization:
+  #
+  #    In this model, all nodes must call #wait_for_mark_from_founder. The
+  #    non-founder nodes will block there, while the founder will not block and
+  #    hence execute the following code first. A later call to
+  #    #set_mark_if_founder will allow the founder to unblock the other nodes.
+  #
+  #    This is used when an action executed on several nodes at the same time
+  #    can create a crash due to a race. For instance, creating a pacemaker
+  #    primitive.
+  #
+  #  - "wait for all nodes" synchronization:
+  #
+  #    In this model, all nodes must call #synchronize_on_mark. Nodes will then
+  #    block until this call has been done by all nodes.
+  #
+  # The synchronization is used through a mark. This mark is made unique
+  # through the name of the cluster (automatically computed), the name of
+  # the cookbook from which the call is made (must be passed as argument) and
+  # the name of the mark (must be passed as argument).
+  #
+  # The mark will then be created with a revision; this way, on later runs, if
+  # the methods are called with the same revision, then nothing will block as
+  # we will know that the mark is already correct.
+  #
+  # Calls to #wait_for_mark_from_founder and #synchronize_on_mark can fail if
+  # synchronization failed. By default, a failure is not fatal, but the fatal
+  # argument can be used to abort the chef run.
+  #
+
+  # See "Synchronization helpers" documentation
   def self.wait_for_mark_from_founder(node, cookbook, mark, revision, fatal = false, timeout = 60)
     return unless cluster_enabled?(node)
     return if node.roles.include? "pacemaker-cluster-founder"
@@ -237,6 +277,7 @@ module CrowbarPacemakerHelper
     end
   end
 
+  # See "Synchronization helpers" documentation
   def self.set_mark_if_founder(node, cookbook, mark, revision)
     return unless cluster_enabled?(node)
     return unless node.roles.include? "pacemaker-cluster-founder"
@@ -255,11 +296,7 @@ module CrowbarPacemakerHelper
     end
   end
 
-  # This method is called when the node is ready to go on and only waits for
-  # other nodes in the cluster reach a similar state
-  # This method can be used to have the chef runs on all nodes of a cluster
-  # synchronized: nodes calling this method will block until all other nodes in
-  # the cluster reach the same state.
+  # See "Synchronization helpers" documentation
   def self.synchronize_on_mark(node, cookbook, mark, revision, fatal = false, timeout = 60)
     return unless cluster_enabled?(node)
 
