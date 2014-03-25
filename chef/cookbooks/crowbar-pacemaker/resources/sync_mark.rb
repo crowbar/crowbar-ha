@@ -17,6 +17,24 @@
 actions :create, :wait, :sync, :guess
 default_action :guess
 
+# The easy way to use this LWRP is to simply do the following:
+#   crowbar_pacemaker_sync_mark "$action-$mark"
+# with no attribute.
+#
+# This will guess the desired action based on the name, the desired mark based
+# on the name, and the revision, based on the
+# node[cookbook_name]["schema-revision"] attribute.
+#
+# For instance, calling this from the keystone barclamp:
+#   crowbar_pacemaker_sync_mark "wait-keystone_pki"
+# is the same as calling:
+#   crowbar_pacemaker_sync_mark "my sync mark for keystone"
+#     mark "keystone_pki"
+#     revision node["keystone"]["schema-revision"]
+#     action :wait
+#   end
+
+
 # we cannot use mark as the name attribute because we generally will have two
 # resources: one for wait and one for create. However, we detect some magic
 # names: if the mark is not set and the name is "wait-XYZ" or "create-XYZ",
