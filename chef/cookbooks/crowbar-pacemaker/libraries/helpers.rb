@@ -226,9 +226,8 @@ module CrowbarPacemakerHelper
   #    block until this call has been done by all nodes.
   #
   # The synchronization is used through a mark. This mark is made unique
-  # through the name of the cluster (automatically computed), the name of
-  # the cookbook from which the call is made (must be passed as argument) and
-  # the name of the mark (must be passed as argument).
+  # through the name of the cluster (automatically computed) and the name of
+  # the mark (must be passed as argument).
   #
   # The mark will then be created with a revision; this way, on later runs, if
   # the methods are called with the same revision, then nothing will block as
@@ -240,13 +239,13 @@ module CrowbarPacemakerHelper
   #
 
   # See "Synchronization helpers" documentation
-  def self.wait_for_mark_from_founder(node, cookbook, mark, revision, fatal = false, timeout = 60)
+  def self.wait_for_mark_from_founder(node, mark, revision, fatal = false, timeout = 60)
     return unless cluster_enabled?(node)
     return if node.roles.include? "pacemaker-cluster-founder"
 
     cluster_name = cluster_name(node)
 
-    Chef::Log.info("Checking if cluster founder has set #{cookbook}/#{mark} to #{revision}...")
+    Chef::Log.info("Checking if cluster founder has set #{mark} to #{revision}...")
 
     begin
       Timeout.timeout(timeout) do
@@ -256,29 +255,29 @@ module CrowbarPacemakerHelper
           raise "Multiple cluster founders found!" if founders.length > 1
           founder = founders.first
 
-          if !founder.nil? && (founder[:pacemaker][:sync_marks][cluster_name][cookbook][mark] rescue nil) == revision
-            Chef::Log.info("Cluster founder has set #{cookbook}/#{mark} to #{revision}.")
+          if !founder.nil? && (founder[:pacemaker][:sync_marks][cluster_name][mark] rescue nil) == revision
+            Chef::Log.info("Cluster founder has set #{mark} to #{revision}.")
             break
           end
 
-          Chef::Log.debug("Waiting for cluster founder to set #{cookbook}/#{mark} to #{revision}...")
+          Chef::Log.debug("Waiting for cluster founder to set #{mark} to #{revision}...")
           sleep(10)
         end # while true
       end # Timeout
     rescue Timeout::Error
       if fatal
-        message = "Cluster founder didn't set #{cookbook}/#{mark} to #{revision}!"
+        message = "Cluster founder didn't set #{mark} to #{revision}!"
         Chef::Log.fatal(message)
         raise message
       else
-        message = "Cluster founder didn't set #{cookbook}/#{mark} to #{revision}! Going on..."
+        message = "Cluster founder didn't set #{mark} to #{revision}! Going on..."
         Chef::Log.warn(message)
       end
     end
   end
 
   # See "Synchronization helpers" documentation
-  def self.set_mark_if_founder(node, cookbook, mark, revision)
+  def self.set_mark_if_founder(node, mark, revision)
     return unless cluster_enabled?(node)
     return unless node.roles.include? "pacemaker-cluster-founder"
 
@@ -286,60 +285,58 @@ module CrowbarPacemakerHelper
 
     node[:pacemaker][:sync_marks] ||= {}
     node[:pacemaker][:sync_marks][cluster_name] ||= {}
-    node[:pacemaker][:sync_marks][cluster_name][cookbook] ||= {}
-    if node[:pacemaker][:sync_marks][cluster_name][cookbook][mark] != revision
-      node[:pacemaker][:sync_marks][cluster_name][cookbook][mark] = revision
+    if node[:pacemaker][:sync_marks][cluster_name][mark] != revision
+      node[:pacemaker][:sync_marks][cluster_name][mark] = revision
       node.save
-      Chef::Log.info("Setting founder cluster mark #{cookbook}/#{mark} to #{revision}.")
+      Chef::Log.info("Setting founder cluster mark #{mark} to #{revision}.")
     else
-      Chef::Log.info("Founder cluster mark #{cookbook}/#{mark} already set to #{revision}.")
+      Chef::Log.info("Founder cluster mark #{mark} already set to #{revision}.")
     end
   end
 
   # See "Synchronization helpers" documentation
-  def self.synchronize_on_mark(node, cookbook, mark, revision, fatal = false, timeout = 60)
+  def self.synchronize_on_mark(node, mark, revision, fatal = false, timeout = 60)
     return unless cluster_enabled?(node)
 
     cluster_name = cluster_name(node)
 
     node[:pacemaker][:sync_marks] ||= {}
     node[:pacemaker][:sync_marks][cluster_name] ||= {}
-    node[:pacemaker][:sync_marks][cluster_name][cookbook] ||= {}
-    if node[:pacemaker][:sync_marks][cluster_name][cookbook][mark] != revision
-      node[:pacemaker][:sync_marks][cluster_name][cookbook][mark] = revision
+    if node[:pacemaker][:sync_marks][cluster_name][mark] != revision
+      node[:pacemaker][:sync_marks][cluster_name][mark] = revision
       node.save
-      Chef::Log.info("Setting synchronization cluster mark #{cookbook}/#{mark} to #{revision}.")
+      Chef::Log.info("Setting synchronization cluster mark #{mark} to #{revision}.")
     else
-      Chef::Log.info("Synchronization cluster mark #{cookbook}/#{mark} already set to #{revision}.")
+      Chef::Log.info("Synchronization cluster mark #{mark} already set to #{revision}.")
     end
 
     node_count = cluster_nodes(node).length
     raise "No member in the cluster!" if node_count == 0
 
-    Chef::Log.info("Checking if all cluster nodes have set #{cookbook}/#{mark} to #{revision}...")
+    Chef::Log.info("Checking if all cluster nodes have set #{mark} to #{revision}...")
 
     begin
       Timeout.timeout(timeout) do
         while true
           search_result = []
-          Chef::Search::Query.new.search(:node, "pacemaker_config_environment:#{node[:pacemaker][:config][:environment]} AND pacemaker_sync_marks_#{cluster_name}_#{cookbook}_#{mark}:#{revision}") { |o| search_result << o }
+          Chef::Search::Query.new.search(:node, "pacemaker_config_environment:#{node[:pacemaker][:config][:environment]} AND pacemaker_sync_marks_#{cluster_name}_#{mark}:#{revision}") { |o| search_result << o }
 
           if node_count <= search_result.length
-            Chef::Log.info("All cluster nodes have set #{cookbook}/#{mark} to #{revision}.")
+            Chef::Log.info("All cluster nodes have set #{mark} to #{revision}.")
             break
           end
 
-          Chef::Log.debug("Waiting for all cluster nodes to set #{cookbook}/#{mark} to #{revision}...")
+          Chef::Log.debug("Waiting for all cluster nodes to set #{mark} to #{revision}...")
           sleep(10)
         end # while true
       end # Timeout
     rescue Timeout::Error
       if fatal
-        message = "Some cluster nodes didn't set #{cookbook}/#{mark} to #{revision}!"
+        message = "Some cluster nodes didn't set #{mark} to #{revision}!"
         Chef::Log.fatal(message)
         raise message
       else
-        message = "Some cluster nodes didn't set #{cookbook}/#{mark} to #{revision}! Going on..."
+        message = "Some cluster nodes didn't set #{mark} to #{revision}! Going on..."
         Chef::Log.warn(message)
       end
     end
