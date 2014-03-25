@@ -14,8 +14,8 @@
 # limitations under the License.
 #
 
-actions :create, :wait, :sync
-default_action :sync
+actions :create, :wait, :sync, :guess
+default_action :guess
 
 # we cannot use mark as the name attribute because we generally will have two
 # resources: one for wait and one for create. However, we detect some magic

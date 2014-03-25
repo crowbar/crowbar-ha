@@ -15,18 +15,22 @@
 #
 
 def get_options resource
+  action = nil
   mark = nil
   revision = nil
 
-  if new_resource.mark.nil?
-    if new_resource.name.start_with? "wait-"
-      mark = new_resource.name.gsub("wait-", "")
-    elsif new_resource.name.start_with? "create-"
-      mark = new_resource.name.gsub("create-", "")
-    elsif new_resource.name.start_with? "sync-"
-      mark = new_resource.name.gsub("sync-", "")
-    end
-  else
+  if new_resource.name.start_with? "wait-"
+    mark = new_resource.name.gsub("wait-", "")
+    action = :wait
+  elsif new_resource.name.start_with? "create-"
+    mark = new_resource.name.gsub("create-", "")
+    action = :create
+  elsif new_resource.name.start_with? "sync-"
+    mark = new_resource.name.gsub("sync-", "")
+    action = :sync
+  end
+
+  unless new_resource.mark.nil?
     mark = new_resource.mark
   end
 
@@ -41,20 +45,33 @@ def get_options resource
   raise "Missing mark attribute" if mark.nil?
   raise "Missing revision attribute" if revision.nil?
 
-  [mark, revision]
+  [action, mark, revision]
 end
 
 action :wait do
-  mark, revision = get_options(new_resource)
+  action, mark, revision = get_options(new_resource)
   CrowbarPacemakerHelper.wait_for_mark_from_founder(node, cookbook_name, mark, revision, new_resource.fatal, new_resource.timeout)
 end
 
 action :create do
-  mark, revision = get_options(new_resource)
+  action, mark, revision = get_options(new_resource)
   CrowbarPacemakerHelper.set_mark_if_founder(node, cookbook_name, mark, revision)
 end
 
 action :sync do
-  mark, revision = get_options(new_resource)
+  action, mark, revision = get_options(new_resource)
   CrowbarPacemakerHelper.synchronize_on_mark(node, cookbook_name, mark, revision, new_resource.fatal, new_resource.timeout)
+end
+
+action :guess do
+  action, mark, revision = get_options(new_resource)
+  raise "Cannot guess action based on resource name" if action.nil?
+
+  if action == :wait
+    CrowbarPacemakerHelper.wait_for_mark_from_founder(node, cookbook_name, mark, revision, new_resource.fatal, new_resource.timeout)
+  elsif action == :create
+    CrowbarPacemakerHelper.set_mark_if_founder(node, cookbook_name, mark, revision)
+  elsif action == :sync
+    CrowbarPacemakerHelper.synchronize_on_mark(node, cookbook_name, mark, revision, new_resource.fatal, new_resource.timeout)
+  end
 end
