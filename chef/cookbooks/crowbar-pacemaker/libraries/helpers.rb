@@ -95,7 +95,15 @@ module CrowbarPacemakerHelper
   def self.cluster_nodes(node, role = "*")
     if cluster_enabled?(node)
       server_nodes = []
-      Chef::Search::Query.new.search(:node, "roles:#{role || "*"} AND pacemaker_config_environment:#{node[:pacemaker][:config][:environment]}") { |o| server_nodes << o }
+      # Sometimes, chef-server is a little bit outdated and doesn't have the
+      # latest information, including the fact that the current node is
+      # actually part of the cluster; we also want to make sure that we include
+      # the latest bits with latest attributes for this node, so we always
+      # manually add it, instead of relying on the search for this one.
+      Chef::Search::Query.new.search(:node, "roles:#{role || "*"} AND pacemaker_config_environment:#{node[:pacemaker][:config][:environment]}") do |o|
+        server_nodes << o if o.name != node.name
+      end
+      server_nodes << node if (role.nil? || role == "*" || node.roles.include?(role))
       server_nodes
     else
       []
