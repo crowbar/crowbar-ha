@@ -89,3 +89,14 @@ ruby_block "set drbd configured flag" do
   subscribes :create, resources(:execute => "mkfs -t #{node['drbd']['fs_type']} -f #{node['drbd']['dev']}"), :immediate
   action :nothing
 end
+
+ruby_block "Wait for DRBD resource when it will be ready" do
+  block do
+    begin
+      cmd = Chef::ShellOut.new("drbd-overview #{resource}")
+      output = cmd.run_command
+      sleep 1
+    end while not output.stdout.include?("Primary")
+  end
+end
+
