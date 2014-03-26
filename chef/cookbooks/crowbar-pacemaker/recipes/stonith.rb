@@ -17,6 +17,11 @@
 # limitations under the License.
 #
 
+# We know that all nodes in the cluster will run the cookbook with the same
+# attributes, so every node can configure its per_node STONITH resource. This
+# will always work fine: as all nodes need to be up for the proposal to be
+# applied, all nodes will be able to configure their own STONITH resource.
+node[:pacemaker][:stonith][:per_node][:mode] = "self"
 
 case node[:pacemaker][:stonith][:mode]
 # Need to add the hostlist param for clone
