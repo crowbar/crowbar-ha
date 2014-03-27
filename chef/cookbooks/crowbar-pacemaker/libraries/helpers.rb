@@ -102,6 +102,23 @@ module CrowbarPacemakerHelper
     end
   end
 
+  # Returns the founder of the cluster the current node belongs to, or nil if
+  # the current node is not part of a cluster
+  def self.cluster_founder(node)
+    if cluster_enabled?(node)
+      if is_cluster_founder? node
+        node
+      else
+        founders = cluster_nodes(node, "pacemaker-cluster-founder")
+        raise "No cluster founders found!" if founders.empty?
+        raise "Multiple cluster founders found!" if founders.length > 1
+        founders.first
+      end
+    else
+      nil
+    end
+  end
+
   # Returns an Array with two elements:
   #
   # 1. An Array of Hashes representing haproxy backend servers,
@@ -258,10 +275,7 @@ module CrowbarPacemakerHelper
     begin
       Timeout.timeout(timeout) do
         while true
-          founders = cluster_nodes(node, "pacemaker-cluster-founder")
-          raise "No cluster founders found!" if founders.empty?
-          raise "Multiple cluster founders found!" if founders.length > 1
-          founder = founders.first
+          founder = cluster_founder(node)
 
           if !founder.nil? && (founder[:pacemaker][:sync_marks][cluster_name][mark] rescue nil) == revision
             Chef::Log.info("Cluster founder has set #{mark} to #{revision}.")
