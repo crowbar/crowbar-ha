@@ -80,16 +80,6 @@ unless node['drbd']['mount'].nil? or node['drbd']['mount'].empty?
   end
 end
 
-#hack to get around the mount failing
-ruby_block "set drbd configured flag" do
-  block do
-    node.set['drbd']['configured'] = true
-    node.save
-  end
-  subscribes :create, resources(:execute => "mkfs -t #{node['drbd']['fs_type']} -f #{node['drbd']['dev']}"), :immediate
-  action :nothing
-end
-
 ruby_block "Wait for DRBD resource when it will be ready" do
   block do
     begin
