@@ -27,6 +27,14 @@ module CrowbarPacemakerHelper
     return !(node[:pacemaker][:config][:environment] rescue nil).nil?
   end
 
+  def self.is_cluster_founder?(node)
+    if cluster_enabled?(node)
+      node[:pacemaker][:founder]
+    else
+      false
+    end
+  end
+
   # Returns the name of the cluster containing the given node, or nil
   # if the node is not in a cluster.  The name is determined by the
   # name of the pacemaker proposal corresponding to that cluster
@@ -91,6 +99,23 @@ module CrowbarPacemakerHelper
       server_nodes
     else
       []
+    end
+  end
+
+  # Returns the founder of the cluster the current node belongs to, or nil if
+  # the current node is not part of a cluster
+  def self.cluster_founder(node)
+    if cluster_enabled?(node)
+      if is_cluster_founder? node
+        node
+      else
+        founders = cluster_nodes(node, "pacemaker-cluster-founder")
+        raise "No cluster founders found!" if founders.empty?
+        raise "Multiple cluster founders found!" if founders.length > 1
+        founders.first
+      end
+    else
+      nil
     end
   end
 
@@ -241,7 +266,7 @@ module CrowbarPacemakerHelper
   # See "Synchronization helpers" documentation
   def self.wait_for_mark_from_founder(node, mark, revision, fatal = false, timeout = 60)
     return unless cluster_enabled?(node)
-    return if node.roles.include? "pacemaker-cluster-founder"
+    return if is_cluster_founder?(node)
 
     cluster_name = cluster_name(node)
 
@@ -250,10 +275,7 @@ module CrowbarPacemakerHelper
     begin
       Timeout.timeout(timeout) do
         while true
-          founders = cluster_nodes(node, "pacemaker-cluster-founder")
-          raise "No cluster founders found!" if founders.empty?
-          raise "Multiple cluster founders found!" if founders.length > 1
-          founder = founders.first
+          founder = cluster_founder(node)
 
           if !founder.nil? && (founder[:pacemaker][:sync_marks][cluster_name][mark] rescue nil) == revision
             Chef::Log.info("Cluster founder has set #{mark} to #{revision}.")
@@ -279,7 +301,7 @@ module CrowbarPacemakerHelper
   # See "Synchronization helpers" documentation
   def self.set_mark_if_founder(node, mark, revision)
     return unless cluster_enabled?(node)
-    return unless node.roles.include? "pacemaker-cluster-founder"
+    return unless is_cluster_founder?(node)
 
     cluster_name = cluster_name(node)
 
