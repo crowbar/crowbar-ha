@@ -15,11 +15,11 @@
       "stonith": {
         "mode": "manual",
         "shared": {
-          "plugin": "",
+          "agent": "",
           "params": ""
         },
         "per_node": {
-          "plugin": "",
+          "agent": "",
           "nodes": {}
         },
         "libvirt": {

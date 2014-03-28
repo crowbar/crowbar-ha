@@ -139,26 +139,26 @@ class PacemakerService < ServiceObject
     when "manual"
       # nothing to do
     when "shared"
-      plugin = stonith_attributes["shared"]["plugin"]
+      agent = stonith_attributes["shared"]["agent"]
       params = stonith_attributes["shared"]["params"]
-      validation_error "Missing STONITH plugin for shared setup" if plugin.blank?
-      validation_error "Missing STONITH parameters for shared setup" if params.blank?
+      validation_error "Missing fencing agent for shared setup" if agent.blank?
+      validation_error "Missing fencing agent parameters for shared setup" if params.blank?
     when "per_node"
-      plugin = stonith_attributes["per_node"]["plugin"]
+      agent = stonith_attributes["per_node"]["agent"]
       nodes = stonith_attributes["per_node"]["nodes"]
 
-      validation_error "Missing STONITH plugin for per-node setup" if plugin.blank?
+      validation_error "Missing fencing agent for per-node setup" if agent.blank?
 
       members.each do |member|
-        validation_error "Missing STONITH parameters for node #{member}" unless nodes.has_key?(member)
+        validation_error "Missing fencing agent parameters for node #{member}" unless nodes.has_key?(member)
       end
 
       nodes.keys.each do |node_name|
         if members.include? node_name
           params = nodes[node_name]["params"]
-          validation_error "Missing STONITH parameters for node #{node_name}" if params.blank?
+          validation_error "Missing fencing agent parameters for node #{node_name}" if params.blank?
         else
-          validation_error "STONITH parameters for node #{node_name}, while this node is a not a member of the cluster"
+          validation_error "Fencing agent parameters for node #{node_name}, while this node is a not a member of the cluster"
         end
       end
     when "ipmi_barclamp"

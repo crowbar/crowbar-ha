@@ -38,7 +38,7 @@
                   "type": "map",
                   "required": true,
                   "mapping": {
-                    "plugin": { "type": "str", "required": true },
+                    "agent": { "type": "str", "required": true },
                     "params": { "type": "str", "required": true }
                   }
                 },
@@ -46,7 +46,7 @@
                   "type": "map",
                   "required": true,
                   "mapping": {
-                    "plugin": { "type": "str", "required": true },
+                    "agent": { "type": "str", "required": true },
                     "nodes": {
                       "type": "map",
                       "required": true,

@@ -1,7 +1,7 @@
 ;(function($, doc, win) {
   'use strict';
 
-  function StonithNodePlugins(el, options) {
+  function StonithNodeAgents(el, options) {
     this.root = $(el);
     this.html = {
       table_row: '<tr data-id="{0}" data-alias="{1}"><td>{1}</td><td><input type="text" class="form-control" value="{2}"/></td></tr>'
@@ -19,7 +19,7 @@
     this.initialize();
   }
 
-  StonithNodePlugins.prototype._ignore_event = function(evt, data) {
+  StonithNodeAgents.prototype._ignore_event = function(evt, data) {
     var self = this;
 
     var row_id = 'tr[data-id="{0}"]'.format(data.id);
@@ -32,18 +32,18 @@
     return false;
   };
 
-  StonithNodePlugins.prototype.initialize = function() {
+  StonithNodeAgents.prototype.initialize = function() {
     var self = this;
 
     // Update nodes that have been moved around in deployment
     self.updateNodesFromDeployment();
     // Render what we already have
-    self.renderPluginParams();
+    self.renderAgentParams();
     // And start listening on changes
     self.registerEvents();
   };
 
-  StonithNodePlugins.prototype.registerEvents = function() {
+  StonithNodeAgents.prototype.registerEvents = function() {
     var self = this;
 
     // Update JSON on input changes
@@ -66,7 +66,7 @@
       var val = "";
 
       self.writeJson(key, val, "string");
-      self.sortPluginParams();
+      self.sortAgentParams();
     });
 
     // Remove the table row and update JSON on node dealloc
@@ -78,16 +78,16 @@
     });
   };
 
-  StonithNodePlugins.prototype.updateNodesFromDeployment = function() {
+  StonithNodeAgents.prototype.updateNodesFromDeployment = function() {
     var self = this;
 
-    var plugin_params = self.retrievePluginParams();
+    var agent_params = self.retrieveAgentParams();
 
     // Get a membership hash on both sides
     var existing_nodes = {};
     var deployed_nodes = {};
 
-    $.each(plugin_params, function(node, value) { existing_nodes[node] = true; });
+    $.each(agent_params, function(node, value) { existing_nodes[node] = true; });
 
     $.each(self.options.watchedRoles, function(index, role) {
       var role_path  = 'elements/{0}'.format(role);
@@ -109,12 +109,12 @@
     }
   };
 
-  StonithNodePlugins.prototype._node_name_to_alias = function(name) {
+  StonithNodeAgents.prototype._node_name_to_alias = function(name) {
     var node_info = this.root.data('nodes')[name];
     return !!node_info ? node_info.alias : name.split('.')[0]
   };
 
-  StonithNodePlugins.prototype.sortPluginParams = function() {
+  StonithNodeAgents.prototype.sortAgentParams = function() {
     var self = this;
 
     var rows = [];
@@ -136,26 +136,26 @@
   };
 
   // Initial render
-  StonithNodePlugins.prototype.renderPluginParams = function() {
+  StonithNodeAgents.prototype.renderAgentParams = function() {
     var self = this;
 
-    var params = $.map(self.retrievePluginParams(), function(value, node_id) {
+    var params = $.map(self.retrieveAgentParams(), function(value, node_id) {
       return self.html.table_row.format(node_id, self._node_name_to_alias(node_id), value.params);
     });
 
     this.root.find('tbody').html(params.join(''));
-    self.sortPluginParams();
+    self.sortAgentParams();
   };
 
-  // FIXME: these could be refactored into a common plugin
-  StonithNodePlugins.prototype.retrievePluginParams = function() {
+  // FIXME: these could be refactored into a common agent
+  StonithNodeAgents.prototype.retrieveAgentParams = function() {
     return $(this.options.storage).readJsonAttribute(
       this.options.path,
       {}
     );
   };
 
-  StonithNodePlugins.prototype.writeJson = function(key, value, type) {
+  StonithNodeAgents.prototype.writeJson = function(key, value, type) {
     return $(this.options.storage).writeJsonAttribute(
       '{0}/{1}'.format(
         this.options.path,
@@ -166,7 +166,7 @@
     );
   };
 
-  StonithNodePlugins.prototype.removeJson = function(key, value, type) {
+  StonithNodeAgents.prototype.removeJson = function(key, value, type) {
     return $(this.options.storage).removeJsonAttribute(
       '{0}/{1}'.format(
         this.options.path,
@@ -177,9 +177,9 @@
     );
   };
 
-  $.fn.stonithNodePlugins = function(options) {
+  $.fn.stonithNodeAgents = function(options) {
     return this.each(function() {
-      new StonithNodePlugins(this, options);
+      new StonithNodeAgents(this, options);
     });
   };
 }(jQuery, document, window));
@@ -219,7 +219,7 @@ function update_no_quorum_policy(evt, init) {
 }
 
 $(document).ready(function($) {
-  $('#stonith_per_node_container').stonithNodePlugins();
+  $('#stonith_per_node_container').stonithNodeAgents();
 
   // FIXME: apparently using something else than
   // $('#stonith_per_node_container') breaks the per-node table :/

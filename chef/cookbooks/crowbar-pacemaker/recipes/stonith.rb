@@ -61,7 +61,7 @@ when "per_node"
 # understood from the pacemaker cookbook
 when "ipmi_barclamp"
   node.default[:pacemaker][:stonith][:mode] = "per_node"
-  node.default[:pacemaker][:stonith][:per_node][:plugin] = "external/ipmi"
+  node.default[:pacemaker][:stonith][:per_node][:agent] = "external/ipmi"
   node.default[:pacemaker][:stonith][:per_node][:nodes] = {}
 
   CrowbarPacemakerHelper.cluster_nodes(node).each do |cluster_node|
@@ -84,7 +84,7 @@ when "ipmi_barclamp"
 # Similarly with the libvirt stonith mode from the barclamp.
 when "libvirt"
   node.default[:pacemaker][:stonith][:mode] = "per_node"
-  node.default[:pacemaker][:stonith][:per_node][:plugin] = "external/libvirt"
+  node.default[:pacemaker][:stonith][:per_node][:agent] = "external/libvirt"
   node.default[:pacemaker][:stonith][:per_node][:nodes] = {}
 
   hypervisor_ip = node[:pacemaker][:stonith][:libvirt][:hypervisor_ip]
@@ -109,7 +109,7 @@ when "libvirt"
     node.default[:pacemaker][:stonith][:per_node][:nodes][cluster_node[:hostname]][:params] = params
   end
 
-  # The plugin requires virsh
+  # The agent requires virsh
   package "libvirt-client"
 
   # validate that the IP address looks a minimum like an IP address, to avoid

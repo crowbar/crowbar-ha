@@ -42,12 +42,12 @@ en:
           mode: Configuration mode for STONITH
           no_nodes: No nodes have been assigned a pacemaker role.
           shared:
-            plugin: STONITH plugin
-            params: Parameters for plugin
+            agent: Fencing agent
+            params: Parameters for agent
           per_node:
-            plugin: STONITH plugin
+            agent: Fencing agent
             name: Node name
-            params: Parameters for plugin
+            params: Parameters for agent
           libvirt:
             dev_only: The libvirt STONITH configuration is not supported, it should be used for development or testing purposes only!
             hypervisor_ip: IP address of hypervisor
