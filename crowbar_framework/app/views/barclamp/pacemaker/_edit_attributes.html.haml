@@ -1,8 +1,42 @@
+- register_javascripts 'barclamps/pacemaker/form'
+
 = attributes_for @proposal do
   .panel-sub
     = header @dep_raw, true
 
   .panel-body
+    = select_field %w(crm no_quorum_policy), :collection => :no_quorum_policy_for_pacemaker
+    %span.help-block
+      = t('.crm.no_quorum_policy_hint')
+
+    %fieldset
+      %legend
+        = t(".stonith_header")
+
+      = select_field %w(stonith mode), :collection => :stonith_mode_for_pacemaker, "data-showit" => ["shared", "per_node", "libvirt"].join(";"), "data-showit-target" => "#stonith_shared_container;#stonith_per_node_container;#stonith_libvirt_container", "data-showit-direct" => "true"
+
+      #stonith_shared_container
+        = string_field %w(stonith shared agent)
+        = string_field %w(stonith shared params)
+
+      #stonith_per_node_container{ "data-nodes" => Hash[nodes_hash].to_json }
+        = string_field %w(stonith per_node agent)
+        %table.table.table-middle
+          %thead
+            %tr
+              %th.col-sm-3
+                = t ".stonith.per_node.name"
+              %th.col-sm-9
+                = t ".stonith.per_node.params"
+          %tbody
+
+      #stonith_libvirt_container
+        .alert.alert-warning
+          = t('.stonith.libvirt.dev_only')
+        = string_field %w(stonith libvirt hypervisor_ip)
+        %span.help-block
+          = t('.stonith.libvirt.hypervisor_ip_hint')
+
     %fieldset
       %legend
         = t(".haproxy_header")

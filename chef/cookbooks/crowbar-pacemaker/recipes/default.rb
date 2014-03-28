@@ -17,6 +17,19 @@
 # limitations under the License.
 #
 
+# Enforce no-quorum-policy based on the number of members in the clusters
+# We know that for 2 members (or 1, where it doesn't matter), the setting
+# should be "ignore". If we have more members, then we use the value set in the
+# barclamp.
+# For details on the different policies, see
+# https://www.suse.com/documentation/sle_ha/book_sleha/data/sec_ha_configuration_basics_global.html
+cluster_members_nb = CrowbarPacemakerHelper.cluster_nodes(node).length
+if cluster_members_nb <= 2
+  node.default[:pacemaker][:crm][:no_quorum_policy] = "ignore"
+end
+
+include_recipe "crowbar-pacemaker::stonith"
+
 include_recipe "pacemaker::default"
 
 # if we ever want to not have a hard dependency on openstack here, we can have
@@ -31,58 +44,6 @@ node[:pacemaker][:platform][:resource_packages][:openstack].each do |pkg|
   package pkg
 end
 
-#FIXME: delete group when it's not needed anymore 
-#FIXME: need to find/write OCF for haproxy  
-
-# Always do the setup for haproxy, so that the RA will already be available on
-# all nodes when needed (this avoids the need for "crm resource refresh")
-include_recipe "haproxy::setup"
-
-if node[:pacemaker][:haproxy][:enabled]
-  service "haproxy" do
-    supports :restart => true, :status => true, :reload => true
-    action :nothing
-    subscribes :reload, "template[#{node[:haproxy][:platform][:config_file]}]", :immediately
-  end
-
-  vip_primitives = []
-  service_name = "haproxy-service"
-
-  node[:pacemaker][:haproxy][:networks].each do |network, enabled|
-    vip_primitive = pacemaker_vip_primitive "HAProxy VIP for #{network}" do
-      cb_network network
-      # See allocate_cluster_virtual_ips_for_networks in barclamp-crowbar
-      hostname CrowbarPacemakerHelper.cluster_vhostname(node)
-      domain node[:domain]
-      op node[:pacemaker][:haproxy][:op]
-    end
-    vip_primitives << vip_primitive
-  end
-
-  # Allow one retry, to avoid races where two nodes create the primitive at the
-  # same time when it wasn't created yet (only one can obviously succeed)
-  pacemaker_primitive service_name do
-    agent node[:pacemaker][:haproxy][:agent]
-    op node[:pacemaker][:haproxy][:op]
-    action :create
-    retries 1
-    retry_delay 5
-  end
-
-  # Allow one retry, to avoid races where two nodes create the primitive at the
-  # same time when it wasn't created yet (only one can obviously succeed)
-  pacemaker_group "haproxy-group" do
-    # Membership order *is* significant; VIPs should come first so
-    # that they are available for the haproxy service to bind to.
-    members vip_primitives + [service_name]
-    meta ({
-      "is-managed" => true,
-      "target-role" => "started"
-    })
-    action [ :create, :start ]
-    retries 1
-    retry_delay 5
-  end
-end
+include_recipe "crowbar-pacemaker::haproxy"
 
 include_recipe "crowbar-pacemaker::maintenance-mode"

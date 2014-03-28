@@ -22,6 +22,55 @@
                 "password": { "type": "str", "required": true }
               }
             },
+            "crm": {
+              "type": "map",
+              "required": true,
+              "mapping": {
+                "no_quorum_policy": { "type": "str", "required": true }
+              }
+            },
+            "stonith": {
+              "type": "map",
+              "required": true,
+              "mapping": {
+                "mode": { "type": "str", "required": true },
+                "shared": {
+                  "type": "map",
+                  "required": true,
+                  "mapping": {
+                    "agent": { "type": "str", "required": true },
+                    "params": { "type": "str", "required": true }
+                  }
+                },
+                "per_node": {
+                  "type": "map",
+                  "required": true,
+                  "mapping": {
+                    "agent": { "type": "str", "required": true },
+                    "nodes": {
+                      "type": "map",
+                      "required": true,
+                      "mapping": {
+                        = : {
+                          "type": "map",
+                          "required": true,
+                          "mapping": {
+                            "params": { "type": "str", "required": true }
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "libvirt": {
+                  "type": "map",
+                  "required": true,
+                  "mapping": {
+                    "hypervisor_ip": { "type": "str", "required": true }
+                  }
+                }
+              }
+            },
             "haproxy": {
               "type": "map",
               "required": true,
