@@ -34,7 +34,7 @@
               "required": true,
               "mapping": {
                 "mode": { "type": "str", "required": true },
-                "clone": {
+                "shared": {
                   "type": "map",
                   "required": true,
                   "mapping": {

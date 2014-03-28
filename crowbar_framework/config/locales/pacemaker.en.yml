@@ -35,13 +35,13 @@ en:
         stonith_modes:
           manual: Configured manually
           ipmi_barclamp: Configured with IPMI data from IPMI barclamp
-          clone: Configured with a clone resource
-          per_node: Configured with a resource per node
+          shared: Configured with one shared resource for the whole cluster
+          per_node: Configured with one resource per node
           libvirt: Configured for nodes running in libvirt
         stonith:
           mode: Configuration mode for STONITH
           no_nodes: No nodes have been assigned a pacemaker role.
-          clone:
+          shared:
             plugin: STONITH plugin
             params: Parameters for plugin
           per_node:

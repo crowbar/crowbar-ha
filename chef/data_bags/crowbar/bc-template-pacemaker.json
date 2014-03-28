@@ -14,7 +14,7 @@
       },
       "stonith": {
         "mode": "manual",
-        "clone": {
+        "shared": {
           "plugin": "",
           "params": ""
         },

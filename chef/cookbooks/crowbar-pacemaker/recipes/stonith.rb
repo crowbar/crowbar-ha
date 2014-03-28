@@ -24,16 +24,16 @@
 node[:pacemaker][:stonith][:per_node][:mode] = "self"
 
 case node[:pacemaker][:stonith][:mode]
-# Need to add the hostlist param for clone
-when "clone"
-  params = node[:pacemaker][:stonith][:clone][:params]
+# Need to add the hostlist param for shared
+when "shared"
+  params = node[:pacemaker][:stonith][:shared][:params]
 
   if params.respond_to?('to_hash')
     params = params.to_hash
   elsif params.is_a?(String)
     params = ::Pacemaker::Resource.extract_hash("params #{params}", "params")
   else
-    message = "Unknown format for STONITH clone parameters: #{params.inspect}."
+    message = "Unknown format for STONITH shared parameters: #{params.inspect}."
     Chef::Log.fatal(message)
     raise message
   end
@@ -41,7 +41,7 @@ when "clone"
   member_names = CrowbarPacemakerHelper.cluster_nodes(node).map { |n| n.name }
   params["hostlist"] = member_names.join(" ")
 
-  node.default[:pacemaker][:stonith][:clone][:params] = params
+  node.default[:pacemaker][:stonith][:shared][:params] = params
 
 # Crowbar is using FQDN, but crm seems to only know about the hostname without
 # the domain, so we need to translate this here

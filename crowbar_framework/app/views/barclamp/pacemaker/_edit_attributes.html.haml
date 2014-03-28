@@ -13,11 +13,11 @@
       %legend
         = t(".stonith_header")
 
-      = select_field %w(stonith mode), :collection => :stonith_mode_for_pacemaker, "data-showit" => ["clone", "per_node", "libvirt"].join(";"), "data-showit-target" => "#stonith_clone_container;#stonith_per_node_container;#stonith_libvirt_container", "data-showit-direct" => "true"
+      = select_field %w(stonith mode), :collection => :stonith_mode_for_pacemaker, "data-showit" => ["shared", "per_node", "libvirt"].join(";"), "data-showit-target" => "#stonith_shared_container;#stonith_per_node_container;#stonith_libvirt_container", "data-showit-direct" => "true"
 
-      #stonith_clone_container
-        = string_field %w(stonith clone plugin)
-        = string_field %w(stonith clone params)
+      #stonith_shared_container
+        = string_field %w(stonith shared plugin)
+        = string_field %w(stonith shared params)
 
       #stonith_per_node_container{ "data-nodes" => Hash[nodes_hash].to_json }
         = string_field %w(stonith per_node plugin)

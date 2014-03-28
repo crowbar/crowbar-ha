@@ -138,11 +138,11 @@ class PacemakerService < ServiceObject
     case stonith_attributes["mode"]
     when "manual"
       # nothing to do
-    when "clone"
-      plugin = stonith_attributes["clone"]["plugin"]
-      params = stonith_attributes["clone"]["params"]
-      validation_error "Missing STONITH plugin for clone setup" if plugin.blank?
-      validation_error "Missing STONITH parameters for clone setup" if params.blank?
+    when "shared"
+      plugin = stonith_attributes["shared"]["plugin"]
+      params = stonith_attributes["shared"]["params"]
+      validation_error "Missing STONITH plugin for shared setup" if plugin.blank?
+      validation_error "Missing STONITH parameters for shared setup" if params.blank?
     when "per_node"
       plugin = stonith_attributes["per_node"]["plugin"]
       nodes = stonith_attributes["per_node"]["nodes"]
