@@ -107,5 +107,7 @@ ruby_block "Wait for DRBD resource when it will be ready" do
       output = cmd.run_command
       sleep 1
     end while not (output.stdout.include?("Primary") && output.stdout.include?("Secondary"))
+    node.normal['drbd']['rsc'][resource]['configured'] = true
+    node.save
   end
 end
