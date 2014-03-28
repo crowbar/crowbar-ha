@@ -18,6 +18,8 @@
 # limitations under the License.
 #
 
+include_recipe "drbd::default"
+
 require 'chef/shell_out'
 
 resource = []
