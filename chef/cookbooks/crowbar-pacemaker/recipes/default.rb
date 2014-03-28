@@ -84,3 +84,5 @@ if node[:pacemaker][:haproxy][:enabled]
     retry_delay 5
   end
 end
+
+include_recipe "crowbar-pacemaker::maintenance-mode"
