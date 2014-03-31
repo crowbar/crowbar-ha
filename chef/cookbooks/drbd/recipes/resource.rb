@@ -45,10 +45,10 @@ node['drbd']['rsc'].each do |resource_name, resource|
       :resource => resource_name,
       :device => resource['device'],
       :disk => resource['disk'],
-      :local_hostname => node.name.split('.')[0],
+      :local_hostname => node.hostname,
       :local_ip => node.ipaddress,
       :port => resource['port'],
-      :remote_hostname => remote.name.split('.')[0],
+      :remote_hostname => remote.hostname,
       :remote_ip => remote.ipaddress
     )
     owner "root"
