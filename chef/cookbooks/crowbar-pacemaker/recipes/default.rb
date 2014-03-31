@@ -44,6 +44,10 @@ node[:pacemaker][:platform][:resource_packages][:openstack].each do |pkg|
   package pkg
 end
 
+if node[:pacemaker][:drbd][:enabled]
+  include_recipe "crowbar-pacemaker::drbd"
+end
+
 include_recipe "crowbar-pacemaker::haproxy"
 
 include_recipe "crowbar-pacemaker::maintenance-mode"

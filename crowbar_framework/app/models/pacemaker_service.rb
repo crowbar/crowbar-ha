@@ -207,6 +207,10 @@ class PacemakerService < ServiceObject
       end
     end
 
+    if proposal["attributes"][@bc_name]["drbd"]["enabled"]
+      validation_error "Setting up DRBD requires a cluster of two nodes." if members.length != 2
+    end
+
     nodes = NodeObject.find("roles:provisioner-server")
     unless nodes.nil? or nodes.length < 1
       provisioner_server_node = nodes[0]

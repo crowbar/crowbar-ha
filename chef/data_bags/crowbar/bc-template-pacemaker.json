@@ -26,6 +26,9 @@
           "hypervisor_ip": ""
         }
       },
+      "drbd": {
+        "enabled": false
+      },
       "haproxy": {
         "public_name": ""
       }
