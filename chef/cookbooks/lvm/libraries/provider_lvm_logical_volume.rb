@@ -62,7 +62,7 @@ class Chef
         end
 
         # Create the logical volume
-        if not lvm_map.include?(group) || lvm_map[group].include?(name)
+        if lvm_map.include?(group) && lvm_map[group].include?(name)
           Chef::Log.info "Logical volume '#{name}' already exists or volume group '#{group}' problem. Not creating..."
         else
           device_name = "/dev/mapper/#{to_dm_name(group)}-#{to_dm_name(name)}"
