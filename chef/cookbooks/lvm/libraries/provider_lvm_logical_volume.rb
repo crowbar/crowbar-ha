@@ -45,6 +45,7 @@ class Chef
 
         lvm_map = {}
         output = %x[vgs]
+        raise "Failed to list volume groups!" unless $?.success?
         output.split("\n").each_with_index do |line, index|
           unless index == 0
             args = line.split()
@@ -52,6 +53,7 @@ class Chef
           end
         end
         output = %x[lvs]
+        raise "Failed to list logical volumes!" unless $?.success?
         output.split("\n").each_with_index do |line, index|
           unless index == 0
             args = line.split()
@@ -85,6 +87,7 @@ class Chef
           Chef::Log.debug "Executing lvm command: '#{command}'"
           output = %x[#{command}]
           Chef::Log.debug "Command output: '#{output}'"
+          raise "Failed to create logical volume!" unless $?.success?
           new_resource.updated_by_last_action(true)
         end
 

@@ -38,6 +38,7 @@ class Chef
       def action_create
         physical_volumes = []
         output = %x[pvdisplay]
+        raise "Failed to list physical volumes!" unless $?.success?
         output.split("\n").each do |line|
           args = line.split()
           if args[0] == "PV" and args[1] == "Name"
@@ -49,6 +50,7 @@ class Chef
         else
           Chef::Log.info "Creating physical volume '#{new_resource.name}'"
           %x[pvcreate #{new_resource.name}]
+          raise "Failed to create physical volume!" unless $?.success?
           new_resource.updated_by_last_action(true)
         end
       end
