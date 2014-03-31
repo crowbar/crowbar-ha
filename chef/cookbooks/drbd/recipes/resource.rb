@@ -99,13 +99,21 @@ node['drbd']['rsc'].each do |resource_name, resource|
 
   ruby_block "Wait for DRBD resource when it will be ready" do
     block do
+      require 'timeout'
+
       begin
-        cmd = Chef::ShellOut.new("drbd-overview | grep #{resource_name}")
-        output = cmd.run_command
-        sleep 1
-      end while not (output.stdout.include?("Primary") && output.stdout.include?("Secondary"))
-      node.normal['drbd']['rsc'][resource_name]['configured'] = true
-      node.save
-    end
-  end
+        Timeout.timeout(timeout) do
+          begin
+            cmd = Chef::ShellOut.new("drbd-overview | grep #{resource_name}")
+            output = cmd.run_command
+            sleep 1
+          end while not (output.stdout.include?("Primary") && output.stdout.include?("Secondary"))
+          node.normal['drbd']['rsc'][resource_name]['configured'] = true
+          node.save
+        end # Timeout
+      rescue Timeout::Error
+        raise "DRBD resource not ready!"
+      end
+    end # block
+  end # ruby_block
 end
