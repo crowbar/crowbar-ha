@@ -69,6 +69,7 @@
                     "hypervisor_ip": { "type": "str", "required": true }
                   }
                 }
+              }
             },
             "drbd": {
               "type": "map",
