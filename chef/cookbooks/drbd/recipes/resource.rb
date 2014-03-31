@@ -27,27 +27,27 @@ require 'chef/shell_out'
 # a guard to make sure that we do not run the recipe for a resource that we
 # already handled earlier on.
 
-node['drbd']['rsc'].each do |resource, data|
-  next if data['configured']
+node['drbd']['rsc'].each do |resource_name, resource|
+  next if resource['configured']
 
-  if node['drbd']['rsc'][resource]['remote_host'].nil?
-    Chef::Application.fatal! "You must have a ['drbd']['rsc'][resource]['remote_host'] defined to use the drbd::resource recipe."
+  if resource['remote_host'].nil?
+    Chef::Application.fatal! "You must have a ['drbd']['rsc'][resource_name]['remote_host'] defined to use the drbd::resource recipe."
     next
   end
 
-  remote_nodes = search(:node, "name:#{node['drbd']['rsc'][resource]['remote_host']}")
-  raise "Remote node #{node['drbd']['rsc'][resource]['remote_host']} not found!" if remote_nodes.empty?
+  remote_nodes = search(:node, "name:#{resource['remote_host']}")
+  raise "Remote node #{resource['remote_host']} not found!" if remote_nodes.empty?
   remote = remote_nodes.first
 
-  template "/etc/drbd.d/#{resource}.res" do
+  template "/etc/drbd.d/#{resource_name}.res" do
     source "resource.erb"
     variables(
-      :resource => resource,
-      :device => node['drbd']['rsc'][resource]['device'],
-      :disk => node['drbd']['rsc'][resource]['disk'],
+      :resource => resource_name,
+      :device => resource['device'],
+      :disk => resource['disk'],
       :local_hostname => node.name.split('.')[0],
       :local_ip => node.ipaddress,
-      :port => node['drbd']['rsc'][resource]['port'],
+      :port => resource['port'],
       :remote_hostname => remote.name.split('.')[0],
       :remote_ip => remote.ipaddress
     )
@@ -58,8 +58,8 @@ node['drbd']['rsc'].each do |resource, data|
 
   # first pass only, initialize drbd 
   # for disks re-usage from old resources we will run with force option
-  execute "drbdadm -- --force create-md #{resource}" do
-    subscribes :run, resources(:template => "/etc/drbd.d/#{resource}.res"), :immediate
+  execute "drbdadm -- --force create-md #{resource_name}" do
+    subscribes :run, resources(:template => "/etc/drbd.d/#{resource_name}.res"), :immediate
     notifies :restart, resources(:service => "drbd"), :immediate
     only_if do
       cmd = Chef::ShellOut.new("drbd-overview")
@@ -70,29 +70,29 @@ node['drbd']['rsc'].each do |resource, data|
     action :nothing
   end
 
-  # claim primary based off of node['drbd'][resource]['master']
-  execute "drbdadm -- --overwrite-data-of-peer primary #{resource}" do
-    subscribes :run, resources(:execute => "drbdadm -- --force create-md #{resource}"), :immediate
-    only_if { node['drbd']['rsc'][resource]['master'] && !node['drbd']['rsc'][resource]['configured'] }
+  # claim primary based off of resource['master']
+  execute "drbdadm -- --overwrite-data-of-peer primary #{resource_name}" do
+    subscribes :run, resources(:execute => "drbdadm -- --force create-md #{resource_name}"), :immediate
+    only_if { resource['master'] && !resource['configured'] }
     action :nothing
   end
 
   # you may now create a filesystem on the device, use it as a raw block device
   # for disks re-usage from old resources we will run with force option
-  execute "mkfs -t #{node['drbd']['rsc'][resource]['fs_type']} -f #{node['drbd']['rsc'][resource]['device']}" do
-    subscribes :run, resources(:execute => "drbdadm -- --overwrite-data-of-peer primary #{resource}"), :immediate
-    only_if { node['drbd']['rsc'][resource]['master'] && !node['drbd']['rsc'][resource]['configured'] }
+  execute "mkfs -t #{resource['fs_type']} -f #{resource['device']}" do
+    subscribes :run, resources(:execute => "drbdadm -- --overwrite-data-of-peer primary #{resource_name}"), :immediate
+    only_if { resource['master'] && !resource['configured'] }
     action :nothing
   end
 
-  unless node['drbd']['rsc'][resource]['mount'].nil? or node['drbd']['rsc'][resource]['mount'].empty?
-    directory node['drbd']['rsc'][resource]['mount']
+  unless resource['mount'].nil? or resource['mount'].empty?
+    directory resource['mount']
 
     #mount -t xfs -o rw /dev/drbd0 /shared
-    mount node['drbd']['rsc'][resource]['mount'] do
-      device node['drbd']['rsc'][resource]['device']
-      fstype node['drbd']['rsc'][resource]['fs_type']
-      only_if { node['drbd']['rsc'][resource]['master'] && node['drbd']['rsc'][resource]['configured'] }
+    mount resource['mount'] do
+      device resource['device']
+      fstype resource['fs_type']
+      only_if { resource['master'] && resource['configured'] }
       action :mount
     end
   end
@@ -100,11 +100,11 @@ node['drbd']['rsc'].each do |resource, data|
   ruby_block "Wait for DRBD resource when it will be ready" do
     block do
       begin
-        cmd = Chef::ShellOut.new("drbd-overview | grep #{resource}")
+        cmd = Chef::ShellOut.new("drbd-overview | grep #{resource_name}")
         output = cmd.run_command
         sleep 1
       end while not (output.stdout.include?("Primary") && output.stdout.include?("Secondary"))
-      node.normal['drbd']['rsc'][resource]['configured'] = true
+      node.normal['drbd']['rsc'][resource_name]['configured'] = true
       node.save
     end
   end
