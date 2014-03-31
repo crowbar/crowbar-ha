@@ -102,7 +102,7 @@ node['drbd']['rsc'].each do |resource_name, resource|
       require 'timeout'
 
       begin
-        Timeout.timeout(timeout) do
+        Timeout.timeout(20) do
           begin
             cmd = Chef::ShellOut.new("drbd-overview | grep #{resource_name}")
             output = cmd.run_command
