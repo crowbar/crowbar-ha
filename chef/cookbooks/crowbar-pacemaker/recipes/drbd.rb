@@ -60,3 +60,7 @@ lvm_volume_group lvm_group do
 end
 
 include_recipe "drbd::default"
+
+crowbar_pacemaker_drbd_create_internal "create drbd resources" do
+  lvm_group lvm_group
+end
