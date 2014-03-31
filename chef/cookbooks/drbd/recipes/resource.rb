@@ -103,7 +103,7 @@ end
 ruby_block "Wait for DRBD resource when it will be ready" do
   block do
     begin
-      cmd = Chef::ShellOut.new("drbd-overview #{resource}")
+      cmd = Chef::ShellOut.new("drbd-overview | grep #{resource}")
       output = cmd.run_command
       sleep 1
     end while not (output.stdout.include?("Primary") && output.stdout.include?("Secondary"))
