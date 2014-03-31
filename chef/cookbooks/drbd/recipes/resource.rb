@@ -62,7 +62,7 @@ node['drbd']['rsc'].each do |resource_name, resource|
     subscribes :run, resources(:template => "/etc/drbd.d/#{resource_name}.res"), :immediately
     notifies :restart, resources(:service => "drbd"), :immediately
     only_if do
-      cmd = Chef::ShellOut.new("drbd-overview")
+      cmd = Chef::ShellOut.new("drbd-overview | grep -E \"^ *[0-9]+:#{resource_name}[/ ]\"")
       overview = cmd.run_command
       Chef::Log.info overview.stdout
       overview.stdout.include?("Unconfigured")
@@ -104,7 +104,7 @@ node['drbd']['rsc'].each do |resource_name, resource|
       begin
         Timeout.timeout(20) do
           begin
-            cmd = Chef::ShellOut.new("drbd-overview | grep #{resource_name}")
+            cmd = Chef::ShellOut.new("drbd-overview | grep -E \"^ *[0-9]+:#{resource_name}[/ ]\"")
             output = cmd.run_command
             sleep 1
           end while not (output.stdout.include?("Primary") && output.stdout.include?("Secondary"))
