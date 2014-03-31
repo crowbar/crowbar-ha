@@ -31,7 +31,7 @@ node['drbd']['rsc'].each do |resource_name, resource|
   next if resource['configured']
 
   if resource['remote_host'].nil?
-    Chef::Application.fatal! "You must have a ['drbd']['rsc'][resource_name]['remote_host'] defined to use the drbd::resource recipe."
+    Chef::Application.fatal! "No remote host defined for drbd resource #{resource_name}!"
     next
   end
 
