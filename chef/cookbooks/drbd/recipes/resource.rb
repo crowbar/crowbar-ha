@@ -20,6 +20,13 @@
 
 require 'chef/shell_out'
 
+# This recipe doesn't work the usual way recipe works!
+#
+# It is included from other recipes each time after a resource has been defined
+# (in node['drbd']['rsc']). That's why we use the 'configured' attribute: it's
+# a guard to make sure that we do not run the recipe for a resource that we
+# already handled earlier on.
+
 resource = []
 node['drbd']['rsc'].each do |rsc,data|
   unless data['configured']
