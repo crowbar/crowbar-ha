@@ -59,8 +59,8 @@ node['drbd']['rsc'].each do |resource_name, resource|
   # first pass only, initialize drbd 
   # for disks re-usage from old resources we will run with force option
   execute "drbdadm -- --force create-md #{resource_name}" do
-    subscribes :run, resources(:template => "/etc/drbd.d/#{resource_name}.res"), :immediate
-    notifies :restart, resources(:service => "drbd"), :immediate
+    subscribes :run, resources(:template => "/etc/drbd.d/#{resource_name}.res"), :immediately
+    notifies :restart, resources(:service => "drbd"), :immediately
     only_if do
       cmd = Chef::ShellOut.new("drbd-overview")
       overview = cmd.run_command
@@ -72,7 +72,7 @@ node['drbd']['rsc'].each do |resource_name, resource|
 
   # claim primary based off of resource['master']
   execute "drbdadm -- --overwrite-data-of-peer primary #{resource_name}" do
-    subscribes :run, resources(:execute => "drbdadm -- --force create-md #{resource_name}"), :immediate
+    subscribes :run, resources(:execute => "drbdadm -- --force create-md #{resource_name}"), :immediately
     only_if { resource['master'] && !resource['configured'] }
     action :nothing
   end
@@ -80,7 +80,7 @@ node['drbd']['rsc'].each do |resource_name, resource|
   # you may now create a filesystem on the device, use it as a raw block device
   # for disks re-usage from old resources we will run with force option
   execute "mkfs -t #{resource['fs_type']} -f #{resource['device']}" do
-    subscribes :run, resources(:execute => "drbdadm -- --overwrite-data-of-peer primary #{resource_name}"), :immediate
+    subscribes :run, resources(:execute => "drbdadm -- --overwrite-data-of-peer primary #{resource_name}"), :immediately
     only_if { resource['master'] && !resource['configured'] }
     action :nothing
   end
