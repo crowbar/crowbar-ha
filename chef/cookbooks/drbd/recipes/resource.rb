@@ -18,8 +18,6 @@
 # limitations under the License.
 #
 
-require 'chef/shell_out'
-
 # This recipe doesn't work the usual way recipe works!
 #
 # It is included from other recipes each time after a resource has been defined
@@ -56,18 +54,14 @@ node['drbd']['rsc'].each do |resource_name, resource|
     action :create
   end
 
-  grep_drbd_overview = "drbd-overview | grep -E \"^ *[0-9]+:#{resource_name}[/ ]\""
-
   # first pass only, initialize drbd 
   # for disks re-usage from old resources we will run with force option
   execute "drbdadm -- --force create-md #{resource_name}" do
     subscribes :run, resources(:template => "/etc/drbd.d/#{resource_name}.res"), :immediately
     notifies :restart, resources(:service => "drbd"), :immediately
     only_if do
-      cmd = Chef::ShellOut.new(grep_drbd_overview)
-      overview = cmd.run_command
-      Chef::Log.info overview.stdout
-      overview.stdout.include?("Unconfigured")
+      overview = DrbdOverview.get(resource_name)
+      !overview.nil? && overview["state"] == "Unconfigured"
     end
     action :nothing
   end
@@ -75,7 +69,14 @@ node['drbd']['rsc'].each do |resource_name, resource|
   # claim primary based off of resource['master']
   execute "drbdadm -- --overwrite-data-of-peer primary #{resource_name}" do
     subscribes :run, resources(:execute => "drbdadm -- --force create-md #{resource_name}"), :immediately
-    only_if { resource['master'] && !resource['configured'] }
+    only_if do
+      if resource['master']
+        overview = DrbdOverview.get(resource_name)
+        !overview.nil? && overview["state"] != "Unconfigured" && overview["primary"].nil?
+      else
+        false
+      end
+    end
     action :nothing
   end
 
@@ -106,9 +107,8 @@ node['drbd']['rsc'].each do |resource_name, resource|
       begin
         Timeout.timeout(20) do
           while true
-            cmd = Chef::ShellOut.new(grep_drbd_overview)
-            output = cmd.run_command
-            break if (output.stdout.include?("Primary") && output.stdout.include?("Secondary"))
+            overview = DrbdOverview.get(resource_name)
+            break if !overview.nil? && [overview["primary"], overview["secondary"]].include?("UpToDate")
             sleep 2
           end
           node.normal['drbd']['rsc'][resource_name]['configured'] = true
