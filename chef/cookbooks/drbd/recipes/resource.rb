@@ -57,13 +57,11 @@ node['drbd']['rsc'].each do |resource_name, resource|
   # first pass only, initialize drbd 
   # for disks re-usage from old resources we will run with force option
   execute "drbdadm -- --force create-md #{resource_name}" do
-    subscribes :run, resources(:template => "/etc/drbd.d/#{resource_name}.res"), :immediately
     notifies :restart, resources(:service => "drbd"), :immediately
     only_if do
       overview = DrbdOverview.get(resource_name)
       !overview.nil? && overview["state"] == "Unconfigured"
     end
-    action :nothing
   end
 
   # claim primary based off of resource['master']
