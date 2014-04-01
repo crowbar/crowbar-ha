@@ -25,5 +25,5 @@ service "drbd" do
     :restart => true,
     :status => true
   )
-  action :nothing
+  action [:enable, :start]
 end
