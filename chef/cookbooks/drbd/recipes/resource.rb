@@ -66,7 +66,6 @@ node['drbd']['rsc'].each do |resource_name, resource|
 
   # claim primary based off of resource['master']
   execute "drbdadm -- --overwrite-data-of-peer primary #{resource_name}" do
-    subscribes :run, resources(:execute => "drbdadm -- --force create-md #{resource_name}"), :immediately
     only_if do
       if resource['master']
         overview = DrbdOverview.get(resource_name)
@@ -75,7 +74,6 @@ node['drbd']['rsc'].each do |resource_name, resource|
         false
       end
     end
-    action :nothing
   end
 
   # you may now create a filesystem on the device, use it as a raw block device
