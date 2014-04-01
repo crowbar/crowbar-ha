@@ -52,4 +52,4 @@ lvm_volume_group lvm_group do
   physical_volumes [lvm_disk.name]
 end
 
-node["drbd"]["master"] = node["pacemaker"]["founder"]
+include_recipe "drbd::default"
