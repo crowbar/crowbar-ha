@@ -17,6 +17,10 @@
 #
 
 module PacemakerBarclampHelper
+  def node_aliases
+    Hash[nodes_hash.map { |n| [n.first, { :alias => n.last[:alias] }] }]
+  end
+
   def no_quorum_policy_for_pacemaker(selected)
     # no translation for the strings as we simply show the values that will end
     # up in the config file
