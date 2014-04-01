@@ -96,7 +96,7 @@ node['drbd']['rsc'].each do |resource_name, resource|
     end
   end
 
-  ruby_block "Wait for DRBD resource to be ready" do
+  ruby_block "Wait for DRBD resource #{resource_name} to be ready" do
     block do
       require 'timeout'
 
@@ -111,7 +111,7 @@ node['drbd']['rsc'].each do |resource_name, resource|
           node.save
         end # Timeout
       rescue Timeout::Error
-        raise "DRBD resource not ready!"
+        raise "DRBD resource #{resource_name} not ready!"
       end
     end # block
   end # ruby_block
