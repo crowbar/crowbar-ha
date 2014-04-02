@@ -2,6 +2,15 @@
 # See the crowbar-pacemaker::maintenance-mode recipe for more
 # information.
 
+# These handlers will be loaded by Chef at startup, via
+# /etc/chef/client.rb.  At this point there is no guarantee that
+# /var/cache/chef is populated (crowbar_join will wipe the cache
+# during boot if its first chef-client run fails), so the
+# maintenance-mode recipe ensures that maintenance_mode_helpers.rb is
+# permanently installed under /var/chef/libraries at the same time the
+# handlers are installed in /etc/chef/client.rb.
+require '/var/chef/libraries/maintenance_mode_helpers'
+
 class Chef
   module Pacemaker
     class Handler < Chef::Handler
