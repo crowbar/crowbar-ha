@@ -18,8 +18,6 @@
 # limitations under the License.
 #
 
-require 'chef/shell_out'
-
 # This recipe doesn't work the usual way recipe works!
 #
 # It is included from other recipes each time after a resource has been defined
@@ -59,22 +57,23 @@ node['drbd']['rsc'].each do |resource_name, resource|
   # first pass only, initialize drbd 
   # for disks re-usage from old resources we will run with force option
   execute "drbdadm -- --force create-md #{resource_name}" do
-    subscribes :run, resources(:template => "/etc/drbd.d/#{resource_name}.res"), :immediately
     notifies :restart, resources(:service => "drbd"), :immediately
     only_if do
-      cmd = Chef::ShellOut.new("drbd-overview | grep -E \"^ *[0-9]+:#{resource_name}[/ ]\"")
-      overview = cmd.run_command
-      Chef::Log.info overview.stdout
-      overview.stdout.include?("Unconfigured")
+      overview = DrbdOverview.get(resource_name)
+      !overview.nil? && overview["state"] == "Unconfigured"
     end
-    action :nothing
   end
 
   # claim primary based off of resource['master']
   execute "drbdadm -- --overwrite-data-of-peer primary #{resource_name}" do
-    subscribes :run, resources(:execute => "drbdadm -- --force create-md #{resource_name}"), :immediately
-    only_if { resource['master'] && !resource['configured'] }
-    action :nothing
+    only_if do
+      if resource['master']
+        overview = DrbdOverview.get(resource_name)
+        !overview.nil? && overview["state"] != "Unconfigured" && overview["primary"].nil?
+      else
+        false
+      end
+    end
   end
 
   # you may now create a filesystem on the device, use it as a raw block device
@@ -97,22 +96,22 @@ node['drbd']['rsc'].each do |resource_name, resource|
     end
   end
 
-  ruby_block "Wait for DRBD resource when it will be ready" do
+  ruby_block "Wait for DRBD resource #{resource_name} to be ready" do
     block do
       require 'timeout'
 
       begin
         Timeout.timeout(20) do
-          begin
-            cmd = Chef::ShellOut.new("drbd-overview | grep -E \"^ *[0-9]+:#{resource_name}[/ ]\"")
-            output = cmd.run_command
-            sleep 1
-          end while not (output.stdout.include?("Primary") && output.stdout.include?("Secondary"))
+          while true
+            overview = DrbdOverview.get(resource_name)
+            break if !overview.nil? && [overview["primary"], overview["secondary"]].include?("UpToDate")
+            sleep 2
+          end
           node.normal['drbd']['rsc'][resource_name]['configured'] = true
           node.save
         end # Timeout
       rescue Timeout::Error
-        raise "DRBD resource not ready!"
+        raise "DRBD resource #{resource_name} not ready!"
       end
     end # block
   end # ruby_block
