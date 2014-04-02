@@ -44,6 +44,13 @@ if lvm_disk.nil?
   raise message
 end
 
+# Make sure that LVM is setup on boot
+if %w(suse).include? node.platform
+  service "boot.lvm" do
+    action [:enable]
+  end
+end
+
 include_recipe "lvm::default"
 
 lvm_physical_volume lvm_disk.name
