@@ -212,7 +212,7 @@ class PacemakerService < ServiceObject
           params = nodes[node_name]["params"]
           validation_error "Missing fencing agent parameters for node #{node_name}" if params.blank?
         else
-          validation_error "Fencing agent parameters for node #{node_name}, while this node is a not a member of the cluster"
+          validation_error "Fencing agent parameters present for node #{node_name}, while this node is a not a member of the cluster"
         end
       end
     when "ipmi_barclamp"
