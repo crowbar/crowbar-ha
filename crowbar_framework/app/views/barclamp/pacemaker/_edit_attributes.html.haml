@@ -19,7 +19,7 @@
         = string_field %w(stonith shared agent)
         = string_field %w(stonith shared params)
 
-      #stonith_per_node_container{ "data-nodes" => Hash[nodes_hash].to_json }
+      #stonith_per_node_container{ "data-nodes" => node_aliases.to_json }
         = string_field %w(stonith per_node agent)
         %table.table.table-middle
           %thead
