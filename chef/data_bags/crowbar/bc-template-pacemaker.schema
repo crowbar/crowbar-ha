@@ -71,6 +71,23 @@
                 }
               }
             },
+            "notifications": {
+              "type": "map",
+              "required": true,
+              "mapping": {
+                "smtp": {
+                  "type": "map",
+                  "required": true,
+                  "mapping": {
+                    "enabled": { "type": "bool", "required": true },
+                    "to": { "type": "str", "required": true },
+                    "from": { "type": "str", "required": true },
+                    "server": { "type": "str", "required": true },
+                    "prefix": { "type": "str", "required": true }
+                  }
+                }
+              }
+            },
             "drbd": {
               "type": "map",
               "required": true,

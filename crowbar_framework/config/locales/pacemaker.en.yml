@@ -56,3 +56,12 @@ en:
             dev_only: The libvirt STONITH configuration is not supported, it should be used for development or testing purposes only!
             hypervisor_ip: IP address of hypervisor
             hypervisor_ip_hint: Note that libvirt on your host needs to be configured to listen on TCP, with no TLS and no authentication. The firewall should also be configured to allow communication from the virtual machines.
+        notifications_header: Mail Notifications
+        notifications:
+          smtp:
+            enabled: Enable Mail Notifications
+            server: SMTP Server
+            server_hint: Note that the SMTP server needs to be reachable from the nodes.
+            prefix: Subject Prefix
+            from: Sender Address
+            to: Recipient Address
