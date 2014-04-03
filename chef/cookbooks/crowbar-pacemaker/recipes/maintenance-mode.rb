@@ -24,11 +24,17 @@ cookbook_file "pacemaker_maintenance_handlers" do
   source "pacemaker_maintenance_handlers.rb"
 end
 
+directory "/var/chef/libraries"
+
+cookbook_file "maintenance_mode_helpers" do
+  path "/var/chef/libraries/maintenance_mode_helpers.rb"
+  source "maintenance_mode_helpers.rb"
+end
+
 bash "register Pacemaker maintenance handlers" do
   code <<'EOC'
     cat >> /etc/chef/client.rb <<EOF
 
-require '/var/chef/cache/cookbooks/crowbar-pacemaker/libraries/maintenance_mode_helpers'
 require '/var/chef/handlers/pacemaker_maintenance_handlers'
 
 pacemaker_start_handler = Chef::Pacemaker::StartHandler.new
