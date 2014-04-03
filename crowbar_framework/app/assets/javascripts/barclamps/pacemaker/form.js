@@ -12,7 +12,7 @@
         storage: '#proposal_attributes',
         deployment_storage: '#proposal_deployment',
         path: 'stonith/per_node/nodes',
-        watchedRoles: ['pacemaker-cluster-founder', 'pacemaker-cluster-member']
+        watchedRoles: ['pacemaker-cluster-member']
       }
     );
 
@@ -188,7 +188,7 @@ function update_no_quorum_policy(evt, init) {
   var no_quorum_policy_el = $('#crm_no_quorum_policy');
   var non_forced_policy = no_quorum_policy_el.data('non-forced');
   var was_forced_policy = no_quorum_policy_el.data('is-forced');
-  var non_founder_members = $('#pacemaker-cluster-member').children().length;
+  var members = $('#pacemaker-cluster-member').children().length;
 
   if (non_forced_policy == undefined) {
     non_forced_policy = "stop";
@@ -198,10 +198,10 @@ function update_no_quorum_policy(evt, init) {
     // 'nodeListNodeAllocated' is fired after the element has been added, so
     // nothing to do. However, 'nodeListNodeUnallocated' is fired before the
     // element is removed, so we need to fix the count.
-    if (evt.type == 'nodeListNodeUnallocated') { non_founder_members -= 1; }
+    if (evt.type == 'nodeListNodeUnallocated') { members -= 1; }
   }
 
-  if (non_founder_members > 1) {
+  if (members > 2) {
     if (was_forced_policy) {
       no_quorum_policy_el.val(non_forced_policy);
       no_quorum_policy_el.removeData('non-forced');

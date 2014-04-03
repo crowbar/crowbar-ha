@@ -27,13 +27,9 @@ class PacemakerService < ServiceObject
   class << self
     def role_constraints
       {
-        "pacemaker-cluster-founder" => {
-          "unique" => false,
-          "count" => 1
-        },
         "pacemaker-cluster-member" => {
           "unique" => false,
-          "count" => 31
+          "count" => 32
         },
         "hawk-server" => {
           "unique" => false,
@@ -80,6 +76,64 @@ class PacemakerService < ServiceObject
   def apply_role_pre_chef_call(old_role, role, all_nodes)
     @logger.debug("Pacemaker apply_role_pre_chef_call: entering #{all_nodes.inspect}")
 
+    # elect a founder
+    members = role.override_attributes[@bc_name]["elements"]["pacemaker-cluster-member"]
+    unless members.nil?
+      member_nodes = members.map {|n| NodeObject.find_node_by_name n}
+
+      founder = nil
+
+      # try to re-use founder that was part of old role, or if missing, another
+      # node part of the old role (since it's already part of the pacemaker
+      # cluster)
+      unless old_role.nil?
+        old_members = old_role.override_attributes[@bc_name]["elements"]["pacemaker-cluster-member"]
+        old_members = old_members.select {|n| members.include? n}
+        old_nodes = old_members.map {|n| NodeObject.find_node_by_name n}
+        old_nodes.each do |old_node|
+          if (old_node[:pacemaker][:founder] rescue false) == true
+            founder = old_node
+            break
+          end
+        end
+
+        # the founder from the old role is not there anymore; let's promote
+        # another node to founder, so we get the same authkey
+        if founder.nil?
+          founder = old_nodes.first
+        end
+      end
+
+      # Still nothing, there are two options:
+      #  - there was nothing in common with the old role (we will want to just
+      #    take one node)
+      #  - the proposal was deactivated (but we still had a founder before that
+      #    we want to keep)
+      if founder.nil?
+        member_nodes.each do |member_node|
+          if (member_node[:pacemaker][:founder] rescue false) == true
+            founder = member_node
+            break
+          end
+        end
+      end
+
+      # nothing worked; just take the first node as founder
+      if founder.nil?
+        founder = member_nodes.first
+      end
+
+      member_nodes.each do |member_node|
+        member_node[:pacemaker] ||= {}
+        is_founder = (member_node.name == founder.name)
+        if is_founder != member_node[:pacemaker][:founder]
+          member_node[:pacemaker][:founder] = is_founder
+          member_node.save
+        end
+      end
+    end
+
+    # set corosync attributes based on what we got in the proposal
     admin_net = ProposalObject.find_data_bag_item "crowbar/admin_network"
 
     role.default_attributes["corosync"] ||= {}
@@ -186,14 +240,11 @@ class PacemakerService < ServiceObject
   end
 
   def validate_proposal_after_save proposal
-    validate_one_for_role proposal, "pacemaker-cluster-founder"
+    validate_at_least_n_for_role proposal, "pacemaker-cluster-member", 1
 
     elements = proposal["deployment"]["pacemaker"]["elements"]
 
-    @logger.debug("Pacemaker apply_role_pre_chef_call: elts #{elements.inspect}")
-    members = (elements["pacemaker-cluster-founder"] || []) +
-              (elements["pacemaker-cluster-member" ] || [])
-    @logger.debug("cluster members: #{members}")
+    members = (elements["pacemaker-cluster-member" ] || [])
 
     if elements.has_key?("hawk-server")
       elements["hawk-server"].each do |n|
@@ -202,7 +253,7 @@ class PacemakerService < ServiceObject
           node = NodeObject.find_node_by_name(n)
           name = node.name
           name = "#{node.alias} (#{name})" if node.alias
-          validation_error "Node #{name} has the hawk-server role but not either the pacemaker-cluster-founder or pacemaker-cluster-member role."
+          validation_error "Node #{name} has the hawk-server role but not the pacemaker-cluster-member role."
         end
       end
     end

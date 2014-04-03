@@ -117,7 +117,11 @@ module CrowbarPacemakerHelper
       if is_cluster_founder? node
         node
       else
-        founders = cluster_nodes(node, "pacemaker-cluster-founder")
+        founders = []
+        Chef::Search::Query.new.search(:node, "pacemaker_founder:true AND pacemaker_config_environment:#{node[:pacemaker][:config][:environment]}") do |o|
+          founders << o if o.name != node.name
+        end
+        founders << node if (node[:pacemaker][:founder] rescue false) == true
         raise "No cluster founders found!" if founders.empty?
         raise "Multiple cluster founders found!" if founders.length > 1
         founders.first

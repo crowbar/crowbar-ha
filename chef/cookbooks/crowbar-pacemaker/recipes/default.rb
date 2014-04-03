@@ -30,7 +30,25 @@ end
 
 include_recipe "crowbar-pacemaker::stonith"
 
+# We let the founder go first, so it can generate the authkey and some other
+# initial pacemaker configuration bits; we do it in the first phase of the chef
+# run because the non-founder nodes will look in the compile phase for the
+# attribute
+crowbar_pacemaker_sync_mark "wait-pacemaker_setup" do
+  revision node[:pacemaker]["crowbar-revision"]
+  # we use a longer timeout because the wait / create are in two different
+  # phases, and this wait is fatal in case of errors
+  timeout 120
+  fatal true
+end.run_action(:guess)
+
 include_recipe "pacemaker::default"
+
+# This is not done in the compile phase, because saving the authkey attribute
+# is done in a ruby_block
+crowbar_pacemaker_sync_mark "create-pacemaker_setup" do
+  revision node[:pacemaker]["crowbar-revision"]
+end
 
 # if we ever want to not have a hard dependency on openstack here, we can have
 # Crowbar set a node[:pacemaker][:resource_agents] attribute based on available
