@@ -18,16 +18,25 @@ require 'chef/shell_out'
 
 module DrbdOverview
   def self.get(resource)
-    cmd = "drbd-overview | grep -E \"^ *[0-9]+:#{resource}[/ ]\""
-    output = Chef::ShellOut.new(cmd).run_command.stdout.chomp
-    Chef::Log.info "DRBD status of #{resource}: #{output}"
+    cmd = "drbd-overview"
+    output = Chef::ShellOut.new(cmd).run_command.stdout
 
-    if output.empty?
+    resource_output = ""
+    output.split("\n").each do |line|
+      if line =~ /^ *[0-9]+:#{resource}[\/ ]/
+        resource_output = line
+        break
+      end
+    end
+
+    Chef::Log.info "DRBD status of #{resource}: #{resource_output}"
+
+    if resource_output.empty?
       nil
     else
       # Example:
       # ["0:postgresql/0", "Connected", "Primary/Secondary", "UpToDate/Diskless", "C", "r----- /var/lib/pgsql xfs 4.0G 67M 4.0G 2%"]
-      parsed = output.split(" ", 6)
+      parsed = resource_output.split(" ", 6)
       item_1, item_2 = parsed[2].split("/", 2)
       state_1, state_2 = parsed[3].split("/", 2)
 
