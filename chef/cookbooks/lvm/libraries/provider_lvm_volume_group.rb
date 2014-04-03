@@ -61,6 +61,7 @@ class Chef
 
         volume_groups = []
         output = %x[vgdisplay]
+        raise "Failed to list volume groups!" unless $?.success?
         output.split("\n").each do |line|
           args = line.split()
           if args[0] == "VG" and args[1] == "Name"
@@ -78,6 +79,7 @@ class Chef
           Chef::Log.debug "Executing lvm command: '#{command}'"
           output = %x[#{command}]
           Chef::Log.debug "Command output: '#{output}'"
+          raise "Failed to create volume group!" unless $?.success?
           # Create the logical volumes specified as sub-resources
           new_resource.logical_volumes.each do |lv|
             lv.group new_resource.name
