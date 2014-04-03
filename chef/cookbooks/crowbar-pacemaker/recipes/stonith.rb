@@ -24,6 +24,9 @@
 node[:pacemaker][:stonith][:per_node][:mode] = "self"
 
 case node[:pacemaker][:stonith][:mode]
+when "sbd"
+  # nothing!
+
 # Need to add the hostlist param for shared
 when "shared"
   params = node[:pacemaker][:stonith][:shared][:params]

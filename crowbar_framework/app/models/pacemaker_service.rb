@@ -192,6 +192,27 @@ class PacemakerService < ServiceObject
     case stonith_attributes["mode"]
     when "manual"
       # nothing to do
+    when "sbd"
+      nodes = stonith_attributes["sbd"]["nodes"]
+
+      members.each do |member|
+        validation_error "Missing SBD devices for node #{member}" unless nodes.has_key?(member)
+      end
+
+      sbd_devices_nb = -1
+      sbd_devices_mismatch = false
+      nodes.keys.each do |node_name|
+        if members.include? node_name
+          devices = nodes[node_name]["devices"]
+          validation_error "Missing SBD devices for node #{node_name}" if devices.empty?
+
+          sbd_devices_nb = devices.length if sbd_devices_nb == -1
+          sbd_devices_mismatch = true if devices.length != sbd_devices_nb
+        else
+          validation_error "SBD devices present for node #{node_name}, while this node is a not a member of the cluster"
+        end
+      end
+      validation_error "All nodes must share the same number of SBD devices (with possibly different paths)" if sbd_devices_mismatch
     when "shared"
       agent = stonith_attributes["shared"]["agent"]
       params = stonith_attributes["shared"]["params"]
