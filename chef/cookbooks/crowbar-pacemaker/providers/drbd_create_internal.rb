@@ -15,8 +15,30 @@
 #
 
 action :create do
+  modules_loaded = {}
+
   node['drbd']['rsc'].keys.sort.each do |resource_name|
     resource = node['drbd']['rsc'][resource_name]
+
+    # make sure that we can mount the drbd ASAP, by making sure the kernel
+    # module (if there's one) is loaded
+    if %w(xfs).include?(resource["fstype"]) && !modules_loaded[resource["fstype"]]
+      mod = resource["fstype"]
+
+      if node.platform == 'suse'
+        execute "Enable #{mod} module on load (/etc/sysconfig/kernel)" do
+          command "sed -i 's/^\\(MODULES_LOADED_ON_BOOT=\"[^\"]*\\)\"/\\1 #{mod}\"/' /etc/sysconfig/kernel"
+          not_if "grep -q '^MODULES_LOADED_ON_BOOT=\"[^\"]*#{mod}[^\"]*\"' /etc/sysconfig/kernel"
+          action :nothing
+        end.run_action(:run)
+      end
+
+      execute "modprobe #{mod}" do
+        action :nothing
+      end.run_action(:run)
+
+      modules_loaded[resource["fstype"]] = true
+    end
 
     next if resource["configured"]
 
