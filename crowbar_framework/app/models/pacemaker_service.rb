@@ -287,6 +287,19 @@ class PacemakerService < ServiceObject
     stonith_attributes = proposal["attributes"][@bc_name]["stonith"]
     validate_proposal_stonith stonith_attributes, members
 
+    ### Do not allow elements of this proposal to be in another proposal, since
+    ### the configuration cannot be shared.
+    proposals_raw.each do |p|
+      next if p["id"] == proposal["id"]
+
+      (p["deployment"][@bc_name]["elements"]["pacemaker-cluster-member"] || []).each do |other_member|
+        if members.include?(other_member)
+          p_name = p["id"].gsub("bc-#{@bc_name}-", "")
+          validation_error "Nodes cannot be part of multiple Pacemaker proposals, but #{other_member} is already part of proposal \"#{p_name}\"."
+        end
+      end
+    end
+
     super
   end
 
