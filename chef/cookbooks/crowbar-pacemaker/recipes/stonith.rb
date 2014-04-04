@@ -25,7 +25,28 @@ node[:pacemaker][:stonith][:per_node][:mode] = "self"
 
 case node[:pacemaker][:stonith][:mode]
 when "sbd"
-  # nothing!
+  sbd_devices = nil
+  sbd_devices ||= (node[:pacemaker][:stonith][:sbd][:nodes][node[:fqdn]][:devices] rescue nil)
+  sbd_devices ||= (node[:pacemaker][:stonith][:sbd][:nodes][node[:hostname]][:devices] rescue nil)
+
+  sbd_devices.each do |sbd_device|
+    if File.symlink?(sbd_device)
+      sbd_device_simple = File.expand_path(File.readlink(sbd_device), File.dirname(sbd_device))
+    else
+      sbd_device_simple = sbd_device
+    end
+    disks = BarclampLibrary::Barclamp::Inventory::Disk.all(node).select {|d| d.name == sbd_device_simple}
+    disk = disks.first
+    if disk.nil?
+      raise "Cannot find device #{sbd_device}!"
+    end
+    if disk.claimed? && disk.owner != "sbd"
+      raise "Cannot use #{sbd_device} for SBD: it was claimed for #{disk.owner}!"
+    end
+    unless disk.claim("sbd")
+      raise "Cannot claim #{sbd_device} for SBD!"
+    end
+  end
 
 # Need to add the hostlist param for shared
 when "shared"
