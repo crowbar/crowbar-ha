@@ -258,6 +258,13 @@ class PacemakerService < ServiceObject
       end
     end
 
+    if proposal["attributes"][@bc_name]["notifications"]["smtp"]["enabled"]
+      smtp_settings = proposal["attributes"][@bc_name]["notifications"]["smtp"]
+      validation_error "Invalid SMTP server for mail notifications." if smtp_settings["server"].blank?
+      validation_error "Invalid sender address for mail notifications." if smtp_settings["from"].blank?
+      validation_error "Invalid recipient address for mail notifications." if smtp_settings["to"].blank?
+    end
+
     if proposal["attributes"][@bc_name]["drbd"]["enabled"]
       validation_error "Setting up DRBD requires a cluster of two nodes." if members.length != 2
     end

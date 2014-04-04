@@ -26,6 +26,15 @@
           "hypervisor_ip": ""
         }
       },
+      "notifications": {
+        "smtp": {
+          "enabled": false,
+          "to": "",
+          "from": "",
+          "server": "",
+          "prefix": ""
+	}
+      },
       "drbd": {
         "enabled": false
       },

@@ -39,6 +39,20 @@
 
     %fieldset
       %legend
+        = t(".notifications_header")
+
+      = boolean_field %w(notifications smtp enabled), "data-showit" => "true", "data-showit-target" => "#smtp_notifications_container", "data-showit-direct" => "true"
+
+      #smtp_notifications_container
+        = string_field %w(notifications smtp server)
+        %span.help-block
+          = t(".notifications.smtp.server_hint")
+        = string_field %w(notifications smtp prefix)
+        = string_field %w(notifications smtp from)
+        = string_field %w(notifications smtp to)
+
+    %fieldset
+      %legend
         = t(".drbd_header")
 
       .alert.alert-info
