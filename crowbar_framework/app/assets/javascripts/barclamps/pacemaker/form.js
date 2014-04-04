@@ -220,6 +220,7 @@ function update_no_quorum_policy(evt, init) {
 
 $(document).ready(function($) {
   $('#stonith_per_node_container').stonithNodeAgents();
+  $('#stonith_sbd_container').stonithNodeAgents({path:'stonith/sbd/nodes'});
 
   // FIXME: apparently using something else than
   // $('#stonith_per_node_container') breaks the per-node table :/
