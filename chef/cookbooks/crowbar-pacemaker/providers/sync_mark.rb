@@ -50,17 +50,17 @@ end
 
 action :wait do
   action, mark, revision = get_options(new_resource)
-  CrowbarPacemakerHelper.wait_for_mark_from_founder(node, mark, revision, new_resource.fatal, new_resource.timeout)
+  CrowbarPacemakerSynchronization.wait_for_mark_from_founder(node, mark, revision, new_resource.fatal, new_resource.timeout)
 end
 
 action :create do
   action, mark, revision = get_options(new_resource)
-  CrowbarPacemakerHelper.set_mark_if_founder(node, mark, revision)
+  CrowbarPacemakerSynchronization.set_mark_if_founder(node, mark, revision)
 end
 
 action :sync do
   action, mark, revision = get_options(new_resource)
-  CrowbarPacemakerHelper.synchronize_on_mark(node, mark, revision, new_resource.fatal, new_resource.timeout)
+  CrowbarPacemakerSynchronization.synchronize_on_mark(node, mark, revision, new_resource.fatal, new_resource.timeout)
 end
 
 action :guess do
@@ -68,10 +68,10 @@ action :guess do
   raise "Cannot guess action based on resource name" if action.nil?
 
   if action == :wait
-    CrowbarPacemakerHelper.wait_for_mark_from_founder(node, mark, revision, new_resource.fatal, new_resource.timeout)
+    CrowbarPacemakerSynchronization.wait_for_mark_from_founder(node, mark, revision, new_resource.fatal, new_resource.timeout)
   elsif action == :create
-    CrowbarPacemakerHelper.set_mark_if_founder(node, mark, revision)
+    CrowbarPacemakerSynchronization.set_mark_if_founder(node, mark, revision)
   elsif action == :sync
-    CrowbarPacemakerHelper.synchronize_on_mark(node, mark, revision, new_resource.fatal, new_resource.timeout)
+    CrowbarPacemakerSynchronization.synchronize_on_mark(node, mark, revision, new_resource.fatal, new_resource.timeout)
   end
 end
