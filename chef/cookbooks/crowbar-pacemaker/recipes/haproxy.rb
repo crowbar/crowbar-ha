@@ -33,7 +33,7 @@ if node[:pacemaker][:haproxy][:enabled]
   end
 
   vip_primitives = []
-  service_name = "haproxy-service"
+  service_name = "haproxy"
 
   node[:pacemaker][:haproxy][:networks].each do |network, enabled|
     vip_primitive = pacemaker_vip_primitive "HAProxy VIP for #{network}" do
@@ -58,14 +58,10 @@ if node[:pacemaker][:haproxy][:enabled]
 
   # Allow one retry, to avoid races where two nodes create the primitive at the
   # same time when it wasn't created yet (only one can obviously succeed)
-  pacemaker_group "haproxy-group" do
+  pacemaker_group "g-#{service_name}" do
     # Membership order *is* significant; VIPs should come first so
     # that they are available for the haproxy service to bind to.
     members vip_primitives + [service_name]
-    meta ({
-      "is-managed" => true,
-      "target-role" => "started"
-    })
     action [ :create, :start ]
     retries 1
     retry_delay 5
