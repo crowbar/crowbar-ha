@@ -62,10 +62,6 @@ if node[:pacemaker][:haproxy][:enabled]
     # Membership order *is* significant; VIPs should come first so
     # that they are available for the haproxy service to bind to.
     members vip_primitives + [service_name]
-    meta ({
-      "is-managed" => true,
-      "target-role" => "started"
-    })
     action [ :create, :start ]
     retries 1
     retry_delay 5
