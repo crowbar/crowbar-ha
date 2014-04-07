@@ -229,8 +229,8 @@ $(document).ready(function($) {
     path:'stonith/sbd/nodes',
     attr_name:'devices',
     attr_type:'seq',
-    attr_reader:function(val) { return val.join(", "); },
-    attr_writer:function(val) { return val.split(/\s*,\s*/); }
+    attr_reader:function(val) { return val.join(', '); },
+    attr_writer:function(val) { return val.replace(/ /g, ',').replace(/,+/g, ',').split(','); }
   });
 
   // FIXME: apparently using something else than
