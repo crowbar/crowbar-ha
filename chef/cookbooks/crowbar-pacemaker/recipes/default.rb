@@ -17,6 +17,8 @@
 # limitations under the License.
 #
 
+node[:corosync][:cluster_name] = CrowbarPacemakerHelper.cluster_name(node)
+
 # Enforce no-quorum-policy based on the number of members in the clusters
 # We know that for 2 members (or 1, where it doesn't matter), the setting
 # should be "ignore". If we have more members, then we use the value set in the
