@@ -13,7 +13,7 @@
         "no_quorum_policy": "stop"
       },
       "stonith": {
-        "mode": "manual",
+        "mode": "per_node",
         "shared": {
           "agent": "",
           "params": ""
