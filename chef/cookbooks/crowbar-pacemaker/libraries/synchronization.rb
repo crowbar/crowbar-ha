@@ -76,7 +76,7 @@ module CrowbarPacemakerSynchronization
           end
 
           Chef::Log.debug("Waiting for cluster founder to set #{mark} to #{revision}...")
-          sleep(10)
+          sleep(5)
         end # while true
       end # Timeout
     rescue Timeout::Error
@@ -142,7 +142,7 @@ module CrowbarPacemakerSynchronization
           end
 
           Chef::Log.debug("Waiting for all cluster nodes to set #{mark} to #{revision}...")
-          sleep(10)
+          sleep(5)
         end # while true
       end # Timeout
     rescue Timeout::Error
