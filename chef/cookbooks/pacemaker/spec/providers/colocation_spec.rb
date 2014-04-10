@@ -1,7 +1,9 @@
-require 'chef/application'
-require File.expand_path('../spec_helper', File.dirname(__FILE__))
-require File.expand_path('../helpers/cib_object', File.dirname(__FILE__))
-require File.expand_path('../fixtures/colocation_constraint', File.dirname(__FILE__))
+require 'spec_helper'
+
+this_dir = File.dirname(__FILE__)
+require File.expand_path('../helpers/provider',               this_dir)
+require File.expand_path('../helpers/non_runnable_resource',  this_dir)
+require File.expand_path('../fixtures/colocation_constraint', this_dir)
 
 describe "Chef::Provider::PacemakerColocation" do
   # for use inside examples:
@@ -9,41 +11,25 @@ describe "Chef::Provider::PacemakerColocation" do
   # for use outside examples (e.g. when invoking shared_examples)
   fixture = Chef::RSpec::Pacemaker::Config::COLOCATION_CONSTRAINT.dup
 
-  before(:each) do
-    runner_opts = {
-      :step_into => ['pacemaker_colocation']
-    }
-    @chef_run = ::ChefSpec::Runner.new(runner_opts)
-    @chef_run.converge "pacemaker::default"
-    @node = @chef_run.node
-    @run_context = @chef_run.run_context
-
-    @resource = Chef::Resource::PacemakerColocation.new(fixture.name, @run_context)
-    @resource.score     fixture.score
-    @resource.resources fixture.resources.dup
+  def lwrp_name
+    'colocation'
   end
 
-  let (:provider) { Chef::Provider::PacemakerColocation.new(@resource, @run_context) }
+  include_context "a Pacemaker LWRP"
+
+  before(:each) do
+    @resource.score     fixture.score
+    @resource.resources fixture.resources.dup
+
+
+  end
 
   def cib_object_class
     Pacemaker::Constraint::Colocation
   end
 
-  include Chef::RSpec::Pacemaker::CIBObject
-
   describe ":create action" do
-    def test_modify(expected_cmds)
-      yield
-
-      stub_shellout(fixture.definition_string)
-
-      provider.run_action :create
-
-      expected_cmds.each do |cmd|
-        expect(@chef_run).to run_execute(cmd)
-      end
-      expect(@resource).to be_updated
-    end
+    include Chef::RSpec::Pacemaker::CIBObject
 
     it "should modify the constraint if it has a different score" do
       new_score = '100'
@@ -75,9 +61,6 @@ describe "Chef::Provider::PacemakerColocation" do
 
   end
 
-  describe ":delete action" do
-    it_should_behave_like "action on non-existent resource", \
-      :delete, "crm configure delete #{fixture.name}", nil
-  end
+  it_should_behave_like "a non-runnable resource", fixture
 
 end

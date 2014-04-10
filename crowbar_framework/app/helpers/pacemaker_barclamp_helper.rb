@@ -17,4 +17,34 @@
 #
 
 module PacemakerBarclampHelper
+  def node_aliases
+    Hash[nodes_hash.map { |n| [n.first, { :alias => n.last[:alias] }] }]
+  end
+
+  def no_quorum_policy_for_pacemaker(selected)
+    # no translation for the strings as we simply show the values that will end
+    # up in the config file
+    options_for_select(
+      [
+        ["ignore", "ignore"],
+        ["freeze", "freeze"],
+        ["stop", "stop"],
+        ["suicide", "suicide"]
+      ],
+      selected.to_s
+    )
+  end
+
+  def stonith_mode_for_pacemaker(selected)
+    options_for_select(
+      [
+        [t(".stonith_modes.manual"), "manual"],
+        [t(".stonith_modes.ipmi_barclamp"), "ipmi_barclamp"],
+        [t(".stonith_modes.shared"), "shared"],
+        [t(".stonith_modes.per_node"), "per_node"],
+        [t(".stonith_modes.libvirt"), "libvirt"]
+      ],
+      selected.to_s
+    )
+  end
 end

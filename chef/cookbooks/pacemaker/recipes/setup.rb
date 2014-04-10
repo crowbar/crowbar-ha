@@ -19,14 +19,21 @@
 #
 
 crm_conf = node[:pacemaker][:crm][:initial_config_file]
+
 template crm_conf do
   source "crm-initial.conf.erb"
   owner "root"
   group "root"
   mode 0600
+  variables(
+    :stonith_enabled => (node[:pacemaker][:stonith][:mode] != "disabled"),
+    :no_quorum_policy => node[:pacemaker][:crm][:no_quorum_policy]
+  )
 end
 
 execute "crm initial configuration" do
   user "root"
   command "crm configure load replace #{crm_conf}"
+  subscribes :run, resources(:template => crm_conf), :immediately
+  action :nothing
 end

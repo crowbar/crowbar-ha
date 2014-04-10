@@ -9,6 +9,35 @@
         "mcast_port": 5405,
         "password": "crowbar"
       },
+      "crm": {
+        "no_quorum_policy": "stop"
+      },
+      "stonith": {
+        "mode": "per_node",
+        "shared": {
+          "agent": "",
+          "params": ""
+        },
+        "per_node": {
+          "agent": "",
+          "nodes": {}
+        },
+        "libvirt": {
+          "hypervisor_ip": ""
+        }
+      },
+      "notifications": {
+        "smtp": {
+          "enabled": false,
+          "to": "",
+          "from": "",
+          "server": "",
+          "prefix": ""
+	}
+      },
+      "drbd": {
+        "enabled": false
+      },
       "haproxy": {
         "public_name": ""
       }
@@ -18,13 +47,11 @@
     "pacemaker": {
       "crowbar-revision": 0,
       "element_states": {
-        "pacemaker-cluster-founder": [ "readying", "ready", "applying" ],
         "pacemaker-cluster-member" : [ "readying", "ready", "applying" ],
         "hawk-server"              : [ "readying", "ready", "applying" ]
       },
       "elements": {},
       "element_order": [
-        [ "pacemaker-cluster-founder" ],
         [ "pacemaker-cluster-member", "hawk-server" ]
       ],
       "config": {

@@ -60,8 +60,9 @@ class Chef
         end
 
         volume_groups = []
-        output = %x[vgdisplay]
-        output.split("\n").each do |line|
+        cmd = shell_out("vgdisplay")
+        cmd.error!
+        cmd.stdout.split("\n").each do |line|
           args = line.split()
           if args[0] == "VG" and args[1] == "Name"
             volume_groups << args[2]
@@ -76,8 +77,9 @@ class Chef
           physical_extent_size = new_resource.physical_extent_size ? "-s #{new_resource.physical_extent_size}" : ''
           command = "vgcreate #{name} #{physical_extent_size} #{physical_volumes}"
           Chef::Log.debug "Executing lvm command: '#{command}'"
-          output = %x[#{command}]
-          Chef::Log.debug "Command output: '#{output}'"
+          cmd = shell_out(command)
+          cmd.error!
+          Chef::Log.debug "Command output: '#{cmd.stdout}'"
           # Create the logical volumes specified as sub-resources
           new_resource.logical_volumes.each do |lv|
             lv.group new_resource.name

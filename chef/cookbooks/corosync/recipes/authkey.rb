@@ -46,7 +46,7 @@ if is_crowbar
       include_recipe "corosync::authkey_writer"
     end
   else
-    query += " AND pacemaker_founder:true"
+    query += " AND pacemaker_founder:true AND pacemaker_config_environment:#{node[:pacemaker][:config][:environment]}"
     founder_nodes = search(:node, query)
     raise "No founder node found!" if founder_nodes.length == 0
     raise "Multiple founder nodes found!" if founder_nodes.length > 1

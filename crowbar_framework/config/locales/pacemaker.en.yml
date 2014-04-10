@@ -4,6 +4,10 @@ en:
   barclamp:
     pacemaker:
       edit_attributes:
+        drbd_header: DRBD
+        drbd:
+          info: Using DRBD for replicated storage is an alternative to using shared storage for high availability of services like database and RabbitMQ. This requires the cluster to have two nodes only, as well as one dedicated disk on each cluster member.
+          enabled: Prepare cluster for DRBD
         haproxy_header: HAProxy
         haproxy:
           ssl_info:
@@ -28,3 +32,36 @@ en:
           to make the GUI accessible.
         corosync:
           password: Password for hacluster user in Hawk
+        crm:
+          no_quorum_policy: Policy when cluster does not have quorum
+          no_quorum_policy_hint: 'Refer to the <a href="http://clusterlabs.org/doc/en-US/Pacemaker/1.1-crmsh/html/Pacemaker_Explained/_available_cluster_options.html">pacemaker documentation</a> for a description of each value.'
+        stonith_header: STONITH
+        stonith_modes:
+          manual: Configured manually
+          ipmi_barclamp: Configured with IPMI data from IPMI barclamp
+          shared: Configured with one shared resource for the whole cluster
+          per_node: Configured with one resource per node
+          libvirt: Configured for nodes running in libvirt
+        stonith:
+          mode: Configuration mode for STONITH
+          no_nodes: No nodes have been assigned a pacemaker role.
+          shared:
+            agent: Fencing agent
+            params: Parameters for agent
+          per_node:
+            agent: Fencing agent
+            name: Node name
+            params: Parameters for agent
+          libvirt:
+            dev_only: The libvirt STONITH configuration is not supported, it should be used for development or testing purposes only!
+            hypervisor_ip: IP address of hypervisor
+            hypervisor_ip_hint: Note that libvirt on your host needs to be configured to listen on TCP, with no TLS and no authentication. The firewall should also be configured to allow communication from the virtual machines.
+        notifications_header: Mail Notifications
+        notifications:
+          smtp:
+            enabled: Enable Mail Notifications
+            server: SMTP Server
+            server_hint: Note that the SMTP server needs to be reachable from the nodes.
+            prefix: Subject Prefix
+            from: Sender Address
+            to: Recipient Address
