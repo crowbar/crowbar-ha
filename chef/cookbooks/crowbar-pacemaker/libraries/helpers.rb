@@ -1,3 +1,19 @@
+#
+# Copyright 2014, SUSE
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
 # Functions to help recipes register resources in the Pacemaker cluster
 # via the LWRPs provided by the pacemaker cookbook.
 #
@@ -7,6 +23,14 @@
 module CrowbarPacemakerHelper
   def self.cluster_enabled?(node)
     return !(node[:pacemaker][:config][:environment] rescue nil).nil?
+  end
+
+  def self.is_cluster_founder?(node)
+    if cluster_enabled?(node)
+      node[:pacemaker][:founder]
+    else
+      false
+    end
   end
 
   # Returns the name of the cluster containing the given node, or nil
@@ -69,10 +93,39 @@ module CrowbarPacemakerHelper
   def self.cluster_nodes(node, role = "*")
     if cluster_enabled?(node)
       server_nodes = []
-      Chef::Search::Query.new.search(:node, "roles:#{role || "*"} AND pacemaker_config_environment:#{node[:pacemaker][:config][:environment]}") { |o| server_nodes << o }
+      # Sometimes, chef-server is a little bit outdated and doesn't have the
+      # latest information, including the fact that the current node is
+      # actually part of the cluster; we also want to make sure that we include
+      # the latest bits with latest attributes for this node, so we always
+      # manually add it, instead of relying on the search for this one.
+      Chef::Search::Query.new.search(:node, "roles:#{role || "*"} AND pacemaker_config_environment:#{node[:pacemaker][:config][:environment]}") do |o|
+        server_nodes << o if o.name != node.name
+      end
+      server_nodes << node if (role.nil? || role == "*" || node.roles.include?(role))
       server_nodes
     else
       []
+    end
+  end
+
+  # Returns the founder of the cluster the current node belongs to, or nil if
+  # the current node is not part of a cluster
+  def self.cluster_founder(node)
+    if cluster_enabled?(node)
+      if is_cluster_founder? node
+        node
+      else
+        founders = []
+        Chef::Search::Query.new.search(:node, "pacemaker_founder:true AND pacemaker_config_environment:#{node[:pacemaker][:config][:environment]}") do |o|
+          founders << o if o.name != node.name
+        end
+        founders << node if (node[:pacemaker][:founder] rescue false) == true
+        raise "No cluster founders found!" if founders.empty?
+        raise "Multiple cluster founders found!" if founders.length > 1
+        founders.first
+      end
+    else
+      nil
     end
   end
 

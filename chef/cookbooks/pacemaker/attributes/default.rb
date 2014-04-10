@@ -32,3 +32,35 @@ end
 
 default[:pacemaker][:founder] = false
 default[:pacemaker][:crm][:initial_config_file] = "/etc/corosync/crm-initial.conf"
+default[:pacemaker][:crm][:no_quorum_policy] = "ignore"
+
+# Values can be "disabled", "manual", "shared", "per_node"
+default[:pacemaker][:stonith][:mode] = "disabled"
+
+default[:pacemaker][:stonith][:shared][:agent] = ""
+# This can be either a string (containing a list of parameters) or a hash.
+# For instance:
+#   default[:pacemaker][:stonith][:shared][:params] = 'hostname="foo" password="bar"'
+# will give the same result as:
+#   default[:pacemaker][:stonith][:shared][:params] = {"hostname" => "foo", "password" => "bar"}
+default[:pacemaker][:stonith][:shared][:params] = {}
+
+default[:pacemaker][:stonith][:per_node][:agent] = ""
+# This can be "all" or "self":
+#   - if set to "all", then every node will configure the stonith resources for
+#     all nodes in the cluster
+#   - if set to "self", then every node will configure the stonith resource for
+#     itself only
+default[:pacemaker][:stonith][:per_node][:mode] = "all"
+# This hash will contain parameters for each node. See documentation for
+# default[:pacemaker][:stonith][:shared][:params] about the format.
+# For instance:
+#  default[:pacemaker][:stonith][:per_node][:nodes][$node][:params] = 'hostname="foo" password="bar"'
+default[:pacemaker][:stonith][:per_node][:nodes] = {}
+
+default[:pacemaker][:notifications][:agent] = "ocf:heartbeat:ClusterMon"
+default[:pacemaker][:notifications][:smtp][:enabled] = false
+default[:pacemaker][:notifications][:smtp][:to] = ""
+default[:pacemaker][:notifications][:smtp][:from] = ""
+default[:pacemaker][:notifications][:smtp][:server] = ""
+default[:pacemaker][:notifications][:smtp][:prefix] = ""

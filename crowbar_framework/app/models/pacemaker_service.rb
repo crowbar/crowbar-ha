@@ -27,13 +27,9 @@ class PacemakerService < ServiceObject
   class << self
     def role_constraints
       {
-        "pacemaker-cluster-founder" => {
-          "unique" => false,
-          "count" => 1
-        },
         "pacemaker-cluster-member" => {
           "unique" => false,
-          "count" => 31
+          "count" => 32
         },
         "hawk-server" => {
           "unique" => false,
@@ -80,6 +76,64 @@ class PacemakerService < ServiceObject
   def apply_role_pre_chef_call(old_role, role, all_nodes)
     @logger.debug("Pacemaker apply_role_pre_chef_call: entering #{all_nodes.inspect}")
 
+    # elect a founder
+    members = role.override_attributes[@bc_name]["elements"]["pacemaker-cluster-member"]
+    unless members.nil?
+      member_nodes = members.map {|n| NodeObject.find_node_by_name n}
+
+      founder = nil
+
+      # try to re-use founder that was part of old role, or if missing, another
+      # node part of the old role (since it's already part of the pacemaker
+      # cluster)
+      unless old_role.nil?
+        old_members = old_role.override_attributes[@bc_name]["elements"]["pacemaker-cluster-member"]
+        old_members = old_members.select {|n| members.include? n}
+        old_nodes = old_members.map {|n| NodeObject.find_node_by_name n}
+        old_nodes.each do |old_node|
+          if (old_node[:pacemaker][:founder] rescue false) == true
+            founder = old_node
+            break
+          end
+        end
+
+        # the founder from the old role is not there anymore; let's promote
+        # another node to founder, so we get the same authkey
+        if founder.nil?
+          founder = old_nodes.first
+        end
+      end
+
+      # Still nothing, there are two options:
+      #  - there was nothing in common with the old role (we will want to just
+      #    take one node)
+      #  - the proposal was deactivated (but we still had a founder before that
+      #    we want to keep)
+      if founder.nil?
+        member_nodes.each do |member_node|
+          if (member_node[:pacemaker][:founder] rescue false) == true
+            founder = member_node
+            break
+          end
+        end
+      end
+
+      # nothing worked; just take the first node as founder
+      if founder.nil?
+        founder = member_nodes.first
+      end
+
+      member_nodes.each do |member_node|
+        member_node[:pacemaker] ||= {}
+        is_founder = (member_node.name == founder.name)
+        if is_founder != member_node[:pacemaker][:founder]
+          member_node[:pacemaker][:founder] = is_founder
+          member_node.save
+        end
+      end
+    end
+
+    # set corosync attributes based on what we got in the proposal
     admin_net = ProposalObject.find_data_bag_item "crowbar/admin_network"
 
     role.default_attributes["corosync"] ||= {}
@@ -134,26 +188,85 @@ class PacemakerService < ServiceObject
     @logger.debug("Pacemaker apply_role_post_chef_call: leaving")
   end
 
+  def validate_proposal_stonith stonith_attributes, members
+    case stonith_attributes["mode"]
+    when "manual"
+      # nothing to do
+    when "shared"
+      agent = stonith_attributes["shared"]["agent"]
+      params = stonith_attributes["shared"]["params"]
+      validation_error "Missing fencing agent for shared setup" if agent.blank?
+      validation_error "Missing fencing agent parameters for shared setup" if params.blank?
+    when "per_node"
+      agent = stonith_attributes["per_node"]["agent"]
+      nodes = stonith_attributes["per_node"]["nodes"]
+
+      validation_error "Missing fencing agent for per-node setup" if agent.blank?
+
+      members.each do |member|
+        validation_error "Missing fencing agent parameters for node #{member}" unless nodes.has_key?(member)
+      end
+
+      nodes.keys.each do |node_name|
+        if members.include? node_name
+          params = nodes[node_name]["params"]
+          validation_error "Missing fencing agent parameters for node #{node_name}" if params.blank?
+        else
+          validation_error "Fencing agent parameters for node #{node_name}, while this node is a not a member of the cluster"
+        end
+      end
+    when "ipmi_barclamp"
+      members.each do |member|
+        node = NodeObject.find_node_by_name(member)
+        unless !node[:ipmi].nil? && node[:ipmi][:bmc_enable]
+          validation_error "Automatic IPMI setup not available for node #{member}"
+        end
+      end
+    when "libvirt"
+      hypervisor_ip = stonith_attributes["libvirt"]["hypervisor_ip"]
+      # FIXME: we really need to have crowbar provide a helper to validate IP addresses
+      if hypervisor_ip.blank? || hypervisor_ip =~ /[^\.0-9]/
+        validation_error "Hypervisor IP \"#{hypervisor_ip}\" is invalid."
+      end
+      members.each do |member|
+        node = NodeObject.find_node_by_name(member)
+        unless node[:dmi][:system][:manufacturer] == "Bochs"
+          validation_error "Node  #{member} does not seem to be running in libvirt."
+        end
+      end
+    else
+      validation_error "Unknown STONITH mode: #{stonith_attributes["mode"]}."
+    end
+  end
+
   def validate_proposal_after_save proposal
-    validate_one_for_role proposal, "pacemaker-cluster-founder"
+    validate_at_least_n_for_role proposal, "pacemaker-cluster-member", 1
 
     elements = proposal["deployment"]["pacemaker"]["elements"]
 
-    if elements.has_key?("hawk-server")
-      @logger.debug("Pacemaker apply_role_pre_chef_call: elts #{elements.inspect}")
-      members = (elements["pacemaker-cluster-founder"] || []) +
-                (elements["pacemaker-cluster-member" ] || [])
-      @logger.debug("cluster members: #{members}")
+    members = (elements["pacemaker-cluster-member" ] || [])
 
+    if elements.has_key?("hawk-server")
       elements["hawk-server"].each do |n|
         @logger.debug("checking #{n}")
         unless members.include? n
           node = NodeObject.find_node_by_name(n)
           name = node.name
           name = "#{node.alias} (#{name})" if node.alias
-          validation_error "Node #{name} has the hawk-server role but not either the pacemaker-cluster-founder or pacemaker-cluster-member role."
+          validation_error "Node #{name} has the hawk-server role but not the pacemaker-cluster-member role."
         end
       end
+    end
+
+    if proposal["attributes"][@bc_name]["notifications"]["smtp"]["enabled"]
+      smtp_settings = proposal["attributes"][@bc_name]["notifications"]["smtp"]
+      validation_error "Invalid SMTP server for mail notifications." if smtp_settings["server"].blank?
+      validation_error "Invalid sender address for mail notifications." if smtp_settings["from"].blank?
+      validation_error "Invalid recipient address for mail notifications." if smtp_settings["to"].blank?
+    end
+
+    if proposal["attributes"][@bc_name]["drbd"]["enabled"]
+      validation_error "Setting up DRBD requires a cluster of two nodes." if members.length != 2
     end
 
     nodes = NodeObject.find("roles:provisioner-server")
@@ -162,6 +275,27 @@ class PacemakerService < ServiceObject
       if provisioner_server_node[:platform] == "suse"
         if (provisioner_server_node[:provisioner][:suse][:missing_hae] rescue true)
           validation_error "The HAE repositories have not been setup."
+        end
+      end
+    end
+
+    no_quorum_policy = proposal["attributes"][@bc_name]["crm"]["no_quorum_policy"]
+    unless %w(ignore freeze stop suicide).include?(no_quorum_policy)
+      validation_error "Invalid no-quorum-policy value: #{no_quorum_policy}."
+    end
+
+    stonith_attributes = proposal["attributes"][@bc_name]["stonith"]
+    validate_proposal_stonith stonith_attributes, members
+
+    ### Do not allow elements of this proposal to be in another proposal, since
+    ### the configuration cannot be shared.
+    proposals_raw.each do |p|
+      next if p["id"] == proposal["id"]
+
+      (p["deployment"][@bc_name]["elements"]["pacemaker-cluster-member"] || []).each do |other_member|
+        if members.include?(other_member)
+          p_name = p["id"].gsub("bc-#{@bc_name}-", "")
+          validation_error "Nodes cannot be part of multiple Pacemaker proposals, but #{other_member} is already part of proposal \"#{p_name}\"."
         end
       end
     end

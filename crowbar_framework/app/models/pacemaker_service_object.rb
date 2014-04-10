@@ -95,13 +95,9 @@ class PacemakerServiceObject < ServiceObject
       if clusters[cluster].nil?
         nil
       else
-        nodes = []
         pacemaker_proposal = clusters[cluster]
-        %w(pacemaker-cluster-founder pacemaker-cluster-member).each do |role_name|
-          cluster_nodes = pacemaker_proposal.override_attributes["pacemaker"]["elements"][role_name]
-          nodes.concat(cluster_nodes) if cluster_nodes
-        end
-        nodes
+        cluster_nodes = pacemaker_proposal.override_attributes["pacemaker"]["elements"]["pacemaker-cluster-member"]
+        cluster_nodes || []
       end
     end
 

@@ -1,6 +1,5 @@
-require 'chef/application'
 require ::File.expand_path('../../../pacemaker/cib_object',
-                           ::File.dirname(__FILE__))
+                           File.dirname(__FILE__))
 
 # Common code used by Pacemaker LWRP providers
 
@@ -26,7 +25,7 @@ class Chef
       def standard_load_current_resource
         name = @new_resource.name
 
-        cib_object = Pacemaker::CIBObject.from_name(name)
+        cib_object = ::Pacemaker::CIBObject.from_name(name)
         unless cib_object
           ::Chef::Log.debug "CIB object definition nil or empty"
           return
@@ -56,7 +55,7 @@ class Chef
           action :nothing
         end.run_action(:run)
 
-        created_cib_object = Pacemaker::CIBObject.from_name(new_resource.name)
+        created_cib_object = ::Pacemaker::CIBObject.from_name(new_resource.name)
 
         raise "Failed to create #{cib_object}" if created_cib_object.nil?
         unless created_cib_object.exists?
