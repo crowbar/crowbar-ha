@@ -44,17 +44,17 @@ class Chef
         device_name = "/dev/mapper/#{to_dm_name(group)}-#{to_dm_name(name)}"
 
         lvm_map = {}
-        output = %x[vgs]
-        raise "Failed to list volume groups!" unless $?.success?
-        output.split("\n").each_with_index do |line, index|
+        cmd = shell_out("vgs")
+        cmd.error!
+        cmd.stdout.split("\n").each_with_index do |line, index|
           unless index == 0
             args = line.split()
             lvm_map[args[0]] = []
           end
         end
-        output = %x[lvs]
-        raise "Failed to list logical volumes!" unless $?.success?
-        output.split("\n").each_with_index do |line, index|
+        cmd = shell_out("lvs")
+        cmd.error!
+        cmd.stdout.split("\n").each_with_index do |line, index|
           unless index == 0
             args = line.split()
             lvm_map[args[1]] << args[0]
@@ -85,9 +85,9 @@ class Chef
 
           command = "lvcreate #{size} #{stripes} #{stripe_size} #{mirrors} #{contiguous} #{readahead} --name #{name} #{group} #{physical_volumes}"
           Chef::Log.debug "Executing lvm command: '#{command}'"
-          output = %x[#{command}]
-          Chef::Log.debug "Command output: '#{output}'"
-          raise "Failed to create logical volume!" unless $?.success?
+          cmd = shell_out(command)
+          cmd.error!
+          Chef::Log.debug "Command output: '#{cmd.stdout}'"
           new_resource.updated_by_last_action(true)
         end
 

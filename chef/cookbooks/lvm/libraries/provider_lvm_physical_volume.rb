@@ -18,12 +18,14 @@
 #
 
 require 'chef/provider'
+require 'chef/mixin/shell_out'
 
 class Chef
   class Provider
     # The provider for lvm_physical_volume resource
     #
     class LvmPhysicalVolume < Chef::Provider
+      include Chef::Mixin::ShellOut
       # Loads the current resource attributes
       #
       # @return [Chef::Resource::LvmPhysicalVolume] the lvm_physical_volume resource
@@ -37,9 +39,9 @@ class Chef
       #
       def action_create
         physical_volumes = []
-        output = %x[pvdisplay]
-        raise "Failed to list physical volumes!" unless $?.success?
-        output.split("\n").each do |line|
+        cmd = shell_out("pvdisplay")
+        cmd.error!
+        cmd.stdout.split("\n").each do |line|
           args = line.split()
           if args[0] == "PV" and args[1] == "Name"
             physical_volumes << args[2]
@@ -49,8 +51,8 @@ class Chef
           Chef::Log.info "Physical volume '#{new_resource.name}' found. Not creating..."
         else
           Chef::Log.info "Creating physical volume '#{new_resource.name}'"
-          %x[pvcreate #{new_resource.name}]
-          raise "Failed to create physical volume!" unless $?.success?
+          cmd = shell_out("pvcreate #{new_resource.name}")
+          cmd.error!
           new_resource.updated_by_last_action(true)
         end
       end
