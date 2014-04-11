@@ -21,7 +21,6 @@
 
 default[:pacemaker][:platform][:resource_packages][:openstack] = %w(openstack-resource-agents)
 
-default[:pacemaker][:haproxy][:enabled] = false
 default[:pacemaker][:haproxy][:agent] = "lsb:haproxy"
-default[:pacemaker][:haproxy][:networks] = {}
 default[:pacemaker][:haproxy][:op][:monitor][:interval] = "10s"
+default[:pacemaker][:haproxy][:clusters] = {}
