@@ -13,7 +13,21 @@
       %legend
         = t(".stonith_header")
 
-      = select_field %w(stonith mode), :collection => :stonith_mode_for_pacemaker, "data-showit" => ["shared", "per_node", "libvirt"].join(";"), "data-showit-target" => "#stonith_shared_container;#stonith_per_node_container;#stonith_libvirt_container", "data-showit-direct" => "true"
+      = select_field %w(stonith mode), :collection => :stonith_mode_for_pacemaker, "data-showit" => ["sbd", "shared", "per_node", "libvirt"].join(";"), "data-showit-target" => "#stonith_sbd_container;#stonith_shared_container;#stonith_per_node_container;#stonith_libvirt_container", "data-showit-direct" => "true"
+
+      #stonith_sbd_container{ "data-nodes" => node_aliases.to_json }
+        .alert.alert-info
+          = t(".stonith.sbd.info")
+        %table.table.table-middle
+          %thead
+            %tr
+              %th.col-sm-3
+                = t ".stonith.sbd.name"
+              %th.col-sm-9
+                = t ".stonith.sbd.devices"
+          %tbody
+        %span.help-block
+          = t('.stonith.sbd.devices_hint')
 
       #stonith_shared_container
         = string_field %w(stonith shared agent)

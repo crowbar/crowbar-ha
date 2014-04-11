@@ -39,12 +39,18 @@ en:
         stonith_modes:
           manual: Configured manually
           ipmi_barclamp: Configured with IPMI data from IPMI barclamp
+          sbd: Configured with STONITH Block Devices (SBD)
           shared: Configured with one shared resource for the whole cluster
           per_node: Configured with one resource per node
           libvirt: Configured for nodes running in libvirt
         stonith:
           mode: Configuration mode for STONITH
           no_nodes: No nodes have been assigned a pacemaker role.
+          sbd:
+            info: 'Manual configuration is required for SBD: before applying the proposal, you will have to ensure that the devices are available and initialized for SBD; you will also need to setup a watchdog. Refer to the <a href="http://www.linux-ha.org/wiki/SBD_Fencing">Linux HA documentation</a> for details.'
+            name: Node name
+            devices: Block devices for node
+            devices_hint: Multiple devices can be specified in the comma-separated list. It is advised to use a stable path for devices (with /dev/disk/by-id/, for instance).
           shared:
             agent: Fencing agent
             params: Parameters for agent
