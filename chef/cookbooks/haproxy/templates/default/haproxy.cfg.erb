@@ -20,7 +20,7 @@ defaults
 	timeout client 50s
 	timeout server 50s
 	timeout check 5s
-	balance roundrobin
+	balance <%= node[:haproxy][:defaults][:balance] %>
 
 <% # if stats are not enabled, but there's no configured section, we setup stats on 127.0.0.1 to generate a valid config file (it needs at least one section) -%>
 <% if node[:haproxy][:stats][:enabled] || node[:haproxy][:sections].empty? -%>
