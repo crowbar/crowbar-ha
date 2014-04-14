@@ -1,0 +1,40 @@
+#! /bin/sh
+#
+# /etc/init.d/<%= @service_name %>-shutdown
+#
+### BEGIN INIT INFO
+# Provides:          <%= @service_name %>-shutdown
+# Required-Start:    $local_fs
+# Should-Start:      $null
+# Required-Stop:     $null
+# Should-Stop:       $syslog sshd drbd $named $remote_fs logd xendomains xend iscsi libvirtd portmap rpcbind
+# Default-Start:     3 5
+# Default-Stop:      0 6
+# Description:       Clean file blocking <%= @service_name %> start after fencing
+### END INIT INFO
+
+. /etc/rc.status
+
+rc_reset
+
+case "$1" in
+  start)
+        rc_status -v
+        ;;
+  stop)
+        service <%= @service_name %> stop && rm -f <%= @block_corosync_file %>
+        rc_status -v
+        ;;
+  status)
+        rc_status -v
+        ;;
+  reload)
+        rc_status -v
+        ;;
+  *)
+        echo "Usage: $0 {start|stop|status|reload}"
+        exit 1
+        ;;
+esac
+
+rc_exit
