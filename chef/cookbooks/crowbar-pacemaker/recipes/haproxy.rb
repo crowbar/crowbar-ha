@@ -21,6 +21,11 @@
 #FIXME: delete group when it's not needed anymore 
 #FIXME: need to find/write OCF for haproxy  
 
+# Recommendation from the OpenStack HA guide is to use "source" as balance
+# algorithm. This obviously is less useful for load balancing, but we care more
+# about HA and things working than about load balancing.
+node.default['haproxy']['defaults']['balance'] = "source"
+
 # Always do the setup for haproxy, so that the RA will already be available on
 # all nodes when needed (this avoids the need for "crm resource refresh")
 include_recipe "haproxy::setup"
