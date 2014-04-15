@@ -7,8 +7,8 @@ module Chef::RSpec
       COLOCATION_CONSTRAINT = \
         ::Pacemaker::Constraint::Colocation.new('colocation1')
       COLOCATION_CONSTRAINT.score = 'inf'
-      COLOCATION_CONSTRAINT.resources = ['foo']
-      COLOCATION_CONSTRAINT_DEFINITION = 'colocation colocation1 inf: foo'
+      COLOCATION_CONSTRAINT.resources = 'rsc1 rsc2'
+      COLOCATION_CONSTRAINT_DEFINITION = 'colocation colocation1 inf: rsc1 rsc2'
     end
   end
 end

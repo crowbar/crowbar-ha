@@ -26,6 +26,30 @@ describe Pacemaker::Constraint::Colocation do
 
   it_should_behave_like "a CIB object"
 
+  describe "#new" do
+    before(:each) do
+      name = 'foo'
+      @resource_array = %w(rsc1 rsc2)
+      @resource_string = @resource_array.join ' '
+      @colocation = pacemaker_object_class.new(name)
+      @colocation.score = '-inf'
+      @definition_string = "colocation %s %s: %s" %
+        [ name, @colocation.score, @resource_string ]
+    end
+
+    it "should accept an String of resources" do
+      @colocation.resources = @resource_string
+      expect(@colocation.resources).to eq(@resource_string)
+      expect(@colocation.definition_string).to eq(@definition_string)
+    end
+
+    it "should accept an Array of resources" do
+      @colocation.resources = @resource_array
+      expect(@colocation.resources).to eq(@resource_string)
+      expect(@colocation.definition_string).to eq(@definition_string)
+    end
+  end
+
   describe "#definition_string" do
     it "should return the definition string" do
       expect(fixture.definition_string).to eq(fixture_definition)
