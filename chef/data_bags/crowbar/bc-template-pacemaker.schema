@@ -34,6 +34,29 @@
               "required": true,
               "mapping": {
                 "mode": { "type": "str", "required": true },
+                "sbd": {
+                  "type": "map",
+                  "required": true,
+                  "mapping": {
+                    "nodes": {
+                      "type": "map",
+                      "required": true,
+                      "mapping": {
+                        = : {
+                          "type": "map",
+                          "required": true,
+                          "mapping": {
+                            "devices": {
+                              "type": "seq",
+                              "required": true,
+                              "sequence": [ { "type": "str" } ]
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
                 "shared": {
                   "type": "map",
                   "required": true,

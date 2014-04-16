@@ -24,6 +24,8 @@ default[:haproxy][:platform][:config_file] = "/etc/haproxy/haproxy.cfg"
 
 default[:haproxy][:global][:maxconn] = 4096
 
+default[:haproxy][:defaults][:balance] = "roundrobin"
+
 default[:haproxy][:stats][:enabled] = false
 default[:haproxy][:stats][:address] = "0.0.0.0"
 default[:haproxy][:stats][:port] = 8888
