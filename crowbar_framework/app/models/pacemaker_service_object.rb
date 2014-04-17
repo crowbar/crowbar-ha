@@ -199,28 +199,37 @@ class PacemakerServiceObject < ServiceObject
     system("sudo", "-i", Rails.root.join("..", "bin", "single_chef_client.sh").expand_path) if CHEF_ONLINE
   end
 
-  # This prepares attributes so that the chef run will configure haproxy on a
-  # virtual IP for each network in networks.
+  # This prepares attributes so that, if ha_enabled is true, the chef run will
+  # configure haproxy on a virtual IP for each network in networks for the
+  # clusters in elements.
   # The role parameter is the proposal role (as passed to
   # apply_role_pre_chef_call).
   # Returns: whether the role needs to be saved or not
-  def prepare_role_for_cluster_vip_networks(role, networks)
+  def prepare_role_for_cluster_vip_networks(role, elements, networks)
     dirty = false
 
-    role.default_attributes["pacemaker"] ||= {}
-    role.default_attributes["pacemaker"]["haproxy"] ||= {}
-    role.default_attributes["pacemaker"]["haproxy"]["networks"] ||= {}
+    elements.each do |element|
+      next unless PacemakerServiceObject.is_cluster? element
 
-    networks.each do |network|
-      unless role.default_attributes["pacemaker"]["haproxy"]["networks"][network]
-        role.default_attributes["pacemaker"]["haproxy"]["networks"][network] = true
+      cluster = cluster_name(element)
+
+      role.default_attributes["pacemaker"] ||= {}
+      role.default_attributes["pacemaker"]["haproxy"] ||= {}
+      role.default_attributes["pacemaker"]["haproxy"]["clusters"] ||= {}
+      role.default_attributes["pacemaker"]["haproxy"]["clusters"][cluster] ||= {}
+      role.default_attributes["pacemaker"]["haproxy"]["clusters"][cluster]["networks"] ||= {}
+
+      networks.each do |network|
+        unless role.default_attributes["pacemaker"]["haproxy"]["clusters"][cluster]["networks"][network]
+          role.default_attributes["pacemaker"]["haproxy"]["clusters"][cluster]["networks"][network] = true
+          dirty = true
+        end
+      end
+
+      unless role.default_attributes["pacemaker"]["haproxy"]["clusters"][cluster]["enabled"]
+        role.default_attributes["pacemaker"]["haproxy"]["clusters"][cluster]["enabled"] = true
         dirty = true
       end
-    end
-
-    unless role.default_attributes["pacemaker"]["haproxy"]["enabled"]
-      role.default_attributes["pacemaker"]["haproxy"]["enabled"] = true
-      dirty = true
     end
 
     dirty
@@ -260,11 +269,11 @@ class PacemakerServiceObject < ServiceObject
   # works.
   #
   # Returns: whether the role needs to be saved or not
-  def prepare_role_for_ha_with_haproxy(role, attribute_path, ha_enabled, networks)
+  def prepare_role_for_ha_with_haproxy(role, attribute_path, ha_enabled, elements, networks)
     dirty = prepare_role_for_ha(role, attribute_path, ha_enabled)
 
     if ha_enabled
-      dirty = prepare_role_for_cluster_vip_networks(role, networks) || dirty
+      dirty = prepare_role_for_cluster_vip_networks(role, elements, networks) || dirty
     end
 
     dirty

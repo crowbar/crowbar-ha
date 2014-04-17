@@ -21,11 +21,18 @@
 #FIXME: delete group when it's not needed anymore 
 #FIXME: need to find/write OCF for haproxy  
 
+# Recommendation from the OpenStack HA guide is to use "source" as balance
+# algorithm. This obviously is less useful for load balancing, but we care more
+# about HA and things working than about load balancing.
+node.default['haproxy']['defaults']['balance'] = "source"
+
 # Always do the setup for haproxy, so that the RA will already be available on
 # all nodes when needed (this avoids the need for "crm resource refresh")
 include_recipe "haproxy::setup"
 
-if node[:pacemaker][:haproxy][:enabled]
+cluster_name = CrowbarPacemakerHelper.cluster_name(node)
+
+if node[:pacemaker][:haproxy][:clusters].has_key?(cluster_name) && node[:pacemaker][:haproxy][:clusters][cluster_name][:enabled]
   service "haproxy" do
     supports :restart => true, :status => true, :reload => true
     action :nothing
@@ -35,7 +42,7 @@ if node[:pacemaker][:haproxy][:enabled]
   vip_primitives = []
   service_name = "haproxy"
 
-  node[:pacemaker][:haproxy][:networks].each do |network, enabled|
+  node[:pacemaker][:haproxy][:clusters][cluster_name][:networks].each do |network, enabled|
     vip_primitive = pacemaker_vip_primitive "HAProxy VIP for #{network}" do
       cb_network network
       # See allocate_cluster_virtual_ips_for_networks in barclamp-crowbar

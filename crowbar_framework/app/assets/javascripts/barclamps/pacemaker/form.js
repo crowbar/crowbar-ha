@@ -9,11 +9,16 @@
 
     this.options = $.extend(
       {
+        attr_type: 'string',
+        attr_name: 'params',
+        attr_writer: function(val) { return val; },
+        attr_reader: function(val) { return val; },
         storage: '#proposal_attributes',
         deployment_storage: '#proposal_deployment',
         path: 'stonith/per_node/nodes',
         watchedRoles: ['pacemaker-cluster-member']
-      }
+      },
+      options
     );
 
     this.initialize();
@@ -50,10 +55,10 @@
     this.root.find('tbody tr').live('change', function(evt) {
       var elm = $(this);
       var id  = elm.data('id');
-      var key = '{0}/params'.format(id);
-      var val = elm.find('input').val();
+      var key = '{0}/{1}'.format(id, self.options.attr_name);
+      var val = self.options.attr_writer(elm.find('input').val());
 
-      self.writeJson(key, val, "string");
+      self.writeJson(key, val, self.options.attr_type);
     });
 
     // Append new table row and update JSON on node alloc
@@ -62,10 +67,10 @@
 
       $(this).find('tbody').append(self.html.table_row.format(data.id, self._node_name_to_alias(data.id), ''));
 
-      var key = '{0}/params'.format(data.id);
-      var val = "";
+      var key = '{0}/{1}'.format(data.id, self.options.attr_name);
+      var val = self.options.attr_writer("");
 
-      self.writeJson(key, val, "string");
+      self.writeJson(key, val, self.options.attr_type);
       self.sortAgentParams();
     });
 
@@ -102,9 +107,9 @@
     // and those which have been added
     for (var deployed_node in deployed_nodes) {
        if (!existing_nodes[deployed_node]) {
-         var key = '{0}/params'.format(deployed_node);
-         var val = "";
-         self.writeJson(key, val, "string");
+         var key = '{0}/{1}'.format(deployed_node, self.options.attr_name);
+         var val = self.options.attr_writer("");
+         self.writeJson(key, val, self.options.attr_type);
        }
     }
   };
@@ -140,7 +145,7 @@
     var self = this;
 
     var params = $.map(self.retrieveAgentParams(), function(value, node_id) {
-      return self.html.table_row.format(node_id, self._node_name_to_alias(node_id), value.params);
+      return self.html.table_row.format(node_id, self._node_name_to_alias(node_id), self.options.attr_reader(value[self.options.attr_name]));
     });
 
     this.root.find('tbody').html(params.join(''));
@@ -220,6 +225,13 @@ function update_no_quorum_policy(evt, init) {
 
 $(document).ready(function($) {
   $('#stonith_per_node_container').stonithNodeAgents();
+  $('#stonith_sbd_container').stonithNodeAgents({
+    path:'stonith/sbd/nodes',
+    attr_name:'devices',
+    attr_type:'seq',
+    attr_reader:function(val) { return val.join(', '); },
+    attr_writer:function(val) { return val.replace(/ /g, ',').replace(/,+/g, ',').split(','); }
+  });
 
   // FIXME: apparently using something else than
   // $('#stonith_per_node_container') breaks the per-node table :/
