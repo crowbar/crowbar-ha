@@ -142,6 +142,8 @@ class PacemakerService < ServiceObject
     role.default_attributes["corosync"]["mcast_addr"] = role.default_attributes["pacemaker"]["corosync"]["mcast_addr"]
     role.default_attributes["corosync"]["mcast_port"] = role.default_attributes["pacemaker"]["corosync"]["mcast_port"]
 
+    role.default_attributes["corosync"]["require_clean_for_autostart"] = role.default_attributes["pacemaker"]["corosync"]["require_clean_for_autostart"]
+
     unless role.default_attributes["pacemaker"]["corosync"]["password"].empty?
       if old_role
         old_role_password = old_role.default_attributes["pacemaker"]["corosync"]["password"]

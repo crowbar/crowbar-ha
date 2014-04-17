@@ -7,7 +7,8 @@
       "corosync": {
         "mcast_addr": "239.255.0.1",
         "mcast_port": 5405,
-        "password": "crowbar"
+        "password": "crowbar",
+        "require_clean_for_autostart": false
       },
       "crm": {
         "no_quorum_policy": "stop"

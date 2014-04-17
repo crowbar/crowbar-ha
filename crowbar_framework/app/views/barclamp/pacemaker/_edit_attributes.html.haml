@@ -51,6 +51,10 @@
         %span.help-block
           = t('.stonith.libvirt.hypervisor_ip_hint')
 
+      = boolean_field %w(corosync require_clean_for_autostart)
+      %span.help-block
+        = t('.corosync.require_clean_for_autostart_hint')
+
     %fieldset
       %legend
         = t(".notifications_header")
