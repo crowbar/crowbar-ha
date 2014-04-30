@@ -78,6 +78,8 @@ class PacemakerService < ServiceObject
 
     # elect a founder
     members = role.override_attributes[@bc_name]["elements"]["pacemaker-cluster-member"]
+    member_nodes = []
+
     unless members.nil?
       member_nodes = members.map {|n| NodeObject.find_node_by_name n}
 
