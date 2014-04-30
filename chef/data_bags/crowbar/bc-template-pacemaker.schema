@@ -20,7 +20,7 @@
                 "mcast_addr": { "type": "str", "required": true },
                 "mcast_port": { "type": "int", "required": true },
                 "password": { "type": "str", "required": true },
-                "require_clean_for_autostart": { "type": "bool", "required": true }
+                "require_clean_for_autostart_wrapper": { "type": "str", "required": true, "pattern": "/^true$|^false$|^auto$/" }
               }
             },
             "crm": {

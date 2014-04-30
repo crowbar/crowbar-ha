@@ -142,7 +142,16 @@ class PacemakerService < ServiceObject
     role.default_attributes["corosync"]["mcast_addr"] = role.default_attributes["pacemaker"]["corosync"]["mcast_addr"]
     role.default_attributes["corosync"]["mcast_port"] = role.default_attributes["pacemaker"]["corosync"]["mcast_port"]
 
-    role.default_attributes["corosync"]["require_clean_for_autostart"] = role.default_attributes["pacemaker"]["corosync"]["require_clean_for_autostart"]
+    case role.default_attributes["pacemaker"]["corosync"]["require_clean_for_autostart_wrapper"]
+    when "auto"
+      role.default_attributes["corosync"]["require_clean_for_autostart"] = (members.length == 2)
+    when "true"
+      role.default_attributes["corosync"]["require_clean_for_autostart"] = true
+    when "false"
+      role.default_attributes["corosync"]["require_clean_for_autostart"] = false
+    else
+      raise "'require_clean_for_autostart_wrapper' value is invalid but passed validation!"
+    end
 
     unless role.default_attributes["pacemaker"]["corosync"]["password"].empty?
       if old_role
