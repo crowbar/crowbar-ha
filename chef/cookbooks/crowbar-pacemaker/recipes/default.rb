@@ -71,3 +71,28 @@ end
 include_recipe "crowbar-pacemaker::haproxy"
 
 include_recipe "crowbar-pacemaker::maintenance-mode"
+
+# Allow mutual ssh connection among cluster members: go through the
+# cluster nodes and remember the public keys so the provisioner can save them.
+
+access_keys = {}
+
+node["provisioner"]["access_keys"].strip.split("\n").each do |key|
+  key.strip!
+  if !key.empty?
+    nodename = key.split(" ")[2]
+    access_keys[nodename] = key
+  end
+end
+
+CrowbarPacemakerHelper.cluster_nodes(node).each do |cluster_node|
+  pkey = cluster_node[:crowbar][:ssh][:root_pub_key] rescue nil
+  if !pkey.nil? && cluster_node.name != node.name && !access_keys.values.include?(pkey)
+    access_keys[cluster_node.name] = pkey
+  end
+end
+
+if access_keys.size > 0
+  node["provisioner"]["access_keys"] = access_keys.values.join("\n")
+  node.save
+end
