@@ -79,7 +79,91 @@ rescue LoadError
   Gem.clear_paths
 end
 
+# If this file exists, then we will require that corosync is either manually
+# started or that the file gets removed to have chef-client start corosync.
+#
+# If the node goes down properly, then the corosync-shutdown service
+# that we install will remove the file, which will allow the chef-client to
+# start corosync on next boot.
+#
+# If the node goes down without the proper shutdown process (it has been
+# fenced, or it lost power, or it crashed, or...), then the file will exist
+# and corosync will not start on next boot, requiring manual intervention.
+block_corosync_file = "/var/spool/corosync/block_automatic_start"
+corosync_shutdown = "#{node[:corosync][:platform][:service_name]}-shutdown"
+
+if node[:corosync][:require_clean_for_autostart]
+  # We want to fail (so we do not start corosync) if these two conditions are
+  # both met:
+  #  a) the blocking file exists
+  #  b) corosync is not running
+  #
+  # If a) is not true, then we had a proper shutdown/reboot and we can just
+  # proceed (and start corosync)
+  # If b) is not true, then corosync is already running, which either means
+  # that we went through a) in an earlier chef run, or that the user manually
+  # started the service (and acknowledged the issues with improper shutdown).
+  if ::File.exists?(block_corosync_file) && !system("crm status &> /dev/null")
+    raise "Not starting #{node[:corosync][:platform][:service_name]} automatically as " \
+          "it seems the node was not properly shut down. Please manually start the " \
+          "#{node[:corosync][:platform][:service_name]} service, or remove " \
+          "#{block_corosync_file} and run chef-client."
+  end
+
+  # this service will remove the blocking file on proper shutdown
+  template "/etc/init.d/#{corosync_shutdown}" do
+    source "corosync-shutdown.init.erb"
+    owner "root"
+    group "root"
+    mode 0755
+    variables(
+      :service_name => node[:corosync][:platform][:service_name],
+      :block_corosync_file => block_corosync_file
+    )
+  end
+
+  service corosync_shutdown do
+    action :enable
+  end
+
+  # we make sure that corosync is not enabled to start on boot
+  enable_or_disable = :disable
+else
+  # we don't need corosync-shutdown anymore
+  service corosync_shutdown do
+    action :disable
+  end
+
+  file "/etc/init.d/#{corosync_shutdown}" do
+    action :delete
+  end
+
+  file block_corosync_file do
+    action :delete
+  end
+
+  enable_or_disable = :enable
+end
+
 service node[:corosync][:platform][:service_name] do
   supports :restart => true, :status => :true
-  action [:enable, :start]
+  action [enable_or_disable, :start]
+end
+
+if node[:corosync][:require_clean_for_autostart]
+  # we create the file that will block starting corosync on next reboot
+
+  directory ::File.dirname(block_corosync_file) do
+    owner "root"
+    group "root"
+    mode "0700"
+    action :create
+  end
+
+  file block_corosync_file do
+    owner "root"
+    group "root"
+    mode "0644"
+    action :create
+  end
 end

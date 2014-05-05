@@ -78,6 +78,8 @@ class PacemakerService < ServiceObject
 
     # elect a founder
     members = role.override_attributes[@bc_name]["elements"]["pacemaker-cluster-member"]
+    member_nodes = []
+
     unless members.nil?
       member_nodes = members.map {|n| NodeObject.find_node_by_name n}
 
@@ -141,6 +143,17 @@ class PacemakerService < ServiceObject
 
     role.default_attributes["corosync"]["mcast_addr"] = role.default_attributes["pacemaker"]["corosync"]["mcast_addr"]
     role.default_attributes["corosync"]["mcast_port"] = role.default_attributes["pacemaker"]["corosync"]["mcast_port"]
+
+    case role.default_attributes["pacemaker"]["corosync"]["require_clean_for_autostart_wrapper"]
+    when "auto"
+      role.default_attributes["corosync"]["require_clean_for_autostart"] = (members.length == 2)
+    when "true"
+      role.default_attributes["corosync"]["require_clean_for_autostart"] = true
+    when "false"
+      role.default_attributes["corosync"]["require_clean_for_autostart"] = false
+    else
+      raise "'require_clean_for_autostart_wrapper' value is invalid but passed validation!"
+    end
 
     unless role.default_attributes["pacemaker"]["corosync"]["password"].empty?
       if old_role
