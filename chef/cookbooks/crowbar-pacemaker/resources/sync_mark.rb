@@ -48,5 +48,5 @@ attribute :mark,      :kind_of => String,  :default => nil
 # this is optional in crowbar; the barclamp proposal revision will be used
 attribute :revision,  :kind_of => Integer, :default => nil
 
-attribute :fatal,     :kind_of => [TrueClass, FalseClass], :default => false
+attribute :fatal,     :kind_of => [TrueClass, FalseClass], :default => true
 attribute :timeout,   :kind_of => Integer, :default => 60

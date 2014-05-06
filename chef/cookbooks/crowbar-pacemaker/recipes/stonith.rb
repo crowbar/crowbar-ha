@@ -38,6 +38,20 @@ when "sbd"
     disks = BarclampLibrary::Barclamp::Inventory::Disk.all(node).select {|d| d.name == sbd_device_simple}
     disk = disks.first
     if disk.nil?
+      # This is not a disk; let's see if this is a partition and deal with it
+      sbd_sys_dir = "/sys/class/block/#{File.basename(sbd_device_simple)}"
+      if File.exists?("#{sbd_sys_dir}/partition") && File.symlink?(sbd_sys_dir)
+        sbd_sys_dir_full = File.expand_path(File.readlink(sbd_sys_dir), File.dirname(sbd_sys_dir))
+        # sbd_sys_dir_full is something like
+        # "/sys/devices/platform/host3/session2/target3:0:0/3:0:0:0/block/sda/sda1",
+        # and we want to get the "sda" part of this
+        parent_sys_dir_full = sbd_sys_dir_full[1..sbd_sys_dir_full.rindex("/")-1]
+        parent_disk = "/dev/#{File.basename(parent_sys_dir_full)}"
+        disks = BarclampLibrary::Barclamp::Inventory::Disk.all(node).select {|d| d.name == parent_disk}
+        disk = disks.first
+      end
+    end
+    if disk.nil?
       raise "Cannot find device #{sbd_device}!"
     end
     if disk.claimed? && disk.owner != "sbd"
