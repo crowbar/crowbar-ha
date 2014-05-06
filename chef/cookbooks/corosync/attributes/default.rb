@@ -45,3 +45,5 @@ default[:corosync][:user] = "hacluster"
 default[:corosync][:password] = "$1$0w6d0uZu$QK13Hun/7Xa3NP1bjLfe5/" # crowbar
 
 default[:corosync][:authkey_file] = "/etc/corosync/authkey"
+
+default[:corosync][:require_clean_for_autostart] = false
