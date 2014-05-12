@@ -41,7 +41,7 @@ action :create do
 
       package "xfsprogs" do
         action :nothing
-      end.run_action(:run)
+      end.run_action(:install)
     end
 
     next if resource["configured"]
