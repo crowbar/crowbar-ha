@@ -38,6 +38,10 @@ action :create do
       end.run_action(:run)
 
       modules_loaded[resource["fstype"]] = true
+
+      package "xfsprogs" do
+        action :nothing
+      end.run_action(:run)
     end
 
     next if resource["configured"]
