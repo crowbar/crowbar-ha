@@ -165,7 +165,7 @@ action :restart do
 
   if service_is_running?(service_name)
     if maintenance_mode_set_via_this_chef_run?
-      Chef::Log.info("chef-client run pid $$ already placed this node in Pacemaker maintenance mode")
+      Chef::Log.info("chef-client run pid #$$ already placed this node in Pacemaker maintenance mode")
     else
       if maintenance_mode?
         Chef::Log.info("Something else already placed this node in Pacemaker maintenance mode")
