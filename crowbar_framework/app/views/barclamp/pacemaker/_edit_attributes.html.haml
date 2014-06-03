@@ -51,6 +51,10 @@
         %span.help-block
           = t('.stonith.libvirt.hypervisor_ip_hint')
 
+      = select_field %w(corosync require_clean_for_autostart_wrapper), :collection => :require_clean_for_autostart_wrapper_for_pacemaker
+      %span.help-block
+        = t('.corosync.require_clean_for_autostart_hint')
+
     %fieldset
       %legend
         = t(".notifications_header")

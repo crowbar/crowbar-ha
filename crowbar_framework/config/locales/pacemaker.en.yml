@@ -32,6 +32,18 @@ en:
           to make the GUI accessible.
         corosync:
           password: Password for hacluster user in Hawk
+          require_clean_for_autostart_wrapper: Do not start corosync on boot after fencing
+          require_clean_for_autostart_values:
+            auto: Automatic
+            v_true: True
+            v_false: False
+          require_clean_for_autostart_hint:
+            'This setting can be used to avoid the STONITH deathmatch issue for
+            two-nodes clusters, or a fencing loop. The corosync service will
+            not start on boot on a node when that node was not properly shut
+            down or rebooted; you will have to manually start it after having
+            fixed the issue. "Automatic" means that this setting will be set to
+            "true" for two-nodes cluster, and to "false" otherwise.'
         crm:
           no_quorum_policy: Policy when cluster does not have quorum
           no_quorum_policy_hint: 'Refer to the <a href="http://clusterlabs.org/doc/en-US/Pacemaker/1.1-crmsh/html/Pacemaker_Explained/_available_cluster_options.html">pacemaker documentation</a> for a description of each value.'

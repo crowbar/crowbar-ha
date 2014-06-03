@@ -223,6 +223,40 @@ function update_no_quorum_policy(evt, init) {
   }
 }
 
+function update_drbd_enabled(evt, init) {
+  var drbd_enabled_el = $('#drbd_enabled');
+  var non_forced_enabled = drbd_enabled_el.data('non-forced');
+  var was_forced_enabled = drbd_enabled_el.data('is-forced');
+  var members = $('#pacemaker-cluster-member').children().length;
+
+  if (non_forced_enabled == undefined) {
+    non_forced_enabled = "false";
+  }
+
+  if (evt != undefined) {
+    // 'nodeListNodeAllocated' is fired after the element has been added, so
+    // nothing to do. However, 'nodeListNodeUnallocated' is fired before the
+    // element is removed, so we need to fix the count.
+    if (evt.type == 'nodeListNodeUnallocated') { members -= 1; }
+  }
+
+  if (members == 2) {
+    if (was_forced_enabled) {
+      drbd_enabled_el.val(non_forced_enabled);
+      drbd_enabled_el.removeData('non-forced');
+    }
+    drbd_enabled_el.data('is-forced', false)
+    drbd_enabled_el.removeAttr('disabled');
+  } else {
+    if (!init && !was_forced_enabled) {
+      drbd_enabled_el.data('non-forced', drbd_enabled_el.val());
+    }
+    drbd_enabled_el.data('is-forced', true)
+    drbd_enabled_el.val("false");
+    drbd_enabled_el.attr('disabled', 'disabled');
+  }
+}
+
 $(document).ready(function($) {
   $('#stonith_per_node_container').stonithNodeAgents();
   $('#stonith_sbd_container').stonithNodeAgents({
@@ -237,10 +271,13 @@ $(document).ready(function($) {
   // $('#stonith_per_node_container') breaks the per-node table :/
   $('#stonith_per_node_container').on('nodeListNodeAllocated', function(evt, data) {
     update_no_quorum_policy(evt, false)
+    update_drbd_enabled(evt, false)
   });
   $('#stonith_per_node_container').on('nodeListNodeUnallocated', function(evt, data) {
     update_no_quorum_policy(evt, false)
+    update_drbd_enabled(evt, false)
   });
 
   update_no_quorum_policy(undefined, true)
+  update_drbd_enabled(undefined, true)
 });

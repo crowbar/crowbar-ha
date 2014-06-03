@@ -48,4 +48,15 @@ module PacemakerBarclampHelper
       selected.to_s
     )
   end
+
+  def require_clean_for_autostart_wrapper_for_pacemaker(selected)
+    options_for_select(
+      [
+        [t(".corosync.require_clean_for_autostart_values.auto"), "auto"],
+        [t(".corosync.require_clean_for_autostart_values.v_true"), "true"],
+        [t(".corosync.require_clean_for_autostart_values.v_false"), "false"]
+      ],
+      selected.to_s
+    )
+  end
 end
