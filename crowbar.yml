@@ -29,7 +29,7 @@ crowbar:
   order: 53
   run_order: 53
   chef_order: 53
-  proposal_schema_version: 2
+  proposal_schema_version: 3
 
 # nav:
 #   barclamps:
