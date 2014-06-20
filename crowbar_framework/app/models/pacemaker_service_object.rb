@@ -198,7 +198,7 @@ class PacemakerServiceObject < ServiceObject
     # cookbook code is executed faster. So far, it seems it's not an issue
     # (we're not even hitting the "will run chef-client a second time if first
     # one fails), but this would still need to be improved.
-    system("sudo", "-i", Rails.root.join("..", "bin", "single_chef_client.sh").expand_path) if CHEF_ONLINE
+    system("sudo", "-i", Rails.root.join("..", "bin", "single_chef_client.sh").expand_path)
   end
 
   # This prepares attributes so that, if ha_enabled is true, the chef run will
