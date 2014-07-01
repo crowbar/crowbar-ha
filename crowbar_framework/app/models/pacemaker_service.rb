@@ -77,10 +77,10 @@ class PacemakerService < ServiceObject
     @logger.debug("Pacemaker apply_role_pre_chef_call: entering #{all_nodes.inspect}")
 
     # elect a founder
-    members = role.override_attributes[@bc_name]["elements"]["pacemaker-cluster-member"]
+    members = role.override_attributes[@bc_name]["elements"]["pacemaker-cluster-member"] || []
     member_nodes = []
 
-    unless members.nil?
+    unless members.empty?
       member_nodes = members.map {|n| NodeObject.find_node_by_name n}
 
       founder = nil
@@ -277,8 +277,7 @@ class PacemakerService < ServiceObject
     validate_at_least_n_for_role proposal, "pacemaker-cluster-member", 1
 
     elements = proposal["deployment"]["pacemaker"]["elements"]
-
-    members = (elements["pacemaker-cluster-member" ] || [])
+    members = elements["pacemaker-cluster-member" ] || []
 
     if elements.has_key?("hawk-server")
       elements["hawk-server"].each do |n|
