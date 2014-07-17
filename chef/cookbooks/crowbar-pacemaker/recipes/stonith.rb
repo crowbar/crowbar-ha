@@ -90,7 +90,7 @@ when "per_node"
 
   nodes.keys.each do |fqdn|
     hostname = fqdn.chomp(".#{domain}")
-    new_nodes[hostname] = nodes[fqdn]
+    new_nodes[hostname] = nodes[fqdn].to_hash
   end
 
   node.default[:pacemaker][:stonith][:per_node][:nodes] = new_nodes
