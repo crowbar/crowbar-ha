@@ -69,7 +69,7 @@ when "shared"
   if params.respond_to?('to_hash')
     params = params.to_hash
   elsif params.is_a?(String)
-    params = ::Pacemaker::Resource.extract_hash("params #{params}", "params")
+    params = ::Pacemaker::Resource.extract_hash(" params #{params}", "params")
   else
     message = "Unknown format for STONITH shared parameters: #{params.inspect}."
     Chef::Log.fatal(message)
