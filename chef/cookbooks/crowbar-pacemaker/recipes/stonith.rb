@@ -69,7 +69,7 @@ when "shared"
   if params.respond_to?('to_hash')
     params = params.to_hash
   elsif params.is_a?(String)
-    params = ::Pacemaker::Resource.extract_hash("params #{params}", "params")
+    params = ::Pacemaker::Resource.extract_hash(" params #{params}", "params")
   else
     message = "Unknown format for STONITH shared parameters: #{params.inspect}."
     Chef::Log.fatal(message)
@@ -90,7 +90,7 @@ when "per_node"
 
   nodes.keys.each do |fqdn|
     hostname = fqdn.chomp(".#{domain}")
-    new_nodes[hostname] = nodes[fqdn]
+    new_nodes[hostname] = nodes[fqdn].to_hash
   end
 
   node.default[:pacemaker][:stonith][:per_node][:nodes] = new_nodes
