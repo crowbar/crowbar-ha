@@ -113,7 +113,7 @@
 
     $.each(self.options.watchedRoles, function(index, role) {
       var role_path  = 'elements/{0}'.format(role);
-      var role_nodes = $(self.options.deployment_storage).readJsonAttribute(role_path);
+      var role_nodes = $(self.options.deployment_storage).readJsonAttribute(role_path, {});
       $.each(role_nodes, function(index, node) { deployed_nodes[node] = true; });
     });
 
