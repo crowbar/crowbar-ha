@@ -152,7 +152,8 @@
     });
 
     var params = $.map(rows, function(row) {
-      return self.html.table_row.format(row[0], row[1], row[2]);
+      var encoded_input = Handlebars.Utils.escapeExpression(row[2]);
+      return self.html.table_row.format(row[0], row[1], encoded_input);
     });
     this.root.find('tbody').html(params.join(''));
   };
@@ -162,7 +163,8 @@
     var self = this;
 
     var params = $.map(self.retrieveAgentParams(), function(value, node_id) {
-      return self.html.table_row.format(node_id, self._node_name_to_alias(node_id), self.options.attr_reader(value[self.options.attr_name]));
+      var encoded_value = Handlebars.Utils.escapeExpression(self.options.attr_reader(value[self.options.attr_name]));
+      return self.html.table_row.format(node_id, self._node_name_to_alias(node_id), encoded_value);
     });
 
     this.root.find('tbody').html(params.join(''));
