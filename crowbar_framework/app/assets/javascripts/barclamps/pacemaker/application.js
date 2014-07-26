@@ -283,7 +283,7 @@ $(document).ready(function($) {
     attr_name:'devices',
     attr_type:'seq',
     attr_reader:function(val) { return val.join(', '); },
-    attr_writer:function(val) { return val.replace(/ /g, ',').replace(/,+/g, ',').split(','); }
+    attr_writer:function(val) { return val.replace(/ /g, ',').replace(/,+/g, ',').replace(/,$/, '').split(','); }
   });
 
   // FIXME: apparently using something else than

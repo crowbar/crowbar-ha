@@ -218,7 +218,15 @@ class PacemakerService < ServiceObject
       sbd_devices_mismatch = false
       nodes.keys.each do |node_name|
         if members.include? node_name
-          devices = nodes[node_name]["devices"]
+          node_devices = nodes[node_name]["devices"]
+
+          # note that when nothing is defined, we actually have an empty array
+          # with an empty string, hence the == 1 test
+          unless node_devices.count == 1 || node_devices.select{|d| d.empty?}.empty?
+            validation_error "Some SBD devices for node #{node_name} are empty"
+          end
+
+          devices = node_devices.select{|d| !d.empty?}
           validation_error "Missing SBD devices for node #{node_name}" if devices.empty?
 
           sbd_devices_nb = devices.length if sbd_devices_nb == -1
