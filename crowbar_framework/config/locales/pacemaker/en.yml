@@ -49,6 +49,10 @@ en:
           to make the GUI accessible.'
         corosync:
           password: 'Password for hacluster user in Hawk'
+          transport: 'Transport for Communication'
+          transports:
+            udp: 'Multicast (UDP)'
+            udpu: 'Unicast (UDPU)'
           require_clean_for_autostart_wrapper: 'Do not start corosync on boot after fencing'
           require_clean_for_autostart_values:
             auto: 'Automatic'

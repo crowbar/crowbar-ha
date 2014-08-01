@@ -48,10 +48,20 @@ totem {
         interface {
                 ringnumber:     0
                 bindnetaddr:    <%= @bind_addr  %>
+<% if @transport == 'udp' -%>
                 mcastaddr:      <%= @mcast_addr %>
+<% elsif @transport == 'udpu' -%>
+  <% @members.sort.each do |memberaddr| -%>
+                member {
+                        memberaddr:     <%= memberaddr %>
+                }
+  <% end -%>
+<% end -%>
                 mcastport:      <%= @mcast_port %>
                 ttl:            1
         }
+
+        transport: <%= @transport %>
 }
 
 amf {

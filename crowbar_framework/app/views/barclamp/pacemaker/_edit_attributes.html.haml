@@ -3,6 +3,8 @@
     = header @dep_raw, true
 
   .panel-body
+    = select_field %w(corosync transport), :collection => :transport_for_pacemaker
+
     = select_field %w(crm no_quorum_policy), :collection => :no_quorum_policy_for_pacemaker
     %span.help-block
       = t('.crm.no_quorum_policy_hint')

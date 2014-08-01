@@ -21,6 +21,16 @@ module Barclamp
       Hash[nodes_hash.map { |n| [n.first, { :alias => n.last[:alias] }] }]
     end
 
+    def transport_for_pacemaker(selected)
+      options_for_select(
+        [
+          [t(".corosync.transports.udp"), "udp"],
+          [t(".corosync.transports.udpu"), "udpu"]
+        ],
+        selected.to_s
+      )
+    end
+
     def no_quorum_policy_for_pacemaker(selected)
       # no translation for the strings as we simply show the values that will end
       # up in the config file

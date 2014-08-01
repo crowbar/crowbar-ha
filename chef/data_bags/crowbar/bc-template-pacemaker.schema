@@ -17,6 +17,7 @@
               "type": "map",
               "required": true,
               "mapping": {
+                "transport": { "type": "str", "required": true },
                 "mcast_addr": { "type": "str", "required": true },
                 "mcast_port": { "type": "int", "required": true },
                 "password": { "type": "str", "required": true },
