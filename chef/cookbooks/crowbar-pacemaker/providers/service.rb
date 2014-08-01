@@ -170,7 +170,7 @@ action :restart do
       if maintenance_mode?
         Chef::Log.info("Something else already placed this node in Pacemaker maintenance mode")
       else
-        execute "crm node maintenance" do
+        execute "crm --wait node maintenance" do
           action :nothing
         end.run_action(:run)
         set_maintenance_mode_via_this_chef_run
