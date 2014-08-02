@@ -52,6 +52,10 @@ ruby_block "Store authkey to Chef server" do
     node.set_unless[:corosync][:authkey] = packed
     node.save
   end
-  action :nothing
-  subscribes :create, resources(:execute => "corosync-keygen"), :immediately
+  # If we don't have the attribute, always read the key (even if it existed and
+  # we didn't run corosync-keygen)
+  unless node[:corosync][:authkey].nil?
+    action :nothing
+    subscribes :create, resources(:execute => "corosync-keygen"), :immediately
+  end
 end
