@@ -40,11 +40,15 @@ end
 
 service_name            = "apache"
 
+apache_params = {}
+apache_params["statusurl"] = "http://127.0.0.1:#{listening_port}/server-status"
+unless crowbar_defined_ports.values.select{|service| service.has_key? :ssl}.empty?
+  apache_params["options"] = "-DSSL"
+end
+
 pacemaker_primitive service_name do
   agent agent_name
-  params ({
-      "statusurl" => "http://127.0.0.1:#{listening_port}/server-status"
-  })
+  params apache_params
   op    apache_op
   action :create
 end
