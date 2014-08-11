@@ -2,7 +2,7 @@ Description
 ====
 
 This is a cookbook for installing and configuring pacemaker and haproxy as part
-of a Crowbar.
+of Crowbar.
 
 License and Author
 ====
