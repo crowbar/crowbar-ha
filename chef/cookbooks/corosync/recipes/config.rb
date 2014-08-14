@@ -30,6 +30,14 @@ if platform_family? "rhel"
   return
 end
 
+unless %(udp udpu).include?(node[:corosync][:transport])
+  raise "Invalid transport #{node[:corosync][:transport]}!"
+end
+
+if node[:corosync][:transport] == "udpu" && (node[:corosync][:members].nil? || node[:corosync][:members].empty?)
+  raise "Members have to be defined when using \"udpu\" transport!"
+end
+
 template "/etc/corosync/corosync.conf" do
   source "corosync.conf.erb"
   owner "root"
@@ -39,7 +47,9 @@ template "/etc/corosync/corosync.conf" do
     :cluster_name => node[:corosync][:cluster_name],
     :bind_addr    => node[:corosync][:bind_addr],
     :mcast_addr   => node[:corosync][:mcast_addr],
-    :mcast_port   => node[:corosync][:mcast_port]
+    :mcast_port   => node[:corosync][:mcast_port],
+    :members      => node[:corosync][:members],
+    :transport    => node[:corosync][:transport]
   )
 
   service_name = node[:pacemaker][:platform][:service_name] rescue nil

@@ -145,6 +145,8 @@ class PacemakerService < ServiceObject
 
     role.default_attributes["corosync"]["mcast_addr"] = role.default_attributes["pacemaker"]["corosync"]["mcast_addr"]
     role.default_attributes["corosync"]["mcast_port"] = role.default_attributes["pacemaker"]["corosync"]["mcast_port"]
+    role.default_attributes["corosync"]["members"] = member_nodes.map{|n| n.get_network_by_type("admin")["address"]}
+    role.default_attributes["corosync"]["transport"] = role.default_attributes["pacemaker"]["corosync"]["transport"]
 
     case role.default_attributes["pacemaker"]["corosync"]["require_clean_for_autostart_wrapper"]
     when "auto"
@@ -320,6 +322,11 @@ class PacemakerService < ServiceObject
           validation_error "The HAE repositories have not been setup."
         end
       end
+    end
+
+    transport = proposal["attributes"][@bc_name]["corosync"]["transport"]
+    unless %w(udp udpu).include?(transport)
+      validation_error "Invalid transport value: #{transport}."
     end
 
     no_quorum_policy = proposal["attributes"][@bc_name]["crm"]["no_quorum_policy"]
