@@ -15,7 +15,7 @@ module Pacemaker
       end
 
       def get_definition(name)
-        cmd = Mixlib::ShellOut.new("crm configure show #{name}")
+        cmd = Mixlib::ShellOut.new("crm --display=plain configure show #{name}")
         cmd.environment['HOME'] = ENV.fetch('HOME', '/root')
         cmd.run_command
         begin
