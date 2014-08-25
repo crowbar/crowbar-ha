@@ -26,6 +26,10 @@
 # about HA and things working than about load balancing.
 node.default['haproxy']['defaults']['balance'] = "source"
 
+# With the default bufsize, getting a keystone PKI token from its ID doesn't
+# work, because the URI path is too long for haproxy
+node.default['haproxy']['global']['bufsize'] = 24576
+
 # Always do the setup for haproxy, so that the RA will already be available on
 # all nodes when needed (this avoids the need for "crm resource refresh")
 include_recipe "haproxy::setup"
