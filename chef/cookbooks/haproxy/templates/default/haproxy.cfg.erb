@@ -19,8 +19,8 @@ defaults
 	timeout http-request 5s
 	timeout queue 1m
 	timeout connect 5s
-	timeout client 50s
-	timeout server 50s
+	timeout client 3h
+	timeout server 3h
 	timeout check 5s
 	balance <%= node[:haproxy][:defaults][:balance] %>
 
