@@ -18,8 +18,8 @@
 #
 
 
-#FIXME: delete group when it's not needed anymore 
-#FIXME: need to find/write OCF for haproxy  
+#FIXME: delete group when it's not needed anymore
+#FIXME: need to find/write OCF for haproxy
 
 # Recommendation from the OpenStack HA guide is to use "source" as balance
 # algorithm. This obviously is less useful for load balancing, but we care more
