@@ -3,6 +3,7 @@ global
 	log 127.0.0.1   local1 notice
 	maxconn <%= node[:haproxy][:global][:maxconn] %>
 	tune.bufsize <%= node[:haproxy][:global][:bufsize] %>
+	tune.maxrewrite <%= node[:haproxy][:global][:maxrewrite] %>
 	tune.chksize <%= node[:haproxy][:global][:chksize] %>
 	chroot /var/lib/haproxy
 	user <%= node[:haproxy][:platform][:user] %>
