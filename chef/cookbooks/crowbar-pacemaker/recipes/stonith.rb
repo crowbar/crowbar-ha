@@ -129,7 +129,7 @@ when "libvirt"
   hypervisor_uri = "qemu+tcp://#{hypervisor_ip}/system"
 
   CrowbarPacemakerHelper.cluster_nodes(node).each do |cluster_node|
-    unless cluster_node[:dmi][:system][:manufacturer] == "Bochs"
+    unless %w(Bochs QEMU).include? cluster_node[:dmi][:system][:manufacturer]
       message = "Node #{cluster_node[:hostname]} does not seem to be running in libvirt."
       Chef::Log.fatal(message)
       raise message
