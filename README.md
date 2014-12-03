@@ -15,6 +15,8 @@ system for specific applications.
 About this barclamp
 -------------------
 
+[![Build Status](https://travis-ci.org/crowbar/barclamp-pacemaker.svg?branch=master)](https://travis-ci.org/crowbar/barclamp-pacemaker)
+
 Information for this barclamp is maintained on the [Crowbar Framework Wiki](https://github.com/crowbar/crowbar/wiki)
 
 This is NOT usable at the moment! Don't even try unless you want to help with the development effort! (Help is of
