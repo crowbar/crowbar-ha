@@ -60,7 +60,12 @@ end
 # chef-client can only use it immediately if we install it at
 # recipe compile-time, not run-time:
 # from the next run onwards:
-pkg = package "rubygem-ruby-shadow" do
+rubygem_ruby_shadow = "rubygem-ruby-shadow"
+if node["platform"] == "suse" && node["platform_version"].to_f >= 12 ||
+   node["platform"] == "opensuse" && node["platform_version"].to_f >= 13.2
+  rubygem_ruby_shadow = "ruby#{node["languages"]["ruby"]["version"].to_f}-rubygem-ruby-shadow"
+end
+pkg = package rubygem_ruby_shadow do
   action :nothing
 end
 pkg.run_action(:install) if node.platform == 'suse'
