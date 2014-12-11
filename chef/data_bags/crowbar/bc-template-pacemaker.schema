@@ -140,6 +140,7 @@
           "required": true,
           "mapping": {
             "crowbar-revision": { "type": "int", "required": true },
+            "schema-revision": { "type": "int" },
             "crowbar-committing": { "type": "bool" },
             "crowbar-applied": { "type": "bool" },
             "crowbar-queued": { "type": "bool" },
