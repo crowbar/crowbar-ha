@@ -75,6 +75,151 @@ class PacemakerService < ServiceObject
     base
   end
 
+  # Small helper to expand all items (nodes, clusters) used inside an applied
+  # proposal
+  def expand_nodes_in_barclamp_role(cluster_role, node_object_all)
+    all_nodes_for_cluster_role = cluster_role.elements.values.flatten.compact.uniq
+
+    all_nodes_for_cluster_role_expanded, failures = expand_nodes_for_all(all_nodes_for_cluster_role)
+    unless failures.nil? || failures.empty?
+      @logger.debug "[pacemaker] expand_nodes_in_barclamp_role: skipping items that we failed to expand: #{failures.join(", ")}"
+    end
+
+    # Do not keep deleted nodes
+    all_nodes_for_cluster_role_expanded = all_nodes_for_cluster_role_expanded & node_object_all.map{|n| n.name}
+
+    all_nodes_for_cluster_role_expanded
+  end
+
+  def apply_cluster_roles_to_new_nodes(role, member_nodes)
+    ### Beware of possible confusion between different level of "roles"!
+    # - we have barclamp roles that are related to a barclamp (as in "knife role
+    #   list | grep config" or RoleObject.proposal?); the cluster_role variable
+    #   is always such a role
+    # - we have roles inside each barclamp roles (as in "the role I assign to
+    #   nodes, like provisioner-server")
+
+    # Make sure that all nodes in the cluster have all the roles assigned to
+    # this cluster.
+    required_barclamp_roles = []
+    required_pre_chef_calls = []
+    cluster_element = "#{PacemakerServiceObject.cluster_key}:#{role.inst}"
+
+    # Find all barclamp roles where this cluster is used
+    cluster_roles = RoleObject.all.select do |role_object|
+      role_object.proposal? && \
+      role_object.elements.values.flatten.compact.uniq.include?(cluster_element)
+    end
+
+    # Inside each barclamp role, identify which role is required
+    for cluster_role in cluster_roles do
+      service = ServiceObject.get_service(cluster_role.barclamp).new(Rails.logger)
+      runlist_priority_map = cluster_role.override_attributes["element_run_list_order"] || {}
+      role_map = cluster_role.override_attributes["element_states"] || {}
+
+      deployment = cluster_role.override_attributes[cluster_role.barclamp]
+      save_it = false
+
+      cluster_role.elements.each do |role_name, node_names|
+        next unless node_names.include?(cluster_element)
+
+        required_barclamp_roles << { :service => service,
+                                     :barclamp_role => cluster_role,
+                                     :name => role_name,
+                                     :priority => runlist_priority_map[role_name] || service.chef_order,
+                                     :element_states => role_map[role_name] }
+
+        # Update elements_expanded attribute
+        expanded_nodes, failures = expand_nodes_for_all(node_names)
+        unless failures.nil? || failures.empty?
+          @logger.debug "[pacemaker] apply_cluster_roles_to_new_nodes: skipping items that we failed to expand: #{failures.join(", ")}"
+        end
+
+        expanded_nodes.sort!
+        old_expanded_nodes = deployment["elements_expanded"][role_name].sort
+
+        if old_expanded_nodes != expanded_nodes
+          deployment["elements_expanded"][role_name] = expanded_nodes
+          save_it = true
+        end
+      end
+
+      # Also add the config role for the barclamp
+      required_barclamp_roles << { :service => service,
+                                   :barclamp_role => cluster_role,
+                                   :name => cluster_role.name,
+                                   :priority => runlist_priority_map[cluster_role.name] || service.chef_order,
+                                   :element_states => role_map[cluster_role.name] }
+
+      cluster_role.save if save_it
+    end
+
+    # Ensure that all nodes in the cluster have all required roles
+    member_nodes.each do |member_node|
+      save_it = false
+
+      required_barclamp_roles.each do |required_barclamp_role|
+        name = required_barclamp_role[:name]
+        unless member_node.role? name
+          priority = required_barclamp_role[:priority]
+          element_states = required_barclamp_role[:element_states]
+
+          @logger.debug("[pacemaker] AR: Adding role #{name} to #{member_node.name} with priority #{priority}")
+          member_node.add_to_run_list(name, priority, element_states)
+          save_it = true
+
+          required_pre_chef_calls << { :service => required_barclamp_role[:service], :barclamp_role => required_barclamp_role[:barclamp_role] }
+        end
+      end
+
+      member_node.save if save_it
+    end
+
+    # Avoid doing this query multiple times
+    node_object_all = NodeObject.all
+
+    # For each service where we had to manually update a node for a missing
+    # role, we need to call apply_role_pre_chef_call
+    required_pre_chef_calls.uniq.each do |required_pre_chef_call|
+      cluster_role = required_pre_chef_call[:barclamp_role]
+      service = required_pre_chef_call[:service]
+
+      all_nodes_for_cluster_role_expanded = expand_nodes_in_barclamp_role(cluster_role, node_object_all)
+
+      @logger.debug("[pacemaker] Calling apply_role_pre_chef_call for #{service.bc_name}")
+      service.apply_role_pre_chef_call(cluster_role, cluster_role, all_nodes_for_cluster_role_expanded)
+    end
+
+    role_deployment = role.override_attributes[@bc_name]
+    required_post_chef_calls = required_pre_chef_calls.map{|n| n[:barclamp_role].name}.uniq
+
+    if required_post_chef_calls != role_deployment["required_post_chef_calls"]
+      role_deployment["required_post_chef_calls"] = required_post_chef_calls
+      role.save
+    end
+  end
+
+  def apply_cluster_roles_to_new_nodes_post_chef_call(role)
+    # Avoid doing this query multiple times
+    node_object_all = NodeObject.all
+
+    for cluster_role_name in role.override_attributes[@bc_name]["required_post_chef_calls"] do
+      cluster_role = RoleObject.find_role_by_name(cluster_role_name)
+
+      if cluster_role_name.nil?
+        @logger.debug("[pacemaker] apply_cluster_roles_to_new_nodes_post_chef_call: Cannot find #{cluster_role_name} role; skipping apply_role_post_chef_call for it")
+        next
+      end
+
+      service = ServiceObject.get_service(cluster_role.barclamp).new(Rails.logger)
+
+      all_nodes_for_cluster_role_expanded = expand_nodes_in_barclamp_role(cluster_role, node_object_all)
+
+      @logger.debug("[pacemaker] Calling apply_role_post_chef_call for #{service.bc_name}")
+      service.apply_role_post_chef_call(cluster_role, cluster_role, all_nodes_for_cluster_role_expanded)
+    end
+  end
+
   def apply_role_pre_chef_call(old_role, role, all_nodes)
     @logger.debug("Pacemaker apply_role_pre_chef_call: entering #{all_nodes.inspect}")
 
@@ -177,6 +322,8 @@ class PacemakerService < ServiceObject
 
     role.save
 
+    apply_cluster_roles_to_new_nodes(role, member_nodes)
+
     @logger.debug("Pacemaker apply_role_pre_chef_call: leaving")
   end
 
@@ -201,6 +348,8 @@ class PacemakerService < ServiceObject
       node.crowbar["crowbar"]["links"]["Pacemaker Cluster (Hawk)"] = url
       node.save
     end
+
+    apply_cluster_roles_to_new_nodes_post_chef_call(role)
 
     @logger.debug("Pacemaker apply_role_post_chef_call: leaving")
   end
