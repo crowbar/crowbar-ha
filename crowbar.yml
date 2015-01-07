@@ -16,15 +16,13 @@
 #
 
 barclamp:
-  name: pacemaker
-  display: Pacemaker
-  description: Deploy Pacemaker clusters
-  proposal_schema_version: 1
-  user_managed: true
+  name: 'pacemaker'
+  display: 'Pacemaker'
+  description: 'Deploy Pacemaker clusters'
   version: 0
-  #requires:
+  user_managed: true
   member:
-    - openstack
+    - 'openstack'
 
 crowbar:
   layout: 1
@@ -32,50 +30,3 @@ crowbar:
   run_order: 53
   chef_order: 53
   proposal_schema_version: 3
-
-# nav:
-#   barclamps:
-#     ha: index_barclamp_path(:controller=>'pacemaker')
-#     pacemaker: barclamp_modules_path(:id=>'pacemaker')
-
-debs:
-  repos:
-  pkgs:
-    - libcluster-glue
-    - libnet1
-    - libopenhpi2
-    - libopenipmi0
-    - cluster-glue
-    - cluster-agents
-    - libcorosync4
-    - corosync
-    - libesmtp5
-    - libheartbeat2
-    - libxslt1.1
-    - openhpid
-    - pacemaker
-    - haveged
-    - drbd8-utils
-    - xfsprogs
-    - xfsdump
-    - xfslibs-dev
-    # - mod_fcgid
-  os-token:
-    repos:
-    ppas:
-    pkgs:
-    raw_pkgs:
-
-rpms:
-  repos:
-    - bare epel5-nagios3 10 http://repos.fedorapeople.org/repos/peter/nagios3/epel-5/x86_64/
-  pkgs:
-  raw_pkgs:
-  pkg_sources:
-  os-token:
-
-gems:
-  pkgs:
-    - i18n
-    - rails-2.3.18 # Will try and pull rails-2.3.18 exactly.
-    - ruby-shadow

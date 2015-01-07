@@ -1,7 +1,0 @@
-Packages required:
-
-Ubuntu:
-libcluster-glue libnet1 libopenhpi2 libopenipmi0 cluster-glue cluster-agents libcorosync4 corosync libesmtp5 libheartbeat2 libxslt1.1
-  openhpid pacemaker haveged
-
-

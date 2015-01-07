@@ -26,6 +26,27 @@ when 'suse'
     xorg-x11-xauth xorg-x11-fonts
   )
 else
+
+  #
+  # These ubuntu package requirements have to be validated before we will
+  # activate that, these packages have been taken from an old notes file:
+  #
+  # * libcluster-glue
+  # * libnet1
+  # * libopenhpi2
+  # * libopenipmi0
+  # * cluster-glue
+  # * cluster-agents
+  # * libcorosync4
+  # * corosync
+  # * libesmtp5
+  # * libheartbeat2
+  # * libxslt1.1
+  # * openhpid
+  # * pacemaker
+  # * haveged
+  #
+
   Chef::Application.fatal! "FIXME: #{node.platform} platform not supported yet"
   return
 end
