@@ -66,18 +66,18 @@ pkg = package rubygem_ruby_shadow do
 end
 pkg.run_action(:install) if node.platform == 'suse'
 
-user node[:corosync][:user] do
-  action :modify
-  # requires ruby-shadow gem
-  password node[:corosync][:password]
-end
-
 # After installation of ruby-shadow, we have a new path for the new gem, so we
 # need to reset the paths if we can't load ruby-shadow
 begin
   require 'shadow'
 rescue LoadError
   Gem.clear_paths
+end
+
+user node[:corosync][:user] do
+  action :modify
+  # requires ruby-shadow gem
+  password node[:corosync][:password]
 end
 
 # If this file exists, then we will require that corosync is either manually
