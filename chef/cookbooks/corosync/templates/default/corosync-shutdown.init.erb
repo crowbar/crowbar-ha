@@ -8,6 +8,7 @@
 # Should-Start:      $null
 # Required-Stop:     $null
 # Should-Stop:       $syslog sshd drbd $named $remote_fs logd xendomains xend iscsi libvirtd portmap rpcbind
+# X-Stop-After:      <%= @service_name %>
 # Default-Start:     3 5
 # Default-Stop:      0 6
 # Description:       Clean file blocking <%= @service_name %> start after fencing
