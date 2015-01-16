@@ -123,6 +123,13 @@ if node[:corosync][:require_clean_for_autostart]
     )
   end
 
+  # Make sure that any dependency change is taken into account
+  bash "insserv #{corosync_shutdown} service" do
+    code "insserv #{corosync_shutdown}"
+    action :nothing
+    subscribes :run, resources(:template=> "/etc/init.d/#{corosync_shutdown}"), :delayed
+  end
+
   service corosync_shutdown do
     action :enable
   end
