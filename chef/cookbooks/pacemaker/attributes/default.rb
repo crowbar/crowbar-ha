@@ -47,8 +47,8 @@ else
   # * haveged
   #
 
-  Chef::Application.fatal! "FIXME: #{node.platform} platform not supported yet"
-  return
+  default[:pacemaker][:platform][:packages] = nil
+  default[:pacemaker][:platform][:graphical_packages] = nil
 end
 
 default[:pacemaker][:founder] = false

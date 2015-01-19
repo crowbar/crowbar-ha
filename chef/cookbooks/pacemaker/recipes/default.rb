@@ -18,6 +18,10 @@
 # limitations under the License.
 #
 
+if node[:pacemaker][:platform][:packages].nil?
+  Chef::Application.fatal! "FIXME: #{node.platform} platform not supported yet"
+end
+
 node[:pacemaker][:platform][:packages].each do |pkg|
   package pkg
 end
