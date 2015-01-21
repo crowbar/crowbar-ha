@@ -31,11 +31,17 @@ class PacemakerService < ServiceObject
       {
         "pacemaker-cluster-member" => {
           "unique" => false,
-          "count" => 32
+          "count" => 32,
+          "platform" => {
+            "suse" => "/11\.[3-9]/"
+          }
         },
         "hawk-server" => {
           "unique" => false,
-          "count" => -1
+          "count" => -1,
+          "platform" => {
+            "suse" => "/11\.[3-9]/"
+          }
         }
       }
     end
