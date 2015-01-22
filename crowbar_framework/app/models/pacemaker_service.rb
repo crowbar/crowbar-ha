@@ -75,10 +75,16 @@ class PacemakerService < ServiceObject
     base
   end
 
+  # Small helper to get the list of nodes used by a barclamp proposal (applied
+  # or not)
+  def all_nodes_used_by_barclamp(role)
+    role.elements.values.flatten.compact.uniq
+  end
+
   # Small helper to expand all items (nodes, clusters) used inside an applied
   # proposal
   def expand_nodes_in_barclamp_role(cluster_role, node_object_all)
-    all_nodes_for_cluster_role = cluster_role.elements.values.flatten.compact.uniq
+    all_nodes_for_cluster_role = all_nodes_used_by_barclamp(cluster_role)
 
     all_nodes_for_cluster_role_expanded, failures = expand_nodes_for_all(all_nodes_for_cluster_role)
     unless failures.nil? || failures.empty?
@@ -108,7 +114,7 @@ class PacemakerService < ServiceObject
     # Find all barclamp roles where this cluster is used
     cluster_roles = RoleObject.all.select do |role_object|
       role_object.proposal? && \
-      role_object.elements.values.flatten.compact.uniq.include?(cluster_element)
+      all_nodes_used_by_barclamp(role_object).include?(cluster_element)
     end
 
     # Inside each barclamp role, identify which role is required
