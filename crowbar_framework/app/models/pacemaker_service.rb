@@ -88,7 +88,7 @@ class PacemakerService < ServiceObject
 
     all_nodes_for_cluster_role_expanded, failures = expand_nodes_for_all(all_nodes_for_cluster_role)
     unless failures.nil? || failures.empty?
-      @logger.debug "[pacemaker] expand_nodes_in_barclamp_role: skipping items that we failed to expand: #{failures.join(", ")}"
+      @logger.warn "[pacemaker] expand_nodes_in_barclamp_role: skipping items that we failed to expand: #{failures.join(", ")}"
     end
 
     # Do not keep deleted nodes
@@ -138,7 +138,7 @@ class PacemakerService < ServiceObject
         # Update elements_expanded attribute
         expanded_nodes, failures = expand_nodes_for_all(node_names)
         unless failures.nil? || failures.empty?
-          @logger.debug "[pacemaker] apply_cluster_roles_to_new_nodes: skipping items that we failed to expand: #{failures.join(", ")}"
+          @logger.warn "[pacemaker] apply_cluster_roles_to_new_nodes: skipping items that we failed to expand: #{failures.join(", ")}"
         end
 
         expanded_nodes.sort!
