@@ -1,7 +1,6 @@
 language: ruby
 rvm:
   - 2.1.0
-  - 1.9.3
 
 gemfile: chef/cookbooks/pacemaker/Gemfile
 install: cd chef/cookbooks/pacemaker && bundle install --without development
