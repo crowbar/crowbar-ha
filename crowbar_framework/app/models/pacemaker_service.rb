@@ -437,7 +437,8 @@ class PacemakerService < ServiceObject
       end
       members.each do |member|
         node = NodeObject.find_node_by_name(member)
-        unless %w(Bochs QEMU).include? node[:dmi][:system][:manufacturer]
+        manufacturer = node[:dmi][:system][:manufacturer] rescue "unknown"
+        unless %w(Bochs QEMU).include? manufacturer
           validation_error "Node  #{member} does not seem to be running in libvirt."
         end
       end
