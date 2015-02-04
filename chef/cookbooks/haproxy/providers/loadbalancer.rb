@@ -53,7 +53,7 @@ action :create do
     if section['use_ssl']
       section['options'] = [['ssl-hello-chk', 'tcpka', 'tcplog'], section['options']].flatten
     elsif section['mode'] == 'http'
-      section['options'] = [['tcpka', 'httplog'], section['options']].flatten
+      section['options'] = [['tcpka', 'httplog', 'forwardfor'], section['options']].flatten
     end
   end
   section['servers'] = new_resource.servers
