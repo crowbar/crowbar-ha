@@ -41,6 +41,7 @@ if node[:pacemaker][:haproxy][:clusters].has_key?(cluster_name) && node[:pacemak
     supports :restart => true, :status => true, :reload => true
     action :nothing
     subscribes :reload, "template[#{node[:haproxy][:platform][:config_file]}]", :immediately
+    provider Chef::Provider::CrowbarPacemakerService
   end
 
   vip_primitives = []
