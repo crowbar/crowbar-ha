@@ -205,6 +205,7 @@ def proxy_action(resource, service_action)
   # otherwise we get warnings about the resource attributes being
   # cloned from the prior resource (CHEF-3694).
   service "pacemaker-#{service_action}-of-#{resource.name}" do
+    supports :restart => true, :reload => true
     service_name resource.service_name
     action :nothing
   end.run_action(service_action)
