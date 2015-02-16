@@ -16,6 +16,9 @@ About this barclamp
 -------------------
 
 [![Build Status](https://travis-ci.org/crowbar/barclamp-pacemaker.svg?branch=master)](https://travis-ci.org/crowbar/barclamp-pacemaker)
+[![Code Climate](https://codeclimate.com/github/crowbar/barclamp-pacemaker/badges/gpa.svg)](https://codeclimate.com/github/crowbar/barclamp-pacemaker)
+[![Test Coverage](https://codeclimate.com/github/crowbar/barclamp-pacemaker/badges/coverage.svg)](https://codeclimate.com/github/crowbar/barclamp-pacemaker)
+[![Dependency Status](https://gemnasium.com/crowbar/barclamp-pacemaker.svg)](https://gemnasium.com/crowbar/barclamp-pacemaker)
 
 Information for this barclamp is maintained on the [Crowbar Framework Wiki](https://github.com/crowbar/crowbar/wiki)
 
