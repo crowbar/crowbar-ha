@@ -10,8 +10,6 @@ define :pacemaker_vip_primitive, :cb_network => nil, :hostname => nil, :domain =
 
   primitive_name = "vip-#{params[:cb_network]}-#{params[:hostname]}"
 
-  # Allow one retry, to avoid races where two nodes create the primitive at the
-  # same time when it wasn't created yet (only one can obviously succeed)
   pacemaker_primitive primitive_name do
     agent "ocf:heartbeat:IPaddr2"
     params ({
@@ -19,8 +17,7 @@ define :pacemaker_vip_primitive, :cb_network => nil, :hostname => nil, :domain =
     })
     op params[:op]
     action :create
-    retries 1
-    retry_delay 5
+    only_if { CrowbarPacemakerHelper.is_cluster_founder?(node) }
   end
 
   # we return the primitive name so that the caller can use it as part of a
