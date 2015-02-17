@@ -58,24 +58,18 @@ if node[:pacemaker][:haproxy][:clusters].has_key?(cluster_name) && node[:pacemak
     vip_primitives << vip_primitive
   end
 
-  # Allow one retry, to avoid races where two nodes create the primitive at the
-  # same time when it wasn't created yet (only one can obviously succeed)
   pacemaker_primitive service_name do
     agent node[:pacemaker][:haproxy][:agent]
     op node[:pacemaker][:haproxy][:op]
     action :create
-    retries 1
-    retry_delay 5
+    only_if { CrowbarPacemakerHelper.is_cluster_founder?(node) }
   end
 
-  # Allow one retry, to avoid races where two nodes create the primitive at the
-  # same time when it wasn't created yet (only one can obviously succeed)
   pacemaker_group "g-#{service_name}" do
     # Membership order *is* significant; VIPs should come first so
     # that they are available for the haproxy service to bind to.
     members vip_primitives.sort + [service_name]
     action [ :create, :start ]
-    retries 1
-    retry_delay 5
+    only_if { CrowbarPacemakerHelper.is_cluster_founder?(node) }
   end
 end
