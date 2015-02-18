@@ -5,7 +5,7 @@
     "pacemaker": {
       "setup_hb_gui": false,
       "corosync": {
-        "transport": "udp",
+        "transport": "udpu",
         "mcast_addr": "239.255.0.1",
         "mcast_port": 5405,
         "password": "crowbar",
