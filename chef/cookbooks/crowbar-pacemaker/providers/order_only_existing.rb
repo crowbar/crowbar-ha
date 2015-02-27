@@ -26,7 +26,7 @@ end
 action :create do
   # evil command line; there must be a better way to fetch the list of resources
   # unfortunately, "crm_resource --list-raw" doesn't list groups/clones/etc.
-  all_resources = %x{crm configure show | awk '/^(primitive|group|clone|ms)/ {print $2}'}.split("\n")
+  all_resources = %x{crm --display=plain configure show | awk '/^(primitive|group|clone|ms)/ {print $2}'}.split("\n")
   ordering_for_existing_resources = new_resource.ordering.select { |r| all_resources.include?(r) }
 
   if ordering_for_existing_resources.length <= 1
