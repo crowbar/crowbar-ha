@@ -3,6 +3,7 @@
 # More info at https://github.com/guard/guard#readme
 
 guard_opts = {
+  cmd: 'bundle exec rspec',
   all_on_start:   true,
   all_after_pass: true,
 }
