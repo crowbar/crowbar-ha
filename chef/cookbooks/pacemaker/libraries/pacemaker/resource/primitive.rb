@@ -62,12 +62,6 @@ class Pacemaker::Resource::Primitive < Pacemaker::Resource
     str
   end
 
-  def configure_command
-    args = %w(crm configure primitive)
-    args << [name, agent, params_string, meta_string, op_string]
-    args.join " "
-  end
-
   def self.params_string(params)
     return "" if ! params or params.empty?
     "params " +
