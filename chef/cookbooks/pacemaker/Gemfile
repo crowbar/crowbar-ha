@@ -11,7 +11,7 @@ end
 group :development do
   gem 'foodcritic', '~> 3.0'
   gem 'rubocop'
-  gem 'jazz_hands'
+  gem 'jazz_fingers'
   gem 'guard-rspec'
   gem 'guard-bundler'
   # Prevent "Error: can't modify string; temporarily locked"
