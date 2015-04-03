@@ -19,6 +19,7 @@
 
 require 'chef/provider'
 require 'chef/mixin/shell_out'
+require 'pathname'
 
 class Chef
   class Provider
@@ -44,10 +45,10 @@ class Chef
         cmd.stdout.split("\n").each do |line|
           args = line.split()
           if args[0] == "PV" and args[1] == "Name"
-            physical_volumes << args[2]
+            physical_volumes << Pathname.new(args[2]).realpath.to_s
           end
         end
-        if physical_volumes.include?(new_resource.name)
+        if physical_volumes.include?(Pathname.new(new_resource.name).realpath.to_s)
           Chef::Log.info "Physical volume '#{new_resource.name}' found. Not creating..."
         else
           Chef::Log.info "Creating physical volume '#{new_resource.name}'"
