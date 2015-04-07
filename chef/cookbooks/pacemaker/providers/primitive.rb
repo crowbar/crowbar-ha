@@ -17,6 +17,8 @@
 # limitations under the License.
 #
 
+require 'shellwords'
+
 this_dir = ::File.dirname(__FILE__)
 require ::File.expand_path('../libraries/pacemaker', this_dir)
 require ::File.expand_path('../libraries/chef/mixin/pacemaker', this_dir)
@@ -129,7 +131,9 @@ def maybe_configure_params(name, cmds, data_type)
       Chef::Log.info("#{name}'s #{param} #{data_type} didn't change")
     else
       Chef::Log.info("#{name}'s #{param} #{data_type} changed from #{current_value} to #{new_value}")
-      cmd = configure_cmd_prefix + %' --set-parameter "#{param}" --parameter-value "#{new_value}"'
+      cmd = configure_cmd_prefix +
+        %' --set-parameter "#{Shellwords.escape param}"' +
+        %' --parameter-value "#{Shellwords.escape new_value}"'
       cmd += " --meta" if data_type == :meta
       cmds << cmd
     end

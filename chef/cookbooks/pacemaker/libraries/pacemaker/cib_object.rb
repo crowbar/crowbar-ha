@@ -145,11 +145,11 @@ module Pacemaker
     end
 
     def configure_command
-      "crm configure " + definition_string
+      "echo #{quoted_definition_string} | crm configure load update -"
     end
 
     def reconfigure_command
-      "echo #{quoted_definition_string} | crm configure load update -"
+      configure_command
     end
 
     def delete_command
