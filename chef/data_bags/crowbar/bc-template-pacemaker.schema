@@ -124,6 +124,7 @@
               "type": "map",
               "required": true,
               "mapping": {
+                "admin_name": { "type": "str", "required": true },
                 "public_name": { "type": "str", "required": true }
               }
             }
