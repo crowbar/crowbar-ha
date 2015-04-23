@@ -65,7 +65,7 @@ class Chef
       def deprecate_target_role
         if new_resource.respond_to? :meta
           meta = new_resource.meta
-          if meta && meta['target-role']
+          if ! ENV['RSPEC_RUNNING'] && meta && meta['target-role']
             ::Chef::Log.warn "#{new_resource} used deprecated target-role " +
               "#{meta['target-role']}; use action :start / :stop instead"
           end
