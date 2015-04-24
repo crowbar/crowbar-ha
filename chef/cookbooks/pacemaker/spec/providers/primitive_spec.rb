@@ -33,11 +33,13 @@ describe "Chef::Provider::PacemakerPrimitive" do
 
     it "should modify the primitive if it has different params" do
       expected_configure_cmd_args = [
-        %'--set-parameter "os_password" --parameter-value "newpasswd"',
-        %'--delete-parameter "os_tenant_name"',
+        %'--set-parameter os_password ' +
+          '--parameter-value \$ne\!w\%pa\\\'ss\&wo\"rd',
+        %'--delete-parameter os_tenant_name',
       ].map { |args| "crm_resource --resource #{fixture.name} #{args}" }
       test_modify(expected_configure_cmd_args) do
-        new_params = Hash[fixture.params].merge("os_password" => "newpasswd")
+        new_params = Hash[fixture.params].merge(
+          'os_password' => %{$ne!w%pa'ss&wo"rd})
         new_params.delete("os_tenant_name")
         @resource.params new_params
         @resource.meta Hash[fixture.meta].merge("target-role" => "Stopped")
@@ -46,7 +48,7 @@ describe "Chef::Provider::PacemakerPrimitive" do
 
     it "should modify the primitive if it has different meta" do
       expected_configure_cmd_args = [
-        %'--set-parameter "is-managed" --parameter-value "false" --meta',
+        %'--set-parameter is-managed --parameter-value false --meta',
       ].map { |args| "crm_resource --resource #{fixture.name} #{args}" }
       test_modify(expected_configure_cmd_args) do
         @resource.params Hash[fixture.params]
@@ -56,9 +58,9 @@ describe "Chef::Provider::PacemakerPrimitive" do
 
     it "should modify the primitive if it has different params and meta" do
       expected_configure_cmd_args = [
-        %'--set-parameter "os_password" --parameter-value "newpasswd"',
-        %'--delete-parameter "os_tenant_name"',
-        %'--set-parameter "is-managed" --parameter-value "false" --meta',
+        %'--set-parameter os_password --parameter-value newpasswd',
+        %'--delete-parameter os_tenant_name',
+        %'--set-parameter is-managed --parameter-value false --meta',
       ].map { |args| "crm_resource --resource #{fixture.name} #{args}" }
       test_modify(expected_configure_cmd_args) do
         new_params = Hash[fixture.params].merge("os_password" => "newpasswd")
