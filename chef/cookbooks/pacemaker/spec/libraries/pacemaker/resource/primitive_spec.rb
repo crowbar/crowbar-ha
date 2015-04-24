@@ -93,12 +93,12 @@ EOF
       primitive = pacemaker_object_class.new('foo')
       primitive.definition = <<'EOF'.chomp
 primitive foo ocf:openstack:keystone \
-         params bar="baz\\qux" bar2="baz'qux"
+         params bar="foo\"bar$b!az\q%ux" bar2="ba'z\'qux"
 EOF
       primitive.parse_definition
       expect(primitive.quoted_definition_string).to eq(<<'EOF'.chomp)
-'primitive foo ocf:openstack:keystone \\
-         params bar="baz\\qux" bar2="baz\'qux"'
+'primitive foo ocf:openstack:keystone \
+         params bar="foo\"bar$b!az\q%ux" bar2="ba'\''z\\'\''qux"'
 EOF
     end
   end

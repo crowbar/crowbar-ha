@@ -66,7 +66,8 @@ class Pacemaker::Resource::Primitive < Pacemaker::Resource
     return "" if ! params or params.empty?
     "params " +
     params.sort.map do |key, value|
-      %'#{key}="#{value}"'
+      safe = value.is_a?(String) ? value.gsub('"', '\\"') : value.to_s
+      %'#{key}="#{safe}"'
     end.join(' ')
   end
 
@@ -75,7 +76,10 @@ class Pacemaker::Resource::Primitive < Pacemaker::Resource
     ops.sort.map do |op, attrs|
       attrs.empty? ? nil : "op #{op} " + \
       attrs.sort.map do |key, value|
-        %'#{key}="#{value}"'
+        # Shouldn't be necessary to escape " here since we don't
+        # expect any arbitrary string values, but better to be safe.
+        safe = value.is_a?(String) ? value.gsub('"', '\\"') : value.to_s
+        %'#{key}="#{safe}"'
       end.join(' ')
     end.compact.join(' ')
   end

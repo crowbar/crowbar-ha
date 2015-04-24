@@ -137,11 +137,18 @@ module Pacemaker
     # string, suitable for use in a command like:
     #
     #     echo '...' | crm configure load update -
+    #
+    # In shell, single-quotes cannot exist inside single-quoted strings,
+    # so the string has to be terminated, followed by an escaped single
+    # quote, and then started again, e.g.:
+    #
+    #     $ echo 'foo'\''bar'
+    #     foo'bar
     def quoted_definition_string
       "'%s'" % \
       definition_string \
-        .gsub('\\') { '\\\\' } \
-        .gsub("'")  { "\\'" }
+        .gsub("\\'") {|m| '\\' + m } \
+        .gsub("'"  ) {|m| %q['\''] }
     end
 
     def configure_command
