@@ -24,6 +24,13 @@ default_action :create
 attribute :name, :kind_of => String, :name_attribute => true
 attribute :score, :kind_of => String
 
-# If more than two resources are given, Pacemaker will treat this
-# as a resource set.
-attribute :resources, :kind_of => Array
+# If more than two resources are given, Pacemaker will treat this as a
+# resource set.  Originally this was an Array, but then we added
+# support for it alternatively being a String, in order to support
+# parentheses in the constraints passed to Pacemaker.  (Parentheses
+# allow sub-groups of resources which can be started in parallel.)  We
+# have kept Arrays for backwards compatibility, but they are
+# deprecated, because it's better if the responsibility of
+# understanding the structure of this part of the crm configure string
+# is delegated to Pacemaker.
+attribute :resources, :kind_of => [Array, String]
