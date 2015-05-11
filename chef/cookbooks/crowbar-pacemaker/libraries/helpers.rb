@@ -66,6 +66,24 @@ module CrowbarPacemakerHelper
     end
   end
 
+  # The virtual admin name for the cluster is a name picked by the operator as
+  # an alias for the generated virtual FQDN. It might be wanted if the operator
+  # does not want to expose "cluster-foo.domain" to end users.
+  # This returns nil if there is no defined virtual admin name or if node is
+  # not member of a cluster.
+  def self.cluster_haproxy_vadmin_name(node)
+    if cluster_enabled?(node)
+      vadmin_name = node[:pacemaker][:haproxy][:admin_name]
+      if vadmin_name.nil? || vadmin_name.empty?
+        nil
+      else
+        vadmin_name
+      end
+    else
+      nil
+    end
+  end
+
   # The virtual public name for the cluster is a name picked by the operator as
   # an alias for the generated virtual FQDN. It might be wanted if the operator
   # does not want to expose "cluster-foo.domain" to end users.
