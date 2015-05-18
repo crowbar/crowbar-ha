@@ -33,14 +33,14 @@ class PacemakerService < ServiceObject
           "unique" => false,
           "count" => 32,
           "platform" => {
-            "suse" => "/11\.[3-9]/"
+            "suse" => "/.*/"
           }
         },
         "hawk-server" => {
           "unique" => false,
           "count" => -1,
           "platform" => {
-            "suse" => "/11\.[3-9]/"
+            "suse" => "/.*/"
           }
         }
       }
