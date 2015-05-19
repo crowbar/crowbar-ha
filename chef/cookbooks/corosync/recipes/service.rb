@@ -155,7 +155,9 @@ end
 
 service node[:corosync][:platform][:service_name] do
   supports :restart => true, :status => :true
-  action [enable_or_disable, :start]
+  if node.platform_family != "suse" || node.platform_version.to_f < 12.0
+    action [enable_or_disable, :start]
+  end
 end
 
 if node[:corosync][:require_clean_for_autostart]
