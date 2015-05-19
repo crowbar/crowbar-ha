@@ -26,18 +26,20 @@ node[:pacemaker][:platform][:packages].each do |pkg|
   package pkg
 end
 
-if node[:pacemaker][:setup_hb_gui]
-  node[:pacemaker][:platform][:graphical_packages].each do |pkg|
-    package pkg
-  end
+unless node.platform == 'suse' && node.platform_version.to_f >= 12.0
+  if node[:pacemaker][:setup_hb_gui]
+    node[:pacemaker][:platform][:graphical_packages].each do |pkg|
+      package pkg
+    end
 
-  # required to run hb_gui
-  if platform_family? "suse"
-    cmd = "SuSEconfig --module gtk2"
-    execute cmd do
-      user "root"
-      command cmd
-      not_if { File.exists? "/etc/gtk-2.0/gdk-pixbuf64.loaders" }
+    # required to run hb_gui
+    if platform_family? "suse"
+      cmd = "SuSEconfig --module gtk2"
+      execute cmd do
+        user "root"
+        command cmd
+        not_if { File.exists? "/etc/gtk-2.0/gdk-pixbuf64.loaders" }
+      end
     end
   end
 end
