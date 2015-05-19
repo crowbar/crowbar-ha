@@ -56,8 +56,17 @@ else
 end
 
 if (platform_family?("suse") && node.platform_version.to_f >= 12.0) || platform_family?("rhel")
+  # We need to implement the block_automatic_start logic here too to avoid
+  # having on boot pacemaker started (and starting corosync) when chef is
+  # supposed to handle that (see comments in corosync::service)
+  if node[:corosync][:require_clean_for_autostart]
+    enable_or_disable = :disable
+  else
+    enable_or_disable = :enable
+  end
+
   service "pacemaker" do
-    action [ :enable, :start ]
+    action [ enable_or_disable, :start ]
     if platform_family? "rhel"
       notifies :restart, "service[clvm]", :immediately
     end
