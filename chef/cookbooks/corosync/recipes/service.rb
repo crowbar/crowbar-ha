@@ -91,7 +91,7 @@ end
 # fenced, or it lost power, or it crashed, or...), then the file will exist
 # and corosync will not start on next boot, requiring manual intervention.
 block_corosync_file = "/var/spool/corosync/block_automatic_start"
-corosync_shutdown = "#{node[:corosync][:platform][:service_name]}-shutdown"
+corosync_shutdown = "#{node[:corosync][:platform][:service_name]}-shutdown-cleaner"
 
 if node[:corosync][:require_clean_for_autostart]
   # We want to fail (so we do not start corosync) if these two conditions are
@@ -111,23 +111,42 @@ if node[:corosync][:require_clean_for_autostart]
           "#{block_corosync_file} and run chef-client."
   end
 
-  # this service will remove the blocking file on proper shutdown
-  template "/etc/init.d/#{corosync_shutdown}" do
-    source "corosync-shutdown.init.erb"
-    owner "root"
-    group "root"
-    mode 0755
-    variables(
-      :service_name => node[:corosync][:platform][:service_name],
-      :block_corosync_file => block_corosync_file
-    )
-  end
+  if node.platform_family != "suse" || node.platform_version.to_f < 12.0
+    # this service will remove the blocking file on proper shutdown
+    template "/etc/init.d/#{corosync_shutdown}" do
+      source "corosync-shutdown.init.erb"
+      owner "root"
+      group "root"
+      mode 0755
+      variables(
+        :service_name => node[:corosync][:platform][:service_name],
+        :block_corosync_file => block_corosync_file
+      )
+    end
 
-  # Make sure that any dependency change is taken into account
-  bash "insserv #{corosync_shutdown} service" do
-    code "insserv #{corosync_shutdown}"
-    action :nothing
-    subscribes :run, resources(:template=> "/etc/init.d/#{corosync_shutdown}"), :delayed
+    # Make sure that any dependency change is taken into account
+    bash "insserv #{corosync_shutdown} service" do
+      code "insserv #{corosync_shutdown}"
+      action :nothing
+      subscribes :run, resources(:template=> "/etc/init.d/#{corosync_shutdown}"), :delayed
+    end
+  else
+    template "/etc/systemd/system/#{corosync_shutdown}.service" do
+      source "corosync-shutdown-cleaner.service.erb"
+      owner "root"
+      group "root"
+      mode "0644"
+      variables(
+        :service_name => node[:corosync][:platform][:service_name],
+        :block_corosync_file => block_corosync_file
+      )
+    end
+
+    bash "reload systemd after #{corosync_shutdown} update" do
+      code "systemctl daemon-reload"
+      action :nothing
+      subscribes :run, resources(:template => "/etc/systemd/system/#{corosync_shutdown}.service"), :immediately
+    end
   end
 
   service corosync_shutdown do
@@ -142,8 +161,20 @@ else
     action :disable
   end
 
-  file "/etc/init.d/#{corosync_shutdown}" do
-    action :delete
+  if node.platform_family != "suse" || node.platform_version.to_f < 12.0
+    file "/etc/init.d/#{corosync_shutdown}" do
+      action :delete
+    end
+  else
+    file "/etc/systemd/system/#{corosync_shutdown}.service" do
+      action :delete
+    end
+
+    bash "reload systemd after #{corosync_shutdown} removal" do
+      code "systemctl daemon-reload"
+      action :nothing
+      subscribes :run, resources(:file => "/etc/systemd/system/#{corosync_shutdown}.service"), :immediately
+    end
   end
 
   file block_corosync_file do
