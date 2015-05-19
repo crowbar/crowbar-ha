@@ -23,13 +23,17 @@ default[:corosync][:transport]    = "udp"
 
 case node.platform
 when 'suse'
-  default[:corosync][:platform][:packages] = %w(sle-hae-release corosync openais)
+  if node.platform_version.to_f >= 12.0
+    default[:corosync][:platform][:packages] = %w(sle-ha-release corosync)
+    default[:corosync][:platform][:service_name] = "corosync"
+  else
+    default[:corosync][:platform][:packages] = %w(sle-hae-release corosync openais)
+    default[:corosync][:platform][:service_name] = "openais"
+  end
 
   # The UNIX user for the cluster is typically determined by the
   # cluster-glue package:
   default[:corosync][:platform][:packages].push "cluster-glue"
-
-  default[:corosync][:platform][:service_name] = "openais"
 else
   # FIXME: untested, probably wrong
   default[:corosync][:platform][:packages] = %w(corosync)
