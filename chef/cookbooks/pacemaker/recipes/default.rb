@@ -55,6 +55,15 @@ else
   include_recipe "corosync::default"
 end
 
+if (platform_family?("suse") && node.platform_version.to_f >= 12.0) || platform_family?("rhel")
+  service "pacemaker" do
+    action [ :enable, :start ]
+    if platform_family? "rhel"
+      notifies :restart, "service[clvm]", :immediately
+    end
+  end
+end
+
 ruby_block "wait for cluster to be online" do
   block do
     require 'timeout'
@@ -75,15 +84,6 @@ end # ruby_block
 
 if node[:pacemaker][:founder]
   include_recipe "pacemaker::setup"
-end
-
-if platform_family? "rhel"
-  execute "sleep 2"
-
-  service "pacemaker" do
-    action [ :enable, :start ]
-    notifies :restart, "service[clvm]", :immediately
-  end
 end
 
 include_recipe "pacemaker::stonith"
