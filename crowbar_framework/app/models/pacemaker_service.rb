@@ -499,6 +499,19 @@ class PacemakerService < ServiceObject
     stonith_attributes = proposal["attributes"][@bc_name]["stonith"]
     validate_proposal_stonith stonith_attributes, members
 
+    # Let's not pretend we'll get clusters with nodes on different distros work
+    target_platforms = members.map do |member|
+      node = NodeObject.find_node_by_name member
+      if node.nil?
+        nil
+      else
+        node.target_platform
+      end
+    end
+    unless target_platforms.uniq.length <= 1
+      validation_error "All nodes in proposal must have the same platform."
+    end
+
     ### Do not allow elements of this proposal to be in another proposal, since
     ### the configuration cannot be shared.
     proposals_raw.each do |p|
