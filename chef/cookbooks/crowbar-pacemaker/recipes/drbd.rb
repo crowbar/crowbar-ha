@@ -59,8 +59,11 @@ lvm_volume_group lvm_group do
   physical_volumes [lvm_disk.unique_name]
 end
 
-include_recipe "drbd::default"
+include_recipe "drbd::install"
+include_recipe "drbd::config"
 
 crowbar_pacemaker_drbd_create_internal "create drbd resources" do
   lvm_group lvm_group
 end
+
+include_recipe "drbd::default"
