@@ -47,5 +47,15 @@ describe Pacemaker::Resource do
       expect(fixture.class.extract_hash(fixture.definition_string, 'op monitor')).to \
         eq(Hash[fixture.op]['monitor'])
     end
+
+    it "should extract an op monitor hash from config" do
+      expect(fixture.class.extract_hash(fixture.definition_string, 'meta')).to \
+        eq(Hash[fixture.meta])
+    end
+
+    it "should handle an empty meta section gracefully" do
+      no_meta = fixture.definition_string.gsub(/\bmeta .*\\$/, "meta \\")
+      expect(fixture.class.extract_hash(no_meta, 'meta')).to eq({})
+    end
   end
 end

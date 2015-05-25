@@ -34,7 +34,7 @@ module Pacemaker
     #
     # This method extracts a Hash from one of the params / meta / op lines.
     def self.extract_hash(obj_definition, data_type)
-      unless obj_definition =~ /\s+#{data_type} (.+?)\s*\\?$/
+      unless obj_definition =~ /\s+#{data_type} (.*?)\s*\\?$/
         return {}
       end
 
