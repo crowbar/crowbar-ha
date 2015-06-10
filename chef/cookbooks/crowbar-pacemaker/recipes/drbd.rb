@@ -27,11 +27,11 @@ claimed_disks = BarclampLibrary::Barclamp::Inventory::Disk.claimed(node, claim_s
 if claimed_disks.empty? and not unclaimed_disks.empty?
   unclaimed_disks.each do |disk|
     if disk.claim(claim_string)
-      Chef::Log.info("#{claim_string}: Claimed #{disk.name}")
+      Chef::Log.info("#{claim_string}: Claimed #{disk.unique_name}")
       lvm_disk = disk
       break
     else
-      Chef::Log.info("#{claim_string}: Ignoring #{disk.name}")
+      Chef::Log.info("#{claim_string}: Ignoring #{disk.unique_name}")
     end
   end
 else
@@ -53,10 +53,10 @@ end
 
 include_recipe "lvm::default"
 
-lvm_physical_volume lvm_disk.name
+lvm_physical_volume lvm_disk.unique_name
 
 lvm_volume_group lvm_group do
-  physical_volumes [lvm_disk.name]
+  physical_volumes [lvm_disk.unique_name]
 end
 
 include_recipe "drbd::default"
