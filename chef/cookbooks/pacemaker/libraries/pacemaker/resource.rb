@@ -39,13 +39,23 @@ module Pacemaker
       end
 
       h = {}
-      Shellwords.split($1).each do |kvpair|
+      # Shellwords.split behaves just like word splitting in Bourne
+      # shell, eating backslashes, so we have to escape them.  This
+      # should ensure the keys and values in the string representation
+      # of the hash are preserved through the splitting.  The only
+      # except is escaped double quotes (\"), for which we want the
+      # backslash to be eaten, because complex crm attribute values
+      # are represented inside double quotes, e.g. foo="bar\"baz"
+      hash_string = $1.gsub(/\\([^"])/) {|m| '\\' + m}
+
+      Shellwords.split(hash_string).each do |kvpair|
         break if kvpair == 'op'
         unless kvpair =~ /^(.+?)=(.*)$/
           raise "Couldn't understand '#{kvpair}' for '#{data_type}' section "\
             "of #{name} resource (definition was [#{obj_definition}])"
         end
-        h[$1] = $2.sub(/^"(.*)"$/, "\1")
+        k, v = $1, $2
+        h[k] = v.sub(/^"(.*)"$/, "\1")
       end
       h
     end

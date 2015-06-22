@@ -132,8 +132,8 @@ def maybe_configure_params(name, cmds, data_type)
     else
       Chef::Log.info("#{name}'s #{param} #{data_type} changed from #{current_value} to #{new_value}")
       cmd = configure_cmd_prefix +
-        %' --set-parameter "#{Shellwords.escape param}"' +
-        %' --parameter-value "#{Shellwords.escape new_value}"'
+        %' --set-parameter #{Shellwords.escape param}' +
+        %' --parameter-value #{Shellwords.escape new_value}'
       cmd += " --meta" if data_type == :meta
       cmds << cmd
     end
@@ -142,7 +142,8 @@ def maybe_configure_params(name, cmds, data_type)
   @current_resource.send(data_type).each do |param, value|
     unless new_resource.send(data_type).has_key? param
       Chef::Log.info("#{name}'s #{param} #{data_type} was removed")
-      cmd = configure_cmd_prefix + %' --delete-parameter "#{param}"'
+      cmd = configure_cmd_prefix + \
+        %' --delete-parameter #{Shellwords.escape param}'
       cmd += " --meta" if data_type == :meta
       cmds << cmd
     end
