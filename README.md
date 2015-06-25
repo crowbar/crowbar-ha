@@ -32,6 +32,15 @@ documented at:
 
   http://docs.openstack.org/high-availability-guide/content/
 
+Contact
+-------
+
+To get in contact with the developers you have multiple options, all of them are listed below:
+
+* [Google Mailinglist](https://groups.google.com/forum/#!forum/crowbar)
+* [Gitter Chat](https://gitter.im/crowbar)
+* [Freenode Webchat](http://webchat.freenode.net/?channels=%23crowbar)
+
 Legals
 ------
 
