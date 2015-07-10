@@ -1,3 +1,4 @@
+name             "haproxy"
 maintainer       "Crowbar Project"
 maintainer_email "crowbar@dell.com"
 license          "Apache 2.0"
