@@ -1,0 +1,99 @@
+= attributes_for @proposal do
+  .panel-sub
+    = header show_raw_deployment?, true
+
+  .panel-body
+    = select_field %w(corosync transport), :collection => :transport_for_pacemaker
+
+    = select_field %w(crm no_quorum_policy), :collection => :no_quorum_policy_for_pacemaker
+    %span.help-block
+      = t('.crm.no_quorum_policy_hint_html')
+
+    %fieldset
+      %legend
+        = t(".stonith_header")
+
+      = select_field %w(stonith mode), :collection => :stonith_mode_for_pacemaker, "data-showit" => ["sbd", "shared", "per_node", "libvirt"].join(";"), "data-showit-target" => "#stonith_sbd_container;#stonith_shared_container;#stonith_per_node_container;#stonith_libvirt_container", "data-showit-direct" => "true"
+
+      #stonith_sbd_container{ "data-nodes" => node_aliases.to_json }
+        .alert.alert-info
+          = t(".stonith.sbd.info_html")
+        %table.table.table-middle
+          %thead
+            %tr
+              %th.col-sm-3
+                = t ".stonith.sbd.name"
+              %th.col-sm-9
+                = t ".stonith.sbd.devices"
+          %tbody
+        %span.help-block
+          = t('.stonith.sbd.devices_hint')
+
+      #stonith_shared_container
+        = string_field %w(stonith shared agent)
+        = string_field %w(stonith shared params)
+
+      #stonith_per_node_container{ "data-nodes" => node_aliases.to_json }
+        = string_field %w(stonith per_node agent)
+        %table.table.table-middle
+          %thead
+            %tr
+              %th.col-sm-3
+                = t ".stonith.per_node.name"
+              %th.col-sm-9
+                = t ".stonith.per_node.params"
+          %tbody
+
+      #stonith_libvirt_container
+        .alert.alert-warning
+          = t('.stonith.libvirt.dev_only')
+        = string_field %w(stonith libvirt hypervisor_ip)
+        %span.help-block
+          = t('.stonith.libvirt.hypervisor_ip_hint')
+
+      = select_field %w(corosync require_clean_for_autostart_wrapper), :collection => :require_clean_for_autostart_wrapper_for_pacemaker
+      %span.help-block
+        = t('.corosync.require_clean_for_autostart_hint')
+
+    %fieldset
+      %legend
+        = t(".notifications_header")
+
+      = boolean_field %w(notifications smtp enabled), "data-showit" => "true", "data-showit-target" => "#smtp_notifications_container", "data-showit-direct" => "true"
+
+      #smtp_notifications_container
+        = string_field %w(notifications smtp server)
+        %span.help-block
+          = t(".notifications.smtp.server_hint")
+        = string_field %w(notifications smtp prefix)
+        = string_field %w(notifications smtp from)
+        = string_field %w(notifications smtp to)
+
+    %fieldset
+      %legend
+        = t(".drbd_header")
+
+      .alert.alert-info
+        = t(".drbd.info")
+
+      = boolean_field %w(drbd enabled)
+
+    %fieldset
+      %legend
+        = t(".haproxy_header")
+
+      .alert.alert-info
+        = t(".haproxy.ssl_info", :vhostname => PacemakerServiceObject.cluster_vhostname_from_name(proposal.name))
+
+      = string_field %w(haproxy public_name)
+      %span.help-block
+        = t(".haproxy.public_name_hint")
+
+    %fieldset
+      %legend
+        = t(".gui_header")
+
+      = password_field %w(corosync password)
+      = boolean_field :setup_hb_gui
+      %span.help-block
+        = t(".hb_gui_hint")

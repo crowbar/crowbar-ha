@@ -1,0 +1,91 @@
+# DO NOT EDIT!
+
+# This file is automatically configured via Chef on <%= node["fqdn"] %>
+
+# Please read the corosync.conf.5 manual page
+
+service {
+        # http://blog.clusterlabs.org/blog/2010/introducing-the-pacemaker-master-control-process-for-corosync-based-clusters/
+        ver:            0  <%# FIXME: what should this be for non-SUSE distros? %>
+        name:           pacemaker
+
+        # This is required for hb_gui (a.k.a. crm_gui) to work
+	use_mgmtd:	yes
+	use_logd:	yes
+}
+
+totem {
+        version:        2
+
+        cluster_name:   <%= @cluster_name %>
+
+        # How long before declaring a token lost (ms)
+        token: 5000
+
+        # How many token retransmits before forming a new configuration
+        token_retransmits_before_loss_const: 10
+
+        # How long to wait for join messages in the membership protocol (ms)
+        join: 60
+
+        # How long to wait for consensus to be achieved before starting a new round of membership configuration (ms)
+        consensus: 6000
+
+        # Turn off the virtual synchrony filter
+        vsftype: none
+
+        # Number of messages that may be sent by one processor on receipt of the token
+        max_messages: 20
+
+        # Limit generated nodeids to 31-bits (positive signed integers)
+        clear_node_high_bit: new
+
+        secauth: on
+
+        # This specifies the mode of redundant ring, which may be none, active, or passive.
+        rrp_mode: none
+
+        interface {
+                ringnumber:     0
+                bindnetaddr:    <%= @bind_addr  %>
+<% if @transport == 'udp' -%>
+                mcastaddr:      <%= @mcast_addr %>
+<% elsif @transport == 'udpu' -%>
+  <% @members.sort.each do |memberaddr| -%>
+                member {
+                        memberaddr:     <%= memberaddr %>
+                }
+  <% end -%>
+<% end -%>
+                mcastport:      <%= @mcast_port %>
+                ttl:            1
+        }
+
+        transport: <%= @transport %>
+}
+
+amf {
+        mode: disabled
+}
+
+aisexec {
+        user:   root
+        group:  root
+}
+
+logging {
+        fileline:       off
+        to_stderr:      no
+        to_logfile:     no
+        to_syslog:      yes
+        syslog_facility: daemon
+        debug:          off
+        timestamp:      on
+        logger_subsys {
+                # FIXME: which do we want here?
+                #subsys: QUORUM
+                subsys: AMF
+                debug:  off
+                tags: enter|leave|trace1|trace2|trace3|trace4|trace6
+        }
+}

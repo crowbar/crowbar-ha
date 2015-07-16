@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<cluster config_version="3" name="cluster01">
+  <cman two_node="1" expected_votes="1" />
+  <fence_daemon post_fail_delay="0" post_join_delay="3"/>
+  <clusternodes>
+    <clusternode name="<%= @node1 %>" nodeid="1" votes="1" >
+      <fence>
+        <method name="pcmk-redirect">
+          <device name="pcmk" port="<%= @node1 %>"/>
+        </method>
+      </fence>
+    </clusternode>
+    <clusternode name="<%= @node2 %>" nodeid="2" votes="1" >
+      <fence>
+        <method name="pcmk-redirect">
+          <device name="pcmk" port="<%= @node2 %>"/>
+        </method>
+      </fence>
+    </clusternode>
+  </clusternodes>
+  <fencedevices>
+    <fencedevice agent="pcmk" name="fence_pcmk" />
+  </fencedevices>
+</cluster>

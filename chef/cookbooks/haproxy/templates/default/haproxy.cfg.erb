@@ -1,0 +1,56 @@
+global
+	log 127.0.0.1   local0
+	log 127.0.0.1   local1 notice
+	maxconn <%= node[:haproxy][:global][:maxconn] %>
+	tune.bufsize <%= node[:haproxy][:global][:bufsize] %>
+	tune.maxrewrite <%= node[:haproxy][:global][:maxrewrite] %>
+	tune.chksize <%= node[:haproxy][:global][:chksize] %>
+	chroot /var/lib/haproxy
+	user <%= node[:haproxy][:platform][:user] %>
+	group <%= node[:haproxy][:platform][:group] %>
+	daemon
+
+defaults
+	log     global
+	mode    tcp
+	option  tcplog
+	option  dontlognull
+	option  redispatch
+	retries 3
+	timeout http-request 5s
+	timeout queue 1m
+	timeout connect 5s
+	timeout client 3h
+	timeout server 3h
+	timeout check 5s
+	balance <%= node[:haproxy][:defaults][:balance] %>
+
+<% # if stats are not enabled, but there's no configured section, we setup stats on 127.0.0.1 to generate a valid config file (it needs at least one section) -%>
+<% if node[:haproxy][:stats][:enabled] || node[:haproxy][:sections].empty? -%>
+listen  admin-stats <%= node[:haproxy][:stats][:enabled] ? node[:haproxy][:stats][:address] : "127.0.0.1" %>:<%= node[:haproxy][:stats][:port] %>
+	mode http
+	option httplog
+	stats uri /
+
+<% end -%>
+<% node[:haproxy][:sections].keys.sort.each do |type| -%>
+  <% node[:haproxy][:sections][type].keys.sort.each do |name| -%>
+    <% content = node[:haproxy][:sections][type][name] -%>
+<%= type %> <%= name %> <%= content[:address] %>:<%= content[:port] %>
+    <% if content[:use_ssl] -%>
+       mode tcp
+       balance source
+    <% else -%>
+	mode <%= content[:mode] %>
+    <% end -%>
+
+    <% content[:options].each do |option| -%>
+	option <%= option %>
+    <% end -%>
+
+    <% content[:servers].each do |server| -%>
+	server <%= server[:name] %> <%= server[:address] %>:<%= server[:port] %> check inter 2000 rise 2 fall 5
+    <% end -%>
+
+  <% end -%>
+<% end -%>
