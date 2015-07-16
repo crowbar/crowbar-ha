@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-require 'timeout'
+require "timeout"
 
 action :create do
   name        = new_resource.name
@@ -35,14 +35,14 @@ action :create do
     cookbook "drbd"
     source "resource.erb"
     variables(
-      :resource => name,
-      :device => device,
-      :disk => disk,
-      :local_hostname => node.hostname,
-      :local_ip => node.ipaddress,
-      :port => port,
-      :remote_hostname => remote.hostname,
-      :remote_ip => remote.ipaddress
+      resource: name,
+      device: device,
+      disk: disk,
+      local_hostname: node.hostname,
+      local_ip: node.ipaddress,
+      port: port,
+      remote_hostname: remote.hostname,
+      remote_ip: remote.ipaddress
     )
     owner "root"
     group "root"

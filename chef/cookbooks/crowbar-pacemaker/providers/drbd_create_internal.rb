@@ -17,15 +17,15 @@
 action :create do
   modules_loaded = {}
 
-  node['drbd']['rsc'].keys.sort.each do |resource_name|
-    resource = node['drbd']['rsc'][resource_name]
+  node["drbd"]["rsc"].keys.sort.each do |resource_name|
+    resource = node["drbd"]["rsc"][resource_name]
 
     # make sure that we can mount the drbd ASAP, by making sure the kernel
     # module (if there's one) is loaded
     if %w(xfs).include?(resource["fstype"]) && !modules_loaded[resource["fstype"]]
       mod = resource["fstype"]
 
-      if node.platform == 'suse'
+      if node.platform == "suse"
         execute "Enable #{mod} module on load (/etc/sysconfig/kernel)" do
           command "sed -i 's/^\\(MODULES_LOADED_ON_BOOT=\"[^\"]*\\)\"/\\1 #{mod}\"/' /etc/sysconfig/kernel"
           not_if "grep -q '^MODULES_LOADED_ON_BOOT=\"[^\"]*#{mod}[^\"]*\"' /etc/sysconfig/kernel"
@@ -48,7 +48,7 @@ action :create do
 
     lvm_logical_volume resource_name do
       group new_resource.lvm_group
-      size  resource["lvm_size"]
+      size resource["lvm_size"]
       action :nothing
     end.run_action(:create)
 
@@ -62,7 +62,7 @@ action :create do
       action :nothing
     end.run_action(:create)
 
-    node['drbd']['rsc'][resource_name]['configured'] = true
+    node["drbd"]["rsc"][resource_name]["configured"] = true
     node.save
   end
 end

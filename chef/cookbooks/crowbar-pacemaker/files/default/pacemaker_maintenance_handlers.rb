@@ -9,7 +9,7 @@
 # maintenance-mode recipe ensures that maintenance_mode_helpers.rb is
 # permanently installed under /var/chef/libraries at the same time the
 # handlers are installed in /etc/chef/client.rb.
-require '/var/chef/libraries/maintenance_mode_helpers'
+require "/var/chef/libraries/maintenance_mode_helpers"
 
 class Chef
   module Pacemaker
@@ -30,7 +30,7 @@ class Chef
         # the start handlers have already been triggered.
         start_mode = record_maintenance_mode_before_this_chef_run
         Chef::Log.info("Pacemaker maintenance mode currently %s" %
-                       [start_mode ? 'on' : 'off'])
+                       [start_mode ? "on" : "off"])
 
         if maintenance_mode_set_via_this_chef_run?
           # Sanity check: this should never happen because we're using

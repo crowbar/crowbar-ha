@@ -14,7 +14,7 @@
 #
 
 case node.platform
-when 'suse'
+when "suse"
   default[:pacemaker][:platform][:packages] = %w(pacemaker crmsh)
 
   # pacemaker-mgmt-client provides hb_gui, which it's useful

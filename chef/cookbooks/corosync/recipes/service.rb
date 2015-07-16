@@ -28,18 +28,18 @@ when %w(debian ubuntu)
     owner "root"
     group "root"
     mode 0600
-    variables(:enable_openais_service => node['corosync']['enable_openais_service'])
+    variables(enable_openais_service: node["corosync"]["enable_openais_service"])
   end
 end
 
-unless node.platform == 'suse'
+unless node.platform == "suse"
   # This block is not really necessary because chef would automatically backup the file.
   # However, it's good to have the backup file in the same directory. (Easier to find later.)
   ruby_block "backup corosync init script" do
     block do
         original_pathname = "/etc/init.d/corosync"
         backup_pathname = original_pathname + ".old"
-        FileUtils.cp(original_pathname, backup_pathname, :preserve => true)
+        FileUtils.cp(original_pathname, backup_pathname, preserve: true)
     end
     action :create
     notifies :create, "cookbook_file[/etc/init.d/corosync]", :immediately
@@ -64,12 +64,12 @@ rubygem_ruby_shadow = "ruby#{node["languages"]["ruby"]["version"].to_f}-rubygem-
 pkg = package rubygem_ruby_shadow do
   action :nothing
 end
-pkg.run_action(:install) if node.platform == 'suse'
+pkg.run_action(:install) if node.platform == "suse"
 
 # After installation of ruby-shadow, we have a new path for the new gem, so we
 # need to reset the paths if we can't load ruby-shadow
 begin
-  require 'shadow'
+  require "shadow"
 rescue LoadError
   Gem.clear_paths
 end
@@ -118,8 +118,8 @@ if node[:corosync][:require_clean_for_autostart]
     group "root"
     mode 0755
     variables(
-      :service_name => node[:corosync][:platform][:service_name],
-      :block_corosync_file => block_corosync_file
+      service_name: node[:corosync][:platform][:service_name],
+      block_corosync_file: block_corosync_file
     )
   end
 
@@ -127,7 +127,7 @@ if node[:corosync][:require_clean_for_autostart]
   bash "insserv #{corosync_shutdown} service" do
     code "insserv #{corosync_shutdown}"
     action :nothing
-    subscribes :run, resources(:template=> "/etc/init.d/#{corosync_shutdown}"), :delayed
+    subscribes :run, resources(template: "/etc/init.d/#{corosync_shutdown}"), :delayed
   end
 
   service corosync_shutdown do
@@ -154,7 +154,7 @@ else
 end
 
 service node[:corosync][:platform][:service_name] do
-  supports :restart => true, :status => :true
+  supports restart: true, status: :true
   action [enable_or_disable, :start]
 end
 

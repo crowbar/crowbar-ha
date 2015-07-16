@@ -1,14 +1,14 @@
-require 'mixlib/shellout'
+require "mixlib/shellout"
 
-require 'spec_helper'
+require "spec_helper"
 
 this_dir = File.dirname(__FILE__)
-require File.expand_path('../../../libraries/pacemaker/resource', this_dir)
-require File.expand_path('../../fixtures/keystone_primitive', this_dir)
+require File.expand_path("../../../libraries/pacemaker/resource", this_dir)
+require File.expand_path("../../fixtures/keystone_primitive", this_dir)
 
 describe Pacemaker::Resource do
   describe "#running?" do
-    let(:rsc) { Pacemaker::Resource.new('keystone') }
+    let(:rsc) { Pacemaker::Resource.new("keystone") }
 
     before(:each) do
       @cmd = double(Mixlib::ShellOut)
@@ -39,13 +39,13 @@ describe Pacemaker::Resource do
     end
 
     it "should extract an op start hash from config" do
-      expect(fixture.class.extract_hash(fixture.definition_string, 'op start')).to \
-        eq(Hash[fixture.op]['start'])
+      expect(fixture.class.extract_hash(fixture.definition_string, "op start")).to \
+        eq(Hash[fixture.op]["start"])
     end
 
     it "should extract an op monitor hash from config" do
-      expect(fixture.class.extract_hash(fixture.definition_string, 'op monitor')).to \
-        eq(Hash[fixture.op]['monitor'])
+      expect(fixture.class.extract_hash(fixture.definition_string, "op monitor")).to \
+        eq(Hash[fixture.op]["monitor"])
     end
   end
 end

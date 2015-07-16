@@ -1,10 +1,10 @@
-require 'spec_helper'
+require "spec_helper"
 
 this_dir = File.dirname(__FILE__)
-require File.expand_path('../../../../libraries/pacemaker/constraint/order',
+require File.expand_path("../../../../libraries/pacemaker/constraint/order",
                          this_dir)
-require File.expand_path('../../../fixtures/order_constraint', this_dir)
-require File.expand_path('../../../helpers/cib_object', this_dir)
+require File.expand_path("../../../fixtures/order_constraint", this_dir)
+require File.expand_path("../../../helpers/cib_object", this_dir)
 
 describe Pacemaker::Constraint::Order do
   let(:fixture) { Chef::RSpec::Pacemaker::Config::ORDER_CONSTRAINT.dup }
@@ -13,7 +13,7 @@ describe Pacemaker::Constraint::Order do
   }
 
   def object_type
-    'order'
+    "order"
   end
 
   def pacemaker_object_class
@@ -32,7 +32,7 @@ describe Pacemaker::Constraint::Order do
     end
 
     it "should return a short definition string" do
-      order = pacemaker_object_class.new('foo')
+      order = pacemaker_object_class.new("foo")
       order.definition = \
         %!order order1 Mandatory: rsc1 rsc2!
       order.parse_definition
@@ -56,6 +56,5 @@ EOF
     it "should parse the ordering" do
       expect(@parsed.ordering).to eq(fixture.ordering)
     end
-
   end
 end

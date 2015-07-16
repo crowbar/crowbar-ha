@@ -1,7 +1,7 @@
-require File.expand_path('../constraint', File.dirname(__FILE__))
+require File.expand_path("../constraint", File.dirname(__FILE__))
 
 class Pacemaker::Constraint::Location < Pacemaker::Constraint
-  TYPE = 'location'
+  TYPE = "location"
   register_type TYPE
 
   attr_accessor :rsc, :score, :node
@@ -16,7 +16,7 @@ class Pacemaker::Constraint::Location < Pacemaker::Constraint
     # grammar.
     unless definition =~ /^#{self.class::TYPE} (\S+) (\S+) (\d+|[-+]?inf): (\S+)\s*$/
       raise Pacemaker::CIBObject::DefinitionParseError, \
-        "Couldn't parse definition '#{definition}'"
+            "Couldn't parse definition '#{definition}'"
     end
     self.name  = $1
     self.rsc   = $2
@@ -27,5 +27,4 @@ class Pacemaker::Constraint::Location < Pacemaker::Constraint
   def definition_string
     "#{self.class::TYPE} #{name} #{rsc} #{score}: #{node}"
   end
-
 end

@@ -16,7 +16,6 @@
 #
 
 class PacemakerController < BarclampController
-
   protected
 
   def initialize_service

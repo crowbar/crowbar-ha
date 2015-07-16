@@ -4,14 +4,14 @@
 # and stopped) but constraints cannot.
 
 this_dir = File.dirname(__FILE__)
-require File.expand_path('provider', this_dir)
-require File.expand_path('shellout', this_dir)
+require File.expand_path("provider", this_dir)
+require File.expand_path("shellout", this_dir)
 
 shared_context "stopped resource" do
   def stopped_fixture
     new_fixture = fixture.dup
     new_fixture.meta = fixture.meta.dup
-    new_fixture.meta << ['target-role', 'Stopped']
+    new_fixture.meta << ["target-role", "Stopped"]
     new_fixture
   end
 end
@@ -68,9 +68,9 @@ shared_examples "a runnable resource" do |fixture|
 
   describe ":start action" do
     it_should_behave_like "action on non-existent resource", \
-      :start,
-      "crm --force --wait resource start #{fixture.name}", \
-      "Cannot start non-existent #{fixture}"
+                          :start,
+                          "crm --force --wait resource start #{fixture.name}", \
+                          "Cannot start non-existent #{fixture}"
 
     it "should do nothing to a started resource" do
       stub_shellout(fixture.definition_string)
@@ -98,9 +98,9 @@ shared_examples "a runnable resource" do |fixture|
 
   describe ":stop action" do
     it_should_behave_like "action on non-existent resource", \
-      :stop,
-      "crm --force --wait resource stop #{fixture.name}", \
-      "Cannot stop non-existent #{fixture}"
+                          :stop,
+                          "crm --force --wait resource stop #{fixture.name}", \
+                          "Cannot stop non-existent #{fixture}"
 
     it "should do nothing to a stopped resource" do
       stub_shellout(fixture.definition_string)
@@ -124,5 +124,4 @@ shared_examples "a runnable resource" do |fixture|
       expect(@resource).to be_updated
     end
   end
-
 end

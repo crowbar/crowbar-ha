@@ -24,7 +24,6 @@ class Chef
     # The lvm_volume_group resource
     #
     class LvmVolumeGroup < Chef::Resource
-
       # Logical volumes to be created in the volume group
       attr_reader :logical_volumes
 

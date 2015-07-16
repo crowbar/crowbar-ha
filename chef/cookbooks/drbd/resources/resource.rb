@@ -17,11 +17,11 @@
 actions :create
 default_action :create
 
-attribute :name,        :kind_of => String,  :name_attribute => true
-attribute :remote_host, :kind_of => String,  :default => nil
-attribute :port,        :kind_of => Integer, :default => 7788
-attribute :disk,        :kind_of => String,  :default => nil
-attribute :device,      :kind_of => String,  :default => '/dev/drbd0'
-attribute :fstype,      :kind_of => String,  :default => 'xfs'
-attribute :mount,       :kind_of => String,  :default => nil
-attribute :master,      :kind_of => [TrueClass, FalseClass], :default => false
+attribute :name,        kind_of: String,  name_attribute: true
+attribute :remote_host, kind_of: String,  default: nil
+attribute :port,        kind_of: Integer, default: 7788
+attribute :disk,        kind_of: String,  default: nil
+attribute :device,      kind_of: String,  default: "/dev/drbd0"
+attribute :fstype,      kind_of: String,  default: "xfs"
+attribute :mount,       kind_of: String,  default: nil
+attribute :master,      kind_of: [TrueClass, FalseClass], default: false

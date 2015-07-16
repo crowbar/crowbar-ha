@@ -23,7 +23,7 @@ directory "/etc/cluster" do
   mode 0755
   action :create
   notifies :create, "template[/etc/cluster/cluster.conf]", :immediately
-  only_if {node['corosync']['enable_openais_service'] == 'yes'}
+  only_if { node["corosync"]["enable_openais_service"] == "yes" }
 end
 
 template "/etc/cluster/cluster.conf" do
@@ -32,9 +32,9 @@ template "/etc/cluster/cluster.conf" do
   group "root"
   mode 0600
   variables(
-    :node1 => node['corosync']['cluster']['nodes'][0],
-    :node2 => node['corosync']['cluster']['nodes'][1]
+    node1: node["corosync"]["cluster"]["nodes"][0],
+    node2: node["corosync"]["cluster"]["nodes"][1]
   )
   action :nothing
-  only_if {node['corosync']['enable_openais_service'] == 'yes'}
+  only_if { node["corosync"]["enable_openais_service"] == "yes" }
 end

@@ -44,12 +44,12 @@ template "/etc/corosync/corosync.conf" do
   group "root"
   mode 0600
   variables(
-    :cluster_name => node[:corosync][:cluster_name],
-    :bind_addr    => node[:corosync][:bind_addr],
-    :mcast_addr   => node[:corosync][:mcast_addr],
-    :mcast_port   => node[:corosync][:mcast_port],
-    :members      => node[:corosync][:members],
-    :transport    => node[:corosync][:transport]
+    cluster_name: node[:corosync][:cluster_name],
+    bind_addr: node[:corosync][:bind_addr],
+    mcast_addr: node[:corosync][:mcast_addr],
+    mcast_port: node[:corosync][:mcast_port],
+    members: node[:corosync][:members],
+    transport: node[:corosync][:transport]
   )
 
   service_name = node[:pacemaker][:platform][:service_name] rescue nil

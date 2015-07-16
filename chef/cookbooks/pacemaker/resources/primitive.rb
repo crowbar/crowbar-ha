@@ -21,8 +21,8 @@ actions :create, :delete, :start, :stop
 
 default_action :create
 
-attribute :name, :kind_of => String, :name_attribute => true
-attribute :agent, :kind_of => String
-attribute :params, :kind_of => Hash, :default => {}
-attribute :meta, :kind_of => Hash, :default => {}
-attribute :op, :kind_of => Hash, :default => {}
+attribute :name, kind_of: String, name_attribute: true
+attribute :agent, kind_of: String
+attribute :params, kind_of: Hash, default: {}
+attribute :meta, kind_of: Hash, default: {}
+attribute :op, kind_of: Hash, default: {}

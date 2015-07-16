@@ -1,12 +1,12 @@
-require 'chef/mixin/shell_out'
-require File.expand_path('cib_object', File.dirname(__FILE__))
+require "chef/mixin/shell_out"
+require File.expand_path("cib_object", File.dirname(__FILE__))
 
 module Pacemaker
   class Resource < Pacemaker::CIBObject
     include Chef::Mixin::ShellOut
 
     def self.description
-      type = self.to_s.split('::').last.downcase
+      type = self.to_s.split("::").last.downcase
       "#{type} resource"
     end
 
@@ -46,10 +46,10 @@ module Pacemaker
       # except is escaped double quotes (\"), for which we want the
       # backslash to be eaten, because complex crm attribute values
       # are represented inside double quotes, e.g. foo="bar\"baz"
-      hash_string = $1.gsub(/\\([^"])/) {|m| '\\' + m}
+      hash_string = $1.gsub(/\\([^"])/) { |m| '\\' + m }
 
       Shellwords.split(hash_string).each do |kvpair|
-        break if kvpair == 'op'
+        break if kvpair == "op"
         unless kvpair =~ /^(.+?)=(.*)$/
           raise "Couldn't understand '#{kvpair}' for '#{data_type}' section "\
             "of #{name} resource (definition was [#{obj_definition}])"

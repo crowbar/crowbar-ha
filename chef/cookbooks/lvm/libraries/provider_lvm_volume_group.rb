@@ -60,11 +60,11 @@ class Chef
         end
 
         volume_groups = []
-        cmd = shell_out("vgdisplay")
+        cmd = shell_out('vgdisplay')
         cmd.error!
         cmd.stdout.split("\n").each do |line|
           args = line.split()
-          if args[0] == "VG" and args[1] == "Name"
+          if args[0] == 'VG' and args[1] == 'Name'
             volume_groups << args[2]
           end
         end

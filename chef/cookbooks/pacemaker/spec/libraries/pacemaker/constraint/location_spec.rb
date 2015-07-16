@@ -1,10 +1,10 @@
-require 'spec_helper'
+require "spec_helper"
 
 this_dir = File.dirname(__FILE__)
-require File.expand_path('../../../../libraries/pacemaker/constraint/location',
+require File.expand_path("../../../../libraries/pacemaker/constraint/location",
                          this_dir)
-require File.expand_path('../../../fixtures/location_constraint', this_dir)
-require File.expand_path('../../../helpers/cib_object', this_dir)
+require File.expand_path("../../../fixtures/location_constraint", this_dir)
+require File.expand_path("../../../helpers/cib_object", this_dir)
 
 describe Pacemaker::Constraint::Location do
   let(:fixture) { Chef::RSpec::Pacemaker::Config::LOCATION_CONSTRAINT.dup }
@@ -13,7 +13,7 @@ describe Pacemaker::Constraint::Location do
   }
 
   def object_type
-    'location'
+    "location"
   end
 
   def pacemaker_object_class
@@ -32,7 +32,7 @@ describe Pacemaker::Constraint::Location do
     end
 
     it "should return a short definition string" do
-      location = pacemaker_object_class.new('foo')
+      location = pacemaker_object_class.new("foo")
       location.definition = \
         %!location location1 primitive1 -inf: node1!
       location.parse_definition

@@ -13,7 +13,7 @@ shared_examples "with meta attributes" do
     it "should return a resource meta string" do
       fixture.meta = {
         "foo" => "bar",
-        "baz" => "qux",
+        "baz" => "qux"
       }
       expect(fixture.meta_string).to eq(%'meta baz="qux" foo="bar"')
     end

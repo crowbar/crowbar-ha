@@ -172,9 +172,9 @@ module CrowbarPacemakerHelper
 
     server_nodes.each do |server_node|
       haproxy_server = {}
-      haproxy_server['name'] = server_node[:hostname]
-      haproxy_server['address'] = server_node[:ipaddress]
-      haproxy_server['port'] = 0
+      haproxy_server["name"] = server_node[:hostname]
+      haproxy_server["address"] = server_node[:ipaddress]
+      haproxy_server["port"] = 0
       haproxy_servers << haproxy_server
       haproxy_servers_nodes[server_node[:hostname]] = server_node
     end
@@ -244,10 +244,10 @@ module CrowbarPacemakerHelper
 
     # Look up and store where they are listening
     servers.each do |server|
-      server_node = server_nodes[server['name']]
+      server_node = server_nodes[server["name"]]
 
-      server['address'] = Chef::Recipe::Barclamp::Inventory.get_network_by_type(server_node, "admin").address
-      server['port']    = server_node[name.to_sym][:ha][:ports][ports_key.to_sym]
+      server["address"] = Chef::Recipe::Barclamp::Inventory.get_network_by_type(server_node, "admin").address
+      server["port"]    = server_node[name.to_sym][:ha][:ports][ports_key.to_sym]
     end
 
     servers

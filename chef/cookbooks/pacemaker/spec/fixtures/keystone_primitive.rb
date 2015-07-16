@@ -1,24 +1,24 @@
-require ::File.expand_path('../../libraries/pacemaker/resource/primitive',
+require ::File.expand_path("../../libraries/pacemaker/resource/primitive",
                            File.dirname(__FILE__))
 
 module Chef::RSpec
   module Pacemaker
     module Config
-      KEYSTONE_PRIMITIVE = ::Pacemaker::Resource::Primitive.new('keystone')
+      KEYSTONE_PRIMITIVE = ::Pacemaker::Resource::Primitive.new("keystone")
       KEYSTONE_PRIMITIVE.agent = "ocf:openstack:keystone"
       KEYSTONE_PRIMITIVE.params = [
-        [ "os_password",    %{ad"min$pa&ss'wo%rd}    ],
-        [ "os_auth_url",    "http://node1:5000/v2.0" ],
-        [ "os_username",    "admin"                  ],
-        [ "os_tenant_name", "openstack"              ],
-        [ "user",           "openstack-keystone"     ],
+        ["os_password",    %{ad"min$pa&ss'wo%rd}],
+        ["os_auth_url",    "http://node1:5000/v2.0"],
+        ["os_username",    "admin"],
+        ["os_tenant_name", "openstack"],
+        ["user",           "openstack-keystone"]
       ]
       KEYSTONE_PRIMITIVE.meta = [
-        [ "is-managed", "true" ]
+        ["is-managed", "true"]
       ]
       KEYSTONE_PRIMITIVE.op = [
-        [ "monitor", { "timeout" =>  "60", "interval" => "10s" } ],
-        [ "start",   { "timeout" => "240", "interval" => "10s" } ]
+        ["monitor", { "timeout" =>  "60", "interval" => "10s" }],
+        ["start",   { "timeout" => "240", "interval" => "10s" }]
       ]
       KEYSTONE_PRIMITIVE_DEFINITION = <<'EOF'.chomp
 primitive keystone ocf:openstack:keystone \

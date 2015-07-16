@@ -1,10 +1,10 @@
-require 'spec_helper'
+require "spec_helper"
 
-require File.expand_path('../../../../libraries/pacemaker/resource/group',
+require File.expand_path("../../../../libraries/pacemaker/resource/group",
                          File.dirname(__FILE__))
-require File.expand_path('../../../fixtures/resource_group', File.dirname(__FILE__))
-require File.expand_path('../../../helpers/cib_object', File.dirname(__FILE__))
-require File.expand_path('../../../helpers/meta_examples',
+require File.expand_path("../../../fixtures/resource_group", File.dirname(__FILE__))
+require File.expand_path("../../../helpers/cib_object", File.dirname(__FILE__))
+require File.expand_path("../../../helpers/meta_examples",
                          File.dirname(__FILE__))
 
 describe Pacemaker::Resource::Group do
@@ -14,7 +14,7 @@ describe Pacemaker::Resource::Group do
   }
 
   def object_type
-    'group'
+    "group"
   end
 
   def pacemaker_object_class
@@ -35,7 +35,7 @@ describe Pacemaker::Resource::Group do
     end
 
     it "should return a short definition string" do
-      group = pacemaker_object_class.new('foo')
+      group = pacemaker_object_class.new("foo")
       group.definition = \
         %!group foo member1 member2 meta target-role="Started"!
       group.parse_definition

@@ -1,4 +1,4 @@
-require ::File.expand_path('../../../pacemaker/cib_object',
+require ::File.expand_path("../../../pacemaker/cib_object",
                            File.dirname(__FILE__))
 
 # Common code used by Pacemaker LWRP providers
@@ -65,7 +65,7 @@ class Chef
       def deprecate_target_role
         if new_resource.respond_to? :meta
           meta = new_resource.meta
-          if ! ENV['RSPEC_RUNNING'] && meta && meta['target-role']
+          if ! ENV["RSPEC_RUNNING"] && meta && meta["target-role"]
             ::Chef::Log.warn "#{new_resource} used deprecated target-role " +
               "#{meta['target-role']}; use action :start / :stop instead"
           end
@@ -81,7 +81,7 @@ class Chef
         # only when the :create action is invoked.  However Pacemaker
         # defaults target-role to "Started", so we need to override it.
         if cib_object.respond_to? :meta # might be a constraint
-          cib_object.meta['target-role'] = 'Stopped'
+          cib_object.meta["target-role"] = "Stopped"
         end
 
         cmd = cib_object.configure_command

@@ -33,10 +33,10 @@
 # resource after this service block, which will cause Pacemaker to assume
 # management of the service.
 
-require 'mixlib/shellout'
+require "mixlib/shellout"
 
 this_dir = ::File.dirname(__FILE__)
-require ::File.expand_path('../libraries/maintenance_mode_helpers', this_dir)
+require ::File.expand_path("../libraries/maintenance_mode_helpers", this_dir)
 
 # Disable the traditional service since it should only ever be started
 # by Pacemaker - if you violate that contract with Pacemaker then it
@@ -150,7 +150,7 @@ end
 # maintenance mode if either:
 #
 #   1. it already was at the beginning of the chef-client run, or
-#   
+#
 #   2. the chef-client run fails, in which case it is expected that it
 #      is more commonly a good thing than a bad one to leave it in
 #      maintenance mode, since manual clean-up would typically be
@@ -205,7 +205,7 @@ def proxy_action(resource, service_action)
   # otherwise we get warnings about the resource attributes being
   # cloned from the prior resource (CHEF-3694).
   service "pacemaker-#{service_action}-of-#{resource.name}" do
-    supports :restart => true, :reload => true
+    supports restart: true, reload: true
     service_name resource.service_name
     action :nothing
   end.run_action(service_action)

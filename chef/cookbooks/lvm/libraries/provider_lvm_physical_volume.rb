@@ -40,11 +40,11 @@ class Chef
       #
       def action_create
         physical_volumes = []
-        cmd = shell_out("pvdisplay")
+        cmd = shell_out('pvdisplay')
         cmd.error!
         cmd.stdout.split("\n").each do |line|
           args = line.split()
-          if args[0] == "PV" and args[1] == "Name"
+          if args[0] == 'PV' and args[1] == 'Name'
             physical_volumes << Pathname.new(args[2]).realpath.to_s
           end
         end

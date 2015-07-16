@@ -1,11 +1,11 @@
-require 'shellwords'
+require "shellwords"
 
 this_dir = File.dirname(__FILE__)
-require File.expand_path('../resource', this_dir)
-require File.expand_path('../mixins/resource_meta', this_dir)
+require File.expand_path("../resource", this_dir)
+require File.expand_path("../mixins/resource_meta", this_dir)
 
 class Pacemaker::Resource::Primitive < Pacemaker::Resource
-  TYPE = 'primitive'
+  TYPE = "primitive"
   register_type TYPE
 
   include Pacemaker::Mixins::Resource::Meta
@@ -25,14 +25,14 @@ class Pacemaker::Resource::Primitive < Pacemaker::Resource
   def parse_definition
     unless definition =~ /\A#{self.class::TYPE} (\S+) (\S+)/
       raise Pacemaker::CIBObject::DefinitionParseError, \
-        "Couldn't parse definition '#{definition}'"
+            "Couldn't parse definition '#{definition}'"
     end
     self.name  = $1
     self.agent = $2
 
     %w(params meta).each do |data_type|
       hash = self.class.extract_hash(definition, data_type)
-      writer = (data_type + '=').to_sym
+      writer = (data_type + "=").to_sym
       send(writer, hash)
     end
 
@@ -68,7 +68,7 @@ class Pacemaker::Resource::Primitive < Pacemaker::Resource
     params.sort.map do |key, value|
       safe = value.is_a?(String) ? value.gsub('"', '\\"') : value.to_s
       %'#{key}="#{safe}"'
-    end.join(' ')
+    end.join(" ")
   end
 
   def self.op_string(ops)
@@ -80,8 +80,7 @@ class Pacemaker::Resource::Primitive < Pacemaker::Resource
         # expect any arbitrary string values, but better to be safe.
         safe = value.is_a?(String) ? value.gsub('"', '\\"') : value.to_s
         %'#{key}="#{safe}"'
-      end.join(' ')
-    end.compact.join(' ')
+      end.join(" ")
+    end.compact.join(" ")
   end
-
 end

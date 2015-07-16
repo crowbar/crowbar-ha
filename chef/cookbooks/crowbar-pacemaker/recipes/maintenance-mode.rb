@@ -51,8 +51,8 @@ EOC
 end
 
 loaded = \
-  Chef::Handler.start_handlers .find { |h| h.class.to_s == 'Chef::Pacemaker::StartHandler'  } &&
-  Chef::Handler.report_handlers.find { |h| h.class.to_s == 'Chef::Pacemaker::ReportHandler' }
+  Chef::Handler.start_handlers .find { |h| h.class.to_s == "Chef::Pacemaker::StartHandler"  } &&
+  Chef::Handler.report_handlers.find { |h| h.class.to_s == "Chef::Pacemaker::ReportHandler" }
 
 if loaded
   Chef::Log.debug("Pacemaker maintenance handlers already installed")

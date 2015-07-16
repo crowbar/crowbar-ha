@@ -1,4 +1,4 @@
-require 'mixlib/shellout'
+require "mixlib/shellout"
 
 module Pacemaker
   class CIBObject
@@ -16,7 +16,7 @@ module Pacemaker
 
       def get_definition(name)
         cmd = Mixlib::ShellOut.new("crm --display=plain configure show #{name}")
-        cmd.environment['HOME'] = ENV.fetch('HOME', '/root')
+        cmd.environment["HOME"] = ENV.fetch("HOME", "/root")
         cmd.run_command
         begin
           cmd.error!
@@ -86,7 +86,7 @@ module Pacemaker
     def copy_attrs_from_chef_resource(resource, *attrs)
       attrs.each do |attr|
         value = resource.send(attr.to_sym)
-        writer = (attr + '=').to_sym
+        writer = (attr + "=").to_sym
         send(writer, value)
       end
       self
@@ -105,7 +105,7 @@ module Pacemaker
 
       if @definition and ! @definition.empty? and type != self.class.object_type
         raise CIBObject::TypeMismatch, \
-          "Expected #{self.class.object_type} type but loaded definition was type #{type}"
+              "Expected #{self.class.object_type} type but loaded definition was type #{type}"
       end
     end
 
@@ -126,7 +126,7 @@ module Pacemaker
     end
 
     def definition_indent
-      ' ' * 9
+      " " * 9
     end
 
     def continuation_line(text)
@@ -147,8 +147,8 @@ module Pacemaker
     def quoted_definition_string
       "'%s'" % \
       definition_string \
-        .gsub("\\'") {|m| '\\' + m } \
-        .gsub("'"  ) {|m| %q['\''] }
+        .gsub("\\'") { |m| '\\' + m } \
+        .gsub("'"  ) { |m| %q['\''] }
     end
 
     def configure_command

@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-require 'timeout'
+require "timeout"
 
 #
 # Synchronization helpers

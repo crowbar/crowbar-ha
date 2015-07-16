@@ -17,5 +17,4 @@
 # limitations under the License.
 #
 
-
 # FIXME - /etc/sysconfig/sbd

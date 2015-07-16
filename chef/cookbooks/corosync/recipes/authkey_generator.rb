@@ -43,7 +43,7 @@ end
 # Read authkey (it's binary) into encoded format and save to Chef server
 ruby_block "Store authkey to Chef server" do
   block do
-    file = File.new(authkey_file, 'r')
+    file = File.new(authkey_file, "r")
     contents = ""
     file.each do |f|
       contents << f
@@ -56,6 +56,6 @@ ruby_block "Store authkey to Chef server" do
   # we didn't run corosync-keygen)
   unless node[:corosync][:authkey].nil?
     action :nothing
-    subscribes :create, resources(:execute => "corosync-keygen"), :immediately
+    subscribes :create, resources(execute: "corosync-keygen"), :immediately
   end
 end

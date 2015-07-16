@@ -43,7 +43,7 @@ if node[:pacemaker][:setup_hb_gui]
 end
 
 if Chef::Config[:solo]
-  unless ENV['RSPEC_RUNNING']
+  unless ENV["RSPEC_RUNNING"]
     Chef::Application.fatal! \
       "pacemaker::default needs corosync::default which uses search, " \
       "but Chef Solo does not support search."
@@ -55,7 +55,7 @@ end
 
 ruby_block "wait for cluster to be online" do
   block do
-    require 'timeout'
+    require "timeout"
     begin
       Timeout.timeout(60) do
         cmd = "crm_mon -1 | grep -qi online"
@@ -79,7 +79,7 @@ if platform_family? "rhel"
   execute "sleep 2"
 
   service "pacemaker" do
-    action [ :enable, :start ]
+    action [:enable, :start]
     notifies :restart, "service[clvm]", :immediately
   end
 end

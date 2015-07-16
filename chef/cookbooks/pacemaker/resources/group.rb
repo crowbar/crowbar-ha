@@ -20,6 +20,6 @@ actions :create, :delete, :start, :stop
 
 default_action :create
 
-attribute :name, :kind_of => String, :name_attribute => true
-attribute :members, :kind_of => Array
-attribute :meta, :kind_of => Hash, :default => {}
+attribute :name, kind_of: String, name_attribute: true
+attribute :members, kind_of: Array
+attribute :meta, kind_of: Hash, default: {}

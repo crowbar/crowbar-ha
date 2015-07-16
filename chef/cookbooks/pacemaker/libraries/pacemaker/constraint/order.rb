@@ -1,7 +1,7 @@
-require File.expand_path('../constraint', File.dirname(__FILE__))
+require File.expand_path("../constraint", File.dirname(__FILE__))
 
 class Pacemaker::Constraint::Order < Pacemaker::Constraint
-  TYPE = 'order'
+  TYPE = "order"
   register_type TYPE
 
   attr_accessor :score, :ordering
@@ -17,7 +17,7 @@ class Pacemaker::Constraint::Order < Pacemaker::Constraint
     score_regexp = %r{\d+|[-+]?inf|Mandatory|Optional|Serialize}
     unless definition =~ /^#{self.class::TYPE} (\S+) (#{score_regexp}): (.+?)\s*$/
       raise Pacemaker::CIBObject::DefinitionParseError, \
-        "Couldn't parse definition '#{definition}'"
+            "Couldn't parse definition '#{definition}'"
     end
     self.name  = $1
     self.score = $2
@@ -27,5 +27,4 @@ class Pacemaker::Constraint::Order < Pacemaker::Constraint
   def definition_string
     "#{self.class::TYPE} #{name} #{score}: #{ordering}"
   end
-
 end

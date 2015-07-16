@@ -17,7 +17,7 @@
 # limitations under the License.
 #
 
-require 'base64'
+require "base64"
 
 if Chef::Config[:solo]
   Chef::Application.fatal! "This recipe uses search. Chef Solo does not support search."

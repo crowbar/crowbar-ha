@@ -16,7 +16,6 @@
 #
 
 class PacemakerService < ServiceObject
-
   def initialize(thelogger)
     super(thelogger)
     @bc_name = "pacemaker"
@@ -98,7 +97,7 @@ class PacemakerService < ServiceObject
     end
 
     # Do not keep deleted nodes
-    all_nodes_for_cluster_role_expanded = all_nodes_for_cluster_role_expanded & node_object_all.map{|n| n.name}
+    all_nodes_for_cluster_role_expanded = all_nodes_for_cluster_role_expanded & node_object_all.map{ |n| n.name }
 
     all_nodes_for_cluster_role_expanded
   end
@@ -135,11 +134,11 @@ class PacemakerService < ServiceObject
       cluster_role.elements.each do |role_name, node_names|
         next unless node_names.include?(cluster_element)
 
-        required_barclamp_roles << { :service => service,
-                                     :barclamp_role => cluster_role,
-                                     :name => role_name,
-                                     :priority => runlist_priority_map[role_name] || service.chef_order,
-                                     :element_states => role_map[role_name] }
+        required_barclamp_roles << { service: service,
+                                     barclamp_role: cluster_role,
+                                     name: role_name,
+                                     priority: runlist_priority_map[role_name] || service.chef_order,
+                                     element_states: role_map[role_name] }
 
         # Update elements_expanded attribute
         expanded_nodes, failures = expand_nodes_for_all(node_names)
@@ -157,11 +156,11 @@ class PacemakerService < ServiceObject
       end
 
       # Also add the config role for the barclamp
-      required_barclamp_roles << { :service => service,
-                                   :barclamp_role => cluster_role,
-                                   :name => cluster_role.name,
-                                   :priority => runlist_priority_map[cluster_role.name] || service.chef_order,
-                                   :element_states => role_map[cluster_role.name] }
+      required_barclamp_roles << { service: service,
+                                   barclamp_role: cluster_role,
+                                   name: cluster_role.name,
+                                   priority: runlist_priority_map[cluster_role.name] || service.chef_order,
+                                   element_states: role_map[cluster_role.name] }
 
       cluster_role.save if save_it
     end
@@ -180,7 +179,7 @@ class PacemakerService < ServiceObject
           member_node.add_to_run_list(name, priority, element_states)
           save_it = true
 
-          required_pre_chef_calls << { :service => required_barclamp_role[:service], :barclamp_role => required_barclamp_role[:barclamp_role] }
+          required_pre_chef_calls << { service: required_barclamp_role[:service], barclamp_role: required_barclamp_role[:barclamp_role] }
         end
       end
 
@@ -203,7 +202,7 @@ class PacemakerService < ServiceObject
     end
 
     role_deployment = role.override_attributes[@bc_name]
-    required_post_chef_calls = required_pre_chef_calls.map{|n| n[:barclamp_role].name}.uniq
+    required_post_chef_calls = required_pre_chef_calls.map{ |n| n[:barclamp_role].name }.uniq
 
     if required_post_chef_calls != role_deployment["required_post_chef_calls"]
       role_deployment["required_post_chef_calls"] = required_post_chef_calls
@@ -240,7 +239,7 @@ class PacemakerService < ServiceObject
     member_nodes = []
 
     unless members.empty?
-      member_nodes = members.map {|n| NodeObject.find_node_by_name n}
+      member_nodes = members.map { |n| NodeObject.find_node_by_name n }
 
       founder = nil
 
@@ -249,8 +248,8 @@ class PacemakerService < ServiceObject
       # cluster)
       unless old_role.nil?
         old_members = old_role.override_attributes[@bc_name]["elements"]["pacemaker-cluster-member"]
-        old_members = old_members.select {|n| members.include? n}
-        old_nodes = old_members.map {|n| NodeObject.find_node_by_name n}
+        old_members = old_members.select { |n| members.include? n }
+        old_nodes = old_members.map { |n| NodeObject.find_node_by_name n }
         old_nodes.each do |old_node|
           if (old_node[:pacemaker][:founder] rescue false) == true
             founder = old_node
@@ -302,7 +301,7 @@ class PacemakerService < ServiceObject
 
     role.default_attributes["corosync"]["mcast_addr"] = role.default_attributes["pacemaker"]["corosync"]["mcast_addr"]
     role.default_attributes["corosync"]["mcast_port"] = role.default_attributes["pacemaker"]["corosync"]["mcast_port"]
-    role.default_attributes["corosync"]["members"] = member_nodes.map{|n| n.get_network_by_type("admin")["address"]}
+    role.default_attributes["corosync"]["members"] = member_nodes.map{ |n| n.get_network_by_type("admin")["address"] }
     role.default_attributes["corosync"]["transport"] = role.default_attributes["pacemaker"]["corosync"]["transport"]
 
     case role.default_attributes["pacemaker"]["corosync"]["require_clean_for_autostart_wrapper"]
@@ -385,11 +384,11 @@ class PacemakerService < ServiceObject
 
           # note that when nothing is defined, we actually have an empty array
           # with an empty string, hence the == 1 test
-          unless node_devices.count == 1 || node_devices.select{|d| d.empty?}.empty?
+          unless node_devices.count == 1 || node_devices.select{ |d| d.empty? }.empty?
             validation_error "Some SBD devices for node #{node_name} are empty"
           end
 
-          devices = node_devices.select{|d| !d.empty?}
+          devices = node_devices.select{ |d| !d.empty? }
           validation_error "Missing SBD devices for node #{node_name}" if devices.empty?
 
           sbd_devices_nb = devices.length if sbd_devices_nb == -1
@@ -451,7 +450,7 @@ class PacemakerService < ServiceObject
     validate_at_least_n_for_role proposal, "pacemaker-cluster-member", 1
 
     elements = proposal["deployment"]["pacemaker"]["elements"]
-    members = elements["pacemaker-cluster-member" ] || []
+    members = elements["pacemaker-cluster-member"] || []
 
     if elements.has_key?("hawk-server")
       elements["hawk-server"].each do |n|
@@ -514,6 +513,5 @@ class PacemakerService < ServiceObject
 
     super
   end
-
 end
 

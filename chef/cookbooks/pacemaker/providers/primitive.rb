@@ -17,11 +17,11 @@
 # limitations under the License.
 #
 
-require 'shellwords'
+require "shellwords"
 
 this_dir = ::File.dirname(__FILE__)
-require ::File.expand_path('../libraries/pacemaker', this_dir)
-require ::File.expand_path('../libraries/chef/mixin/pacemaker', this_dir)
+require ::File.expand_path("../libraries/pacemaker", this_dir)
+require ::File.expand_path("../libraries/chef/mixin/pacemaker", this_dir)
 
 include Chef::Mixin::Pacemaker::RunnableResource
 
@@ -34,7 +34,7 @@ action :create do
     if @current_resource.agent != new_resource.agent
       raise "Existing %s has agent '%s' " \
             "but recipe wanted '%s'" % \
-            [ @current_cib_object, @current_resource.agent, new_resource.agent ]
+            [@current_cib_object, @current_resource.agent, new_resource.agent]
     end
 
     maybe_modify_resource(name)
@@ -99,7 +99,7 @@ def maybe_modify_resource(name)
   #
   # This can result in a primitive not being started with [:create, :start].
   # Therefore, we just delete this deprecated bit from meta to avoid any issue.
-  desired_primitive.meta.delete('target-role')
+  desired_primitive.meta.delete("target-role")
 
   if desired_primitive.op_string != @current_cib_object.op_string
     Chef::Log.debug "op changed from [#{@current_cib_object.op_string}] to [#{desired_primitive.op_string}]"

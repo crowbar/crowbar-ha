@@ -17,18 +17,17 @@
 # limitations under the License.
 #
 
-
 #FIXME: delete group when it's not needed anymore
 #FIXME: need to find/write OCF for haproxy
 
 # Recommendation from the OpenStack HA guide is to use "source" as balance
 # algorithm. This obviously is less useful for load balancing, but we care more
 # about HA and things working than about load balancing.
-node.default['haproxy']['defaults']['balance'] = "source"
+node.default["haproxy"]["defaults"]["balance"] = "source"
 
 # With the default bufsize, getting a keystone PKI token from its ID doesn't
 # work, because the URI path is too long for haproxy
-node.default['haproxy']['global']['bufsize'] = 32768
+node.default["haproxy"]["global"]["bufsize"] = 32768
 
 # Always do the setup for haproxy, so that the RA will already be available on
 # all nodes when needed (this avoids the need for "crm resource refresh")
@@ -38,7 +37,7 @@ cluster_name = CrowbarPacemakerHelper.cluster_name(node)
 
 if node[:pacemaker][:haproxy][:clusters].has_key?(cluster_name) && node[:pacemaker][:haproxy][:clusters][cluster_name][:enabled]
   service "haproxy" do
-    supports :restart => true, :status => true, :reload => true
+    supports restart: true, status: true, reload: true
     action :nothing
     subscribes :reload, "template[#{node[:haproxy][:platform][:config_file]}]", :immediately
     provider Chef::Provider::CrowbarPacemakerService
@@ -69,7 +68,7 @@ if node[:pacemaker][:haproxy][:clusters].has_key?(cluster_name) && node[:pacemak
     # Membership order *is* significant; VIPs should come first so
     # that they are available for the haproxy service to bind to.
     members vip_primitives.sort + [service_name]
-    action [ :create, :start ]
+    action [:create, :start]
     only_if { CrowbarPacemakerHelper.is_cluster_founder?(node) }
   end
 end

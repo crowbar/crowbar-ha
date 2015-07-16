@@ -25,7 +25,7 @@ end
 ruby_block "load drbd module" do
   block do
     %x[ modprobe drbd ]
-    raise 'problem with loading drbd module' unless $?.exitstatus == 0    
+    raise "problem with loading drbd module" unless $?.exitstatus == 0
   end
   not_if { ::File.exists?("/sys/module/drbd") }
 end

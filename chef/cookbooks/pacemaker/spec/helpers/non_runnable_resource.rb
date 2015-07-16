@@ -4,8 +4,8 @@
 # but constraints cannot.
 
 this_dir = File.dirname(__FILE__)
-require File.expand_path('provider', this_dir)
-require File.expand_path('shellout', this_dir)
+require File.expand_path("provider", this_dir)
+require File.expand_path("shellout", this_dir)
 
 shared_examples "a non-runnable resource" do |fixture|
   include Chef::RSpec::Mixlib::ShellOut
