@@ -16,18 +16,18 @@
 #
 
 begin
-  require 'sprockets/standalone'
+  require "sprockets/standalone"
 
   Sprockets::Standalone::RakeTask.new(:assets) do |task, sprockets|
     task.assets = [
-      '**/application.js'
+      "**/application.js"
     ]
 
     task.sources = [
-      'crowbar_framework/app/assets/javascripts'
+      "crowbar_framework/app/assets/javascripts"
     ]
 
-    task.output = 'crowbar_framework/public/assets'
+    task.output = "crowbar_framework/public/assets"
 
     task.compress = true
     task.digest = true
@@ -40,7 +40,7 @@ begin
     def available_assets
       Pathname.glob(
         File.expand_path(
-          '../crowbar_framework/public/assets/**/*',
+          "../crowbar_framework/public/assets/**/*",
           __FILE__
         )
       )
@@ -98,11 +98,11 @@ begin
 rescue
 end
 
-require 'rspec/core/rake_task'
+require "rspec/core/rake_task"
 RSpec::Core::RakeTask.new(:spec)
 
 task :syntaxcheck do
-  system('for f in `find -name \*.rb`; do echo -n "Syntaxcheck $f: "; ruby -c $f || exit $? ; done')
+  system("for f in `find -name \*.rb`; do echo -n \"Syntaxcheck $f: \"; ruby -c $f || exit $? ; done")
   exit $?.exitstatus
 end
 

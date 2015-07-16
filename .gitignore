@@ -3,6 +3,3 @@
 
 .coverage/
 rubydeps.*
-
-Gemfile.lock
-crowbar_framework/public/
