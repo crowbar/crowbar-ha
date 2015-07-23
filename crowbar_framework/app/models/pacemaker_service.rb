@@ -331,22 +331,18 @@ class PacemakerService < ServiceObject
       return
     end
 
-    if old_role
-      old_role_password = \
+    old_role_password = old_role ?
         old_role.default_attributes["pacemaker"]["corosync"]["password"]
-    else
-      old_role_password = nil
-    end
+      : nil
 
     role_password = role.default_attributes["pacemaker"]["corosync"]["password"]
 
-    if old_role && role_password == old_role_password
-      role.default_attributes["corosync"]["password"] = \
+    role.default_attributes["corosync"]["password"] =
+      if old_role && role_password == old_role_password
         old_role.default_attributes["corosync"]["password"]
-    else
-      role.default_attributes["corosync"]["password"] = \
+      else
         %x[openssl passwd -1 "#{role_password}" | tr -d "\n"]
-    end
+      end
   end
 
   def apply_role_post_chef_call(old_role, role, all_nodes)
