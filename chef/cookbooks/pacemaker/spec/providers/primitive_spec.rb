@@ -46,18 +46,17 @@ describe "Chef::Provider::PacemakerPrimitive" do
       end
     end
 
-    it "should not modify the primitive if crmsh drops ocf:heartbeat: prefix" do
-      recipe_agent = 'ocf:heartbeat:IPaddr2'
+    def assert_no_modifications(recipe_agent, existing_agent)
       @resource.agent (recipe_agent)
       @resource.params({ 'ip' => '192.168.138.84' })
       @resource.meta  ({})
       @resource.op    ({ 'monitor' => { 'interval' => '10s' }})
 
       # Set what crm configure show returns for the "existing" 'vip' primitive
-      existing_definition = <<'EOF'.chomp
-primitive vip IPaddr2 \
-        params ip=192.168.138.84 \
-        meta \
+      existing_definition = <<EOF.chomp
+primitive vip #{existing_agent} \\
+        params ip=192.168.138.84 \\
+        meta \\
         op monitor interval=10s
 EOF
       stub_shellout(existing_definition)
@@ -66,6 +65,14 @@ EOF
 
       expect(@chef_run).not_to run_execute(/.*/)
       expect(@resource).not_to be_updated
+    end
+
+    it "should not modify primitive if crmsh drops ocf:heartbeat: prefix" do
+      assert_no_modifications('ocf:heartbeat:IPaddr2', 'IPaddr2')
+    end
+
+    it "should not modify primitive if recipe drops ocf:heartbeat: prefix" do
+      assert_no_modifications('IPaddr2', 'ocf:heartbeat:IPaddr2')
     end
 
     it "should modify the primitive if it has different meta" do

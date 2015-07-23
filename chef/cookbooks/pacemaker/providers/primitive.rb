@@ -36,7 +36,12 @@ action :create do
       current_agent = 'ocf:heartbeat:' + current_agent
     end
 
-    if current_agent != new_resource.agent
+    new_agent = new_resource.agent
+    unless new_agent.include? ':'
+      new_agent = 'ocf:heartbeat:' + new_agent
+    end
+
+    if current_agent != new_agent
       raise "Existing %s has agent '%s' " \
             "but recipe wanted '%s'" % \
             [ @current_cib_object, @current_resource.agent, new_resource.agent ]
