@@ -57,6 +57,21 @@ node
 TBU
 
 
+Running tests
+==================
+
+    bundle exec guard
+
+If you want to expose more details of Chef's inner workings:
+
+    CHEF_LOG_LEVEL=info bundle exec guard
+
+To limit the run to certain tests, add a `focus` key to the example:
+
+    it "should pass this test", focus: true do
+      ...
+    end
+
 License and Author
 ==================
 
