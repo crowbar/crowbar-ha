@@ -316,6 +316,16 @@ class PacemakerService < ServiceObject
       raise "'require_clean_for_autostart_wrapper' value is invalid but passed validation!"
     end
 
+    preserve_existing_password(role, old_role)
+
+    role.save
+
+    apply_cluster_roles_to_new_nodes(role, member_nodes)
+
+    @logger.debug("Pacemaker apply_role_pre_chef_call: leaving")
+  end
+
+  def preserve_existing_password(role, old_role)
     unless role.default_attributes["pacemaker"]["corosync"]["password"].empty?
       if old_role
         old_role_password = old_role.default_attributes["pacemaker"]["corosync"]["password"]
@@ -331,12 +341,6 @@ class PacemakerService < ServiceObject
         role.default_attributes["corosync"]["password"] = %x[openssl passwd -1 "#{role_password}" | tr -d "\n"]
       end
     end
-
-    role.save
-
-    apply_cluster_roles_to_new_nodes(role, member_nodes)
-
-    @logger.debug("Pacemaker apply_role_pre_chef_call: leaving")
   end
 
   def apply_role_post_chef_call(old_role, role, all_nodes)
