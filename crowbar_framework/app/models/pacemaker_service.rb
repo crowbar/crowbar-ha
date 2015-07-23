@@ -338,7 +338,9 @@ class PacemakerService < ServiceObject
     role_password = role.default_attributes["pacemaker"]["corosync"]["password"]
 
     role.default_attributes["corosync"]["password"] =
-      if old_role && role_password == old_role_password
+      if old_role &&
+          role_password == old_role_password &&
+          old_role.default_attributes["corosync"]
         old_role.default_attributes["corosync"]["password"]
       else
         %x[openssl passwd -1 "#{role_password}" | tr -d "\n"]
