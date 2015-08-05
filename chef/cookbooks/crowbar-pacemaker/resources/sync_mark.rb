@@ -33,7 +33,7 @@ default_action :guess
 #
 # is the same as calling:
 #
-#   crowbar_pacemaker_sync_mark "my sync mark for keystone"
+#   crowbar_pacemaker_sync_mark "my sync mark for keystone" do
 #     mark "keystone_pki"
 #     revision node["keystone"]["crowbar-revision"]
 #     action :wait
