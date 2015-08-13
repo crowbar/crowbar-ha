@@ -25,7 +25,7 @@ action :create do
     if %w(xfs).include?(resource["fstype"]) && !modules_loaded[resource["fstype"]]
       mod = resource["fstype"]
 
-      if node.platform == 'suse'
+      if node.platform == 'suse' && node.platform_version.to_f < 12.0
         execute "Enable #{mod} module on load (/etc/sysconfig/kernel)" do
           command "sed -i 's/^\\(MODULES_LOADED_ON_BOOT=\"[^\"]*\\)\"/\\1 #{mod}\"/' /etc/sysconfig/kernel"
           not_if "grep -q '^MODULES_LOADED_ON_BOOT=\"[^\"]*#{mod}[^\"]*\"' /etc/sysconfig/kernel"
@@ -64,5 +64,18 @@ action :create do
 
     node['drbd']['rsc'][resource_name]['configured'] = true
     node.save
+  end
+
+  if node.platform == 'suse' && node.platform_version.to_f >= 12.0
+    template "/etc/modules-load.d/10-crowbar-drbd.conf" do
+      source "crowbar-drbd.conf.erb"
+      owner "root"
+      group "root"
+      mode 0644
+      variables(
+        :modules => modules_loaded.keys.sort.uniq
+      )
+      action :nothing
+    end.run_action(:create)
   end
 end

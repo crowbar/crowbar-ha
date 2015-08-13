@@ -21,6 +21,10 @@
 
 default[:pacemaker][:platform][:resource_packages][:openstack] = %w(openstack-resource-agents)
 
-default[:pacemaker][:haproxy][:agent] = "lsb:haproxy"
+if node.platform == 'suse' && node.platform_version.to_f >= 12.0
+  default[:pacemaker][:haproxy][:agent] = "systemd:haproxy"
+else
+  default[:pacemaker][:haproxy][:agent] = "lsb:haproxy"
+end
 default[:pacemaker][:haproxy][:op][:monitor][:interval] = "10s"
 default[:pacemaker][:haproxy][:clusters] = {}

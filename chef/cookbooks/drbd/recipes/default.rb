@@ -25,5 +25,9 @@ service "drbd" do
     :restart => true,
     :status => true
   )
-  action [:enable, :start]
+  if node["drbd"]["rsc"].empty?
+    action :nothing
+  else
+    action [:enable, :start]
+  end
 end

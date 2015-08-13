@@ -1,0 +1,12 @@
+[Unit]
+Description=Clean file blocking <%= @service_name %> start after fencing
+Before=<%= @service_name %>.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=true
+ExecStart=
+ExecStop=rm -f <%= @block_corosync_file %>
+
+[Install]
+WantedBy=multi-user.target

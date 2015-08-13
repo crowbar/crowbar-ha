@@ -31,7 +31,17 @@ action :create do
   if @current_resource_definition.nil?
     create_resource(name)
   else
-    if @current_resource.agent != new_resource.agent
+    current_agent = @current_resource.agent
+    unless current_agent.include? ':'
+      current_agent = 'ocf:heartbeat:' + current_agent
+    end
+
+    new_agent = new_resource.agent
+    unless new_agent.include? ':'
+      new_agent = 'ocf:heartbeat:' + new_agent
+    end
+
+    if current_agent != new_agent
       raise "Existing %s has agent '%s' " \
             "but recipe wanted '%s'" % \
             [ @current_cib_object, @current_resource.agent, new_resource.agent ]

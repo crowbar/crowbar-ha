@@ -16,12 +16,16 @@ shared_context "stopped resource" do
   end
 end
 
-shared_examples "a runnable resource" do |fixture|
+shared_context "runnable resource" do |fixture|
   def expect_running(running)
     expect_any_instance_of(cib_object_class) \
       .to receive(:running?) \
       .and_return(running)
   end
+end
+
+shared_examples "a runnable resource" do |fixture|
+  include_context "runnable resource"
 
   it_should_behave_like "all Pacemaker LWRPs", fixture
 

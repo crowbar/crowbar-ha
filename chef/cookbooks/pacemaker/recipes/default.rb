@@ -26,18 +26,20 @@ node[:pacemaker][:platform][:packages].each do |pkg|
   package pkg
 end
 
-if node[:pacemaker][:setup_hb_gui]
-  node[:pacemaker][:platform][:graphical_packages].each do |pkg|
-    package pkg
-  end
+unless node.platform == 'suse' && node.platform_version.to_f >= 12.0
+  if node[:pacemaker][:setup_hb_gui]
+    node[:pacemaker][:platform][:graphical_packages].each do |pkg|
+      package pkg
+    end
 
-  # required to run hb_gui
-  if platform_family? "suse"
-    cmd = "SuSEconfig --module gtk2"
-    execute cmd do
-      user "root"
-      command cmd
-      not_if { File.exists? "/etc/gtk-2.0/gdk-pixbuf64.loaders" }
+    # required to run hb_gui
+    if platform_family? "suse"
+      cmd = "SuSEconfig --module gtk2"
+      execute cmd do
+        user "root"
+        command cmd
+        not_if { File.exists? "/etc/gtk-2.0/gdk-pixbuf64.loaders" }
+      end
     end
   end
 end
@@ -51,6 +53,24 @@ if Chef::Config[:solo]
   end
 else
   include_recipe "corosync::default"
+end
+
+if (platform_family?("suse") && node.platform_version.to_f >= 12.0) || platform_family?("rhel")
+  # We need to implement the block_automatic_start logic here too to avoid
+  # having on boot pacemaker started (and starting corosync) when chef is
+  # supposed to handle that (see comments in corosync::service)
+  if node[:corosync][:require_clean_for_autostart]
+    enable_or_disable = :disable
+  else
+    enable_or_disable = :enable
+  end
+
+  service "pacemaker" do
+    action [ enable_or_disable, :start ]
+    if platform_family? "rhel"
+      notifies :restart, "service[clvm]", :immediately
+    end
+  end
 end
 
 ruby_block "wait for cluster to be online" do
@@ -73,15 +93,6 @@ end # ruby_block
 
 if node[:pacemaker][:founder]
   include_recipe "pacemaker::setup"
-end
-
-if platform_family? "rhel"
-  execute "sleep 2"
-
-  service "pacemaker" do
-    action [ :enable, :start ]
-    notifies :restart, "service[clvm]", :immediately
-  end
 end
 
 include_recipe "pacemaker::stonith"

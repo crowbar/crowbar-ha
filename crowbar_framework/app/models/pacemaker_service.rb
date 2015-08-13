@@ -33,14 +33,14 @@ class PacemakerService < ServiceObject
           "unique" => false,
           "count" => 32,
           "platform" => {
-            "suse" => "/11\.[3-9]/"
+            "suse" => "/.*/"
           }
         },
         "hawk-server" => {
           "unique" => false,
           "count" => -1,
           "platform" => {
-            "suse" => "/11\.[3-9]/"
+            "suse" => "/.*/"
           }
         }
       }
@@ -316,27 +316,35 @@ class PacemakerService < ServiceObject
       raise "'require_clean_for_autostart_wrapper' value is invalid but passed validation!"
     end
 
-    unless role.default_attributes["pacemaker"]["corosync"]["password"].empty?
-      if old_role
-        old_role_password = old_role.default_attributes["pacemaker"]["corosync"]["password"]
-      else
-        old_role_password = nil
-      end
-
-      role_password = role.default_attributes["pacemaker"]["corosync"]["password"]
-
-      if old_role && role_password == old_role_password
-        role.default_attributes["corosync"]["password"] = old_role.default_attributes["corosync"]["password"]
-      else
-        role.default_attributes["corosync"]["password"] = %x[openssl passwd -1 "#{role_password}" | tr -d "\n"]
-      end
-    end
+    preserve_existing_password(role, old_role)
 
     role.save
 
     apply_cluster_roles_to_new_nodes(role, member_nodes)
 
     @logger.debug("Pacemaker apply_role_pre_chef_call: leaving")
+  end
+
+  def preserve_existing_password(role, old_role)
+    if role.default_attributes["pacemaker"]["corosync"]["password"].empty?
+      # no password requested
+      return
+    end
+
+    old_role_password = old_role ?
+        old_role.default_attributes["pacemaker"]["corosync"]["password"]
+      : nil
+
+    role_password = role.default_attributes["pacemaker"]["corosync"]["password"]
+
+    role.default_attributes["corosync"]["password"] =
+      if old_role &&
+          role_password == old_role_password &&
+          old_role.default_attributes["corosync"]
+        old_role.default_attributes["corosync"]["password"]
+      else
+        %x[openssl passwd -1 "#{role_password}" | tr -d "\n"]
+      end
   end
 
   def apply_role_post_chef_call(old_role, role, all_nodes)
@@ -498,6 +506,19 @@ class PacemakerService < ServiceObject
 
     stonith_attributes = proposal["attributes"][@bc_name]["stonith"]
     validate_proposal_stonith stonith_attributes, members
+
+    # Let's not pretend we'll get clusters with nodes on different distros work
+    target_platforms = members.map do |member|
+      node = NodeObject.find_node_by_name member
+      if node.nil?
+        nil
+      else
+        node.target_platform
+      end
+    end
+    unless target_platforms.uniq.length <= 1
+      validation_error "All nodes in proposal must have the same platform."
+    end
 
     ### Do not allow elements of this proposal to be in another proposal, since
     ### the configuration cannot be shared.
