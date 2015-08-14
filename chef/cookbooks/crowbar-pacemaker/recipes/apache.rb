@@ -23,7 +23,6 @@
 # This is required for the OCF resource agent
 include_recipe "apache2::mod_status"
 
-agent_name = "ocf:heartbeat:apache"
 apache_op = {}
 apache_op["monitor"] = {}
 apache_op["monitor"]["interval"] = "10s"
@@ -39,9 +38,12 @@ unless crowbar_defined_ports.empty?
 end
 
 service_name = "apache2"
+agent_name = node[:pacemaker][service_name][:agent]
 
 apache_params = {}
-apache_params["statusurl"] = "http://127.0.0.1:#{listening_port}/server-status"
+unless agent_name == 'systemd:apache2'
+  apache_params["statusurl"] = "http://127.0.0.1:#{listening_port}/server-status"
+end
 unless crowbar_defined_ports.values.select{|service| service.has_key? :ssl}.empty?
   apache_params["options"] = "-DSSL"
 end
