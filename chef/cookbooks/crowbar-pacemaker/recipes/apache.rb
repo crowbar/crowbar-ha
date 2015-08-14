@@ -38,7 +38,7 @@ unless crowbar_defined_ports.empty?
   listening_port = plain_ports.first unless (plain_ports.nil? || plain_ports.empty?)
 end
 
-service_name            = "apache"
+service_name = "apache2"
 
 apache_params = {}
 apache_params["statusurl"] = "http://127.0.0.1:#{listening_port}/server-status"
