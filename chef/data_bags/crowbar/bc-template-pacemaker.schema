@@ -1,0 +1,198 @@
+{
+  "type": "map",
+  "required": true,
+  "mapping": {
+    "id": { "type": "str", "required": true, "pattern": "/^bc-pacemaker-|^bc-template-pacemaker$/" },
+    "description": { "type": "str", "required": true },
+    "attributes": {
+      "type": "map",
+      "required": true,
+      "mapping": {
+        "pacemaker": {
+          "type": "map",
+          "required": true,
+          "mapping": {
+            "setup_hb_gui": { "type": "bool", "required": true },
+            "corosync": {
+              "type": "map",
+              "required": true,
+              "mapping": {
+                "transport": { "type": "str", "required": true },
+                "mcast_addr": { "type": "str", "required": true },
+                "mcast_port": { "type": "int", "required": true },
+                "password": { "type": "str", "required": true },
+                "require_clean_for_autostart_wrapper": { "type": "str", "required": true, "pattern": "/^true$|^false$|^auto$/" }
+              }
+            },
+            "crm": {
+              "type": "map",
+              "required": true,
+              "mapping": {
+                "no_quorum_policy": { "type": "str", "required": true }
+              }
+            },
+            "stonith": {
+              "type": "map",
+              "required": true,
+              "mapping": {
+                "mode": { "type": "str", "required": true },
+                "sbd": {
+                  "type": "map",
+                  "required": true,
+                  "mapping": {
+                    "nodes": {
+                      "type": "map",
+                      "required": true,
+                      "mapping": {
+                        = : {
+                          "type": "map",
+                          "required": true,
+                          "mapping": {
+                            "devices": {
+                              "type": "seq",
+                              "required": true,
+                              "sequence": [ { "type": "str" } ]
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "shared": {
+                  "type": "map",
+                  "required": true,
+                  "mapping": {
+                    "agent": { "type": "str", "required": true },
+                    "params": { "type": "str", "required": true }
+                  }
+                },
+                "per_node": {
+                  "type": "map",
+                  "required": true,
+                  "mapping": {
+                    "agent": { "type": "str", "required": true },
+                    "nodes": {
+                      "type": "map",
+                      "required": true,
+                      "mapping": {
+                        = : {
+                          "type": "map",
+                          "required": true,
+                          "mapping": {
+                            "params": { "type": "str", "required": true }
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "libvirt": {
+                  "type": "map",
+                  "required": true,
+                  "mapping": {
+                    "hypervisor_ip": { "type": "str", "required": true }
+                  }
+                }
+              }
+            },
+            "notifications": {
+              "type": "map",
+              "required": true,
+              "mapping": {
+                "smtp": {
+                  "type": "map",
+                  "required": true,
+                  "mapping": {
+                    "enabled": { "type": "bool", "required": true },
+                    "to": { "type": "str", "required": true },
+                    "from": { "type": "str", "required": true },
+                    "server": { "type": "str", "required": true },
+                    "prefix": { "type": "str", "required": true }
+                  }
+                }
+              }
+            },
+            "drbd": {
+              "type": "map",
+              "required": true,
+              "mapping": {
+                "enabled": { "type": "bool", "required": true }
+              }
+            },
+            "haproxy": {
+              "type": "map",
+              "required": true,
+              "mapping": {
+                "admin_name": { "type": "str", "required": true },
+                "public_name": { "type": "str", "required": true }
+              }
+            }
+          }
+        }
+      }
+    },
+    "deployment": {
+      "type": "map",
+      "required": true,
+      "mapping": {
+        "pacemaker": {
+          "type": "map",
+          "required": true,
+          "mapping": {
+            "crowbar-revision": { "type": "int", "required": true },
+            "schema-revision": { "type": "int" },
+            "crowbar-committing": { "type": "bool" },
+            "crowbar-applied": { "type": "bool" },
+            "crowbar-queued": { "type": "bool" },
+            "crowbar-status": { "type": "str" },
+            "crowbar-failed": { "type": "str" },
+            "element_states": {
+              "type": "map",
+              "mapping": {
+                = : {
+                  "type": "seq",
+                  "required": true,
+                  "sequence": [ { "type": "str" } ]
+                }
+              }
+            },
+            "elements": {
+              "type": "map",
+              "required": true,
+              "mapping": {
+                = : {
+                  "type": "seq",
+                  "required": true,
+                  "sequence": [ { "type": "str" } ]
+                }
+              }
+            },
+            "element_order": {
+              "type": "seq",
+              "required": true,
+              "sequence": [ {
+                "type": "seq",
+                "sequence": [ { "type": "str" } ]
+              } ]
+            },
+            "config": {
+              "type": "map",
+              "required": true,
+              "mapping": {
+                "environment": { "type": "str", "required": true },
+                "mode": { "type": "str", "required": true },
+                "transitions": { "type": "bool", "required": true },
+                "transition_list": {
+                  "type": "seq",
+                  "required": true,
+                  "sequence": [ { "type": "str" } ]
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
