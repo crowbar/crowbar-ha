@@ -23,13 +23,11 @@
 #
 
 class PacemakerServiceObject < ServiceObject
-
   #
   # Eigenclass with methods used by ServiceObject
   #
 
   class << self
-
     # This is the key that allows to find out that an element item is a
     # pacemaker cluster: if the element name is $cluster_key:$foo, then it's
     # one. Otherwise, it's not.
@@ -102,7 +100,6 @@ class PacemakerServiceObject < ServiceObject
         cluster_nodes || []
       end
     end
-
   end
 
   #

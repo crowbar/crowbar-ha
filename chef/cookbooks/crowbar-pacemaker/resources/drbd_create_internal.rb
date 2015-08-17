@@ -17,5 +17,5 @@
 actions :create
 default_action :create
 
-attribute :name,      :kind_of => String, :name_attribute => true
-attribute :lvm_group, :kind_of => String, :default => 'drbd'
+attribute :name,      kind_of: String, name_attribute: true
+attribute :lvm_group, kind_of: String, default: "drbd"

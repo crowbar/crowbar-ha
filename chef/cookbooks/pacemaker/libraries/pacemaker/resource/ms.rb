@@ -1,7 +1,7 @@
-require File.expand_path('clone', File.dirname(__FILE__))
+require File.expand_path("clone", File.dirname(__FILE__))
 
 class Pacemaker::Resource::MasterSlave < Pacemaker::Resource::Clone
-  TYPE = 'ms'
+  TYPE = "ms"
   register_type TYPE
 
   #include Pacemaker::Mixins::Resource::Meta

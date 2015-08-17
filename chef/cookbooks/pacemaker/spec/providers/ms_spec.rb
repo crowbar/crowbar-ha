@@ -1,8 +1,8 @@
-require 'spec_helper'
+require "spec_helper"
 
 this_dir = File.dirname(__FILE__)
-require File.expand_path('../helpers/runnable_resource', this_dir)
-require File.expand_path('../fixtures/ms_resource', this_dir)
+require File.expand_path("../helpers/runnable_resource", this_dir)
+require File.expand_path("../fixtures/ms_resource", this_dir)
 
 describe "Chef::Provider::PacemakerMs" do
   # for use inside examples:
@@ -11,16 +11,14 @@ describe "Chef::Provider::PacemakerMs" do
   fixture = Chef::RSpec::Pacemaker::Config::MS_RESOURCE.dup
 
   def lwrp_name
-    'ms'
+    "ms"
   end
 
   include_context "a Pacemaker LWRP"
 
   before(:each) do
-    @resource.rsc  fixture.rsc.dup
+    @resource.rsc fixture.rsc.dup
     @resource.meta Hash[fixture.meta.dup]
-
-
   end
 
   def cib_object_class
@@ -32,15 +30,13 @@ describe "Chef::Provider::PacemakerMs" do
 
     it "should modify the resource if it's changed" do
       expected = fixture.dup
-      expected.rsc = 'primitive2'
+      expected.rsc = "primitive2"
       expected_configure_cmd_args = [expected.reconfigure_command]
       test_modify(expected_configure_cmd_args) do
         @resource.rsc expected.rsc
       end
     end
-
   end
 
   it_should_behave_like "a runnable resource", fixture
-
 end

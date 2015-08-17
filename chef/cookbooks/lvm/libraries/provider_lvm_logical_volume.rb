@@ -44,7 +44,7 @@ class Chef
         device_name = "/dev/mapper/#{to_dm_name(group)}-#{to_dm_name(name)}"
 
         lvm_map = {}
-        cmd = shell_out("vgs")
+        cmd = shell_out('vgs')
         cmd.error!
         cmd.stdout.split("\n").each_with_index do |line, index|
           unless index == 0
@@ -52,7 +52,7 @@ class Chef
             lvm_map[args[0]] = []
           end
         end
-        cmd = shell_out("lvs")
+        cmd = shell_out('lvs')
         cmd.error!
         cmd.stdout.split("\n").each_with_index do |line, index|
           unless index == 0

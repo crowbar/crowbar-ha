@@ -1,6 +1,6 @@
-require 'chefspec'
+require "chefspec"
 
-ENV['RSPEC_RUNNING'] = 'true'
+ENV["RSPEC_RUNNING"] = "true"
 
 RSpec.configure do |config|
   # config.mock_with :rspec do |mocks|
@@ -19,16 +19,16 @@ RSpec.configure do |config|
   #config.role_path = '/var/roles'
 
   # Specify the Chef log_level (default: :warn)
-  config.log_level = ENV['CHEF_LOG_LEVEL'].to_sym if ENV['CHEF_LOG_LEVEL']
+  config.log_level = ENV["CHEF_LOG_LEVEL"].to_sym if ENV["CHEF_LOG_LEVEL"]
 
   # Specify the path to a local JSON file with Ohai data (default: nil)
   #config.path = 'ohai.json'
 
   # Specify the operating platform to mock Ohai data from (default: nil)
-  config.platform = 'suse'
+  config.platform = "suse"
 
   # Specify the operating version to mock Ohai data from (default: nil)
-  config.version = '11.3'
+  config.version = "11.3"
 
   # Disable deprecated "should" syntax
   # https://github.com/rspec/rspec-expectations/blob/master/Should.md
@@ -37,14 +37,14 @@ RSpec.configure do |config|
   end
 
   config.run_all_when_everything_filtered = true
-  config.filter_run :focus => true
+  config.filter_run focus: true
 end
 
 # FIXME
 #running_guard = ENV['GUARD_NOTIFY'] && ! ENV['GUARD_NOTIFY'].empty?
 
-if ENV['RUBYDEPS']
-  require 'rubydeps'
+if ENV["RUBYDEPS"]
+  require "rubydeps"
   Rubydeps.start
 end
 

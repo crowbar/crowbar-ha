@@ -18,8 +18,8 @@
 # limitations under the License.
 #
 
-node['drbd']['rsc'].keys.sort.each do |resource_name|
-  resource = node['drbd']['rsc'][resource_name]
+node["drbd"]["rsc"].keys.sort.each do |resource_name|
+  resource = node["drbd"]["rsc"][resource_name]
 
   next if resource["configured"]
 
@@ -34,6 +34,6 @@ node['drbd']['rsc'].keys.sort.each do |resource_name|
     action :create
   end
 
-  node['drbd']['rsc'][resource_name]['configured'] = true
+  node["drbd"]["rsc"][resource_name]["configured"] = true
   node.save
 end

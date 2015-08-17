@@ -21,7 +21,7 @@ module Pacemaker
             "meta " +
               meta.sort.map do |key, value|
               %'#{key}="#{value}"'
-            end.join(' ')
+            end.join(" ")
           end
         end
       end

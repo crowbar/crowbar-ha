@@ -17,6 +17,6 @@
 actions :create
 default_action :create
 
-attribute :name,   :kind_of => String, :name_attribute => true
-attribute :fstype, :kind_of => String, :default => 'xfs'
-attribute :size,   :kind_of => String, :default => '10G'
+attribute :name,   kind_of: String, name_attribute: true
+attribute :fstype, kind_of: String, default: "xfs"
+attribute :size,   kind_of: String, default: "10G"

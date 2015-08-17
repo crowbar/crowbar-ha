@@ -26,15 +26,15 @@ template crm_conf do
   group "root"
   mode 0600
   variables(
-    :stonith_enabled => (node[:pacemaker][:stonith][:mode] != "disabled"),
-    :no_quorum_policy => node[:pacemaker][:crm][:no_quorum_policy],
-    :op_default_timeout => node[:pacemaker][:crm][:op_default_timeout]
+    stonith_enabled: (node[:pacemaker][:stonith][:mode] != "disabled"),
+    no_quorum_policy: node[:pacemaker][:crm][:no_quorum_policy],
+    op_default_timeout: node[:pacemaker][:crm][:op_default_timeout]
   )
 end
 
 execute "crm initial configuration" do
   user "root"
   command "crm configure load replace #{crm_conf}"
-  subscribes :run, resources(:template => crm_conf), :immediately
+  subscribes :run, resources(template: crm_conf), :immediately
   action :nothing
 end

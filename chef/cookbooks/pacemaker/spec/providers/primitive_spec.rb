@@ -1,8 +1,8 @@
-require 'spec_helper'
+require "spec_helper"
 
 this_dir = File.dirname(__FILE__)
-require File.expand_path('../helpers/runnable_resource', this_dir)
-require File.expand_path('../fixtures/keystone_primitive', this_dir)
+require File.expand_path("../helpers/runnable_resource", this_dir)
+require File.expand_path("../fixtures/keystone_primitive", this_dir)
 
 describe "Chef::Provider::PacemakerPrimitive" do
   # for use inside examples:
@@ -11,16 +11,16 @@ describe "Chef::Provider::PacemakerPrimitive" do
   fixture = Chef::RSpec::Pacemaker::Config::KEYSTONE_PRIMITIVE
 
   def lwrp_name
-    'primitive'
+    "primitive"
   end
 
   include_context "a Pacemaker LWRP"
 
   before(:each) do
-    @resource.agent  fixture.agent
+    @resource.agent fixture.agent
     @resource.params Hash[fixture.params]
-    @resource.meta   Hash[fixture.meta]
-    @resource.op     Hash[fixture.op]
+    @resource.meta Hash[fixture.meta]
+    @resource.op Hash[fixture.op]
   end
 
   def cib_object_class
@@ -35,11 +35,11 @@ describe "Chef::Provider::PacemakerPrimitive" do
       expected_configure_cmd_args = [
         %'--set-parameter os_password ' +
           '--parameter-value \$ne\!w\%pa\\\'ss\&wo\"rd',
-        %'--delete-parameter os_tenant_name',
+        %'--delete-parameter os_tenant_name'
       ].map { |args| "crm_resource --resource #{fixture.name} #{args}" }
       test_modify(expected_configure_cmd_args) do
         new_params = Hash[fixture.params].merge(
-          'os_password' => %{$ne!w%pa'ss&wo"rd})
+          "os_password" => %{$ne!w%pa'ss&wo"rd})
         new_params.delete("os_tenant_name")
         @resource.params new_params
         @resource.meta Hash[fixture.meta].merge("target-role" => "Stopped")
@@ -48,9 +48,9 @@ describe "Chef::Provider::PacemakerPrimitive" do
 
     def assert_no_modifications(recipe_agent, existing_agent)
       @resource.agent (recipe_agent)
-      @resource.params({ 'ip' => '192.168.138.84' })
-      @resource.meta  ({})
-      @resource.op    ({ 'monitor' => { 'interval' => '10s' }})
+      @resource.params({ "ip" => "192.168.138.84" })
+      @resource.meta ({})
+      @resource.op ({ "monitor" => { "interval" => "10s" }})
 
       # Set what crm configure show returns for the "existing" 'vip' primitive
       existing_definition = <<EOF.chomp
@@ -68,16 +68,16 @@ EOF
     end
 
     it "should not modify primitive if crmsh drops ocf:heartbeat: prefix" do
-      assert_no_modifications('ocf:heartbeat:IPaddr2', 'IPaddr2')
+      assert_no_modifications("ocf:heartbeat:IPaddr2", "IPaddr2")
     end
 
     it "should not modify primitive if recipe drops ocf:heartbeat: prefix" do
-      assert_no_modifications('IPaddr2', 'ocf:heartbeat:IPaddr2')
+      assert_no_modifications("IPaddr2", "ocf:heartbeat:IPaddr2")
     end
 
     it "should modify the primitive if it has different meta" do
       expected_configure_cmd_args = [
-        %'--set-parameter is-managed --parameter-value false --meta',
+        %'--set-parameter is-managed --parameter-value false --meta'
       ].map { |args| "crm_resource --resource #{fixture.name} #{args}" }
       test_modify(expected_configure_cmd_args) do
         @resource.params Hash[fixture.params]
@@ -89,7 +89,7 @@ EOF
       expected_configure_cmd_args = [
         %'--set-parameter os_password --parameter-value newpasswd',
         %'--delete-parameter os_tenant_name',
-        %'--set-parameter is-managed --parameter-value false --meta',
+        %'--set-parameter is-managed --parameter-value false --meta'
       ].map { |args| "crm_resource --resource #{fixture.name} #{args}" }
       test_modify(expected_configure_cmd_args) do
         new_params = Hash[fixture.params].merge("os_password" => "newpasswd")
@@ -101,13 +101,13 @@ EOF
 
     it "should modify the primitive if it has different op values" do
       expected_configure_cmd_args = [
-        fixture.reconfigure_command.gsub('60', '120')
+        fixture.reconfigure_command.gsub("60", "120")
       ]
       test_modify(expected_configure_cmd_args) do
         new_op = Hash[fixture.op]
         # Ensure we're not modifying our expectation as well as the input
-        new_op['monitor'] = new_op['monitor'].dup
-        new_op['monitor']['timeout'] = '120'
+        new_op["monitor"] = new_op["monitor"].dup
+        new_op["monitor"]["timeout"] = "120"
         @resource.op new_op
       end
     end
@@ -166,5 +166,4 @@ EOF
   end
 
   it_should_behave_like "a runnable resource", fixture
-
 end

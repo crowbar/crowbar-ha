@@ -18,7 +18,7 @@
 #
 
 this_dir = ::File.dirname(__FILE__)
-require ::File.expand_path('../libraries/pacemaker/cib_object', this_dir)
+require ::File.expand_path("../libraries/pacemaker/cib_object", this_dir)
 
 action :create do
   name = new_resource.name
@@ -28,7 +28,7 @@ action :create do
     cmd = "crm configure property #{name}=#{val}"
 
     cmd_ = Mixlib::ShellOut.new(cmd)
-    cmd_.environment['HOME'] = ENV.fetch('HOME', '/root')
+    cmd_.environment["HOME"] = ENV.fetch("HOME", "/root")
     cmd_.run_command
     begin
       cmd_.error!

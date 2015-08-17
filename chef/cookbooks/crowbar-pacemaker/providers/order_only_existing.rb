@@ -18,7 +18,7 @@
 
 def delete_order(name)
   pacemaker_order "#{name}-only-existing" do
-    name   name
+    name name
     action :nothing
   end.run_action(:delete)
 end
@@ -33,10 +33,10 @@ action :create do
     delete_order(new_resource.name)
   else
     pacemaker_order "#{new_resource.name}-only-existing" do
-      name     new_resource.name
-      score    new_resource.score
+      name new_resource.name
+      score new_resource.score
       ordering ordering_for_existing_resources.join(" ")
-      action   :nothing
+      action :nothing
     end.run_action(:create)
   end
 end

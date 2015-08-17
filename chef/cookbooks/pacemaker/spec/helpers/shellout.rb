@@ -1,4 +1,4 @@
-require 'mixlib/shellout'
+require "mixlib/shellout"
 
 module Chef::RSpec
   module Mixlib
@@ -19,7 +19,7 @@ module Chef::RSpec
       # called.  We expect #error! to be called, because if it isn't,
       # that probably indicates the code isn't robust enough.  This
       # may need to be relaxed in the future.
-      def failing_shellout_double(stdout='', stderr='', exitstatus=1)
+      def failing_shellout_double(stdout="", stderr="", exitstatus=1)
         shellout = double(Mixlib::ShellOut)
         shellout.stub(:environment).and_return({})
         shellout.stub(:run_command)

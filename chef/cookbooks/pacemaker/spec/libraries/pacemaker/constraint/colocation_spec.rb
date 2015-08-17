@@ -1,10 +1,10 @@
-require 'spec_helper'
+require "spec_helper"
 
 this_dir = File.dirname(__FILE__)
-require File.expand_path('../../../../libraries/pacemaker/constraint/colocation',
+require File.expand_path("../../../../libraries/pacemaker/constraint/colocation",
                          this_dir)
-require File.expand_path('../../../fixtures/colocation_constraint', this_dir)
-require File.expand_path('../../../helpers/cib_object', this_dir)
+require File.expand_path("../../../fixtures/colocation_constraint", this_dir)
+require File.expand_path("../../../helpers/cib_object", this_dir)
 
 describe Pacemaker::Constraint::Colocation do
   let(:fixture) { Chef::RSpec::Pacemaker::Config::COLOCATION_CONSTRAINT.dup }
@@ -13,7 +13,7 @@ describe Pacemaker::Constraint::Colocation do
   }
 
   def object_type
-    'colocation'
+    "colocation"
   end
 
   def pacemaker_object_class
@@ -28,13 +28,13 @@ describe Pacemaker::Constraint::Colocation do
 
   describe "#new" do
     before(:each) do
-      name = 'foo'
+      name = "foo"
       @resource_array = %w(rsc1 rsc2)
-      @resource_string = @resource_array.join ' '
+      @resource_string = @resource_array.join " "
       @colocation = pacemaker_object_class.new(name)
-      @colocation.score = '-inf'
+      @colocation.score = "-inf"
       @definition_string = "colocation %s %s: %s" %
-        [ name, @colocation.score, @resource_string ]
+        [name, @colocation.score, @resource_string]
     end
 
     it "should accept an String of resources" do
@@ -56,7 +56,7 @@ describe Pacemaker::Constraint::Colocation do
     end
 
     it "should return a short definition string" do
-      colocation = pacemaker_object_class.new('foo')
+      colocation = pacemaker_object_class.new("foo")
       colocation.definition = \
         %!colocation colocation1 -inf: rsc1 rsc2!
       colocation.parse_definition
@@ -80,6 +80,5 @@ EOF
     it "should parse the resources" do
       expect(@parsed.resources).to eq(fixture.resources)
     end
-
   end
 end

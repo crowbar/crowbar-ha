@@ -1,8 +1,8 @@
 # Shared code used to test providers of CIB objects
 
 this_dir = File.dirname(__FILE__)
-require File.expand_path('shellout',   this_dir)
-require File.expand_path('cib_object', this_dir)
+require File.expand_path("shellout",   this_dir)
+require File.expand_path("cib_object", this_dir)
 
 shared_context "a Pacemaker LWRP" do
   before(:each) do
@@ -10,7 +10,7 @@ shared_context "a Pacemaker LWRP" do
     stub_command("crm configure show cl-smtp-notifications")
 
     runner_opts = {
-      :step_into => [lwrp_name]
+      step_into: [lwrp_name]
     }
     @chef_run = ::ChefSpec::Runner.new(runner_opts)
     @chef_run.converge "pacemaker::default"
@@ -69,6 +69,6 @@ end
 shared_examples "all Pacemaker LWRPs" do |fixture|
   describe ":delete action" do
     it_should_behave_like "action on non-existent resource", \
-      :delete, "crm configure delete #{fixture.name}", nil
+                          :delete, "crm configure delete #{fixture.name}", nil
   end
 end

@@ -1,8 +1,8 @@
-require 'spec_helper'
+require "spec_helper"
 
 this_dir = File.dirname(__FILE__)
-require File.expand_path('../helpers/runnable_resource', this_dir)
-require File.expand_path('../fixtures/resource_group', this_dir)
+require File.expand_path("../helpers/runnable_resource", this_dir)
+require File.expand_path("../fixtures/resource_group", this_dir)
 
 describe "Chef::Provider::PacemakerGroup" do
   # for use inside examples:
@@ -11,16 +11,14 @@ describe "Chef::Provider::PacemakerGroup" do
   fixture = Chef::RSpec::Pacemaker::Config::RESOURCE_GROUP.dup
 
   def lwrp_name
-    'group'
+    "group"
   end
 
   include_context "a Pacemaker LWRP"
 
   before(:each) do
     @resource.members fixture.members.dup
-    @resource.meta    Hash[fixture.meta.dup]
-
-
+    @resource.meta Hash[fixture.meta.dup]
   end
 
   def cib_object_class
@@ -47,9 +45,7 @@ describe "Chef::Provider::PacemakerGroup" do
         @resource.members expected.members
       end
     end
-
   end
 
   it_should_behave_like "a runnable resource", fixture
-
 end

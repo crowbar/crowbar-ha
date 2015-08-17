@@ -21,8 +21,8 @@ actions :create, :delete
 
 default_action :create
 
-attribute :name, :kind_of => String, :name_attribute => true
-attribute :score, :kind_of => String
+attribute :name, kind_of: String, name_attribute: true
+attribute :score, kind_of: String
 
 # If more than two resources are given, Pacemaker will treat this as a
 # resource set.  Originally this was an Array, but then we added
@@ -33,4 +33,4 @@ attribute :score, :kind_of => String
 # deprecated, because it's better if the responsibility of
 # understanding the structure of this part of the crm configure string
 # is delegated to Pacemaker.
-attribute :resources, :kind_of => [Array, String]
+attribute :resources, kind_of: [Array, String]

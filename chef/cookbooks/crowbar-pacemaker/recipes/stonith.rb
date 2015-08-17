@@ -35,7 +35,7 @@ when "sbd"
     else
       sbd_device_simple = sbd_device
     end
-    disks = BarclampLibrary::Barclamp::Inventory::Disk.all(node).select {|d| d.name == sbd_device_simple}
+    disks = BarclampLibrary::Barclamp::Inventory::Disk.all(node).select { |d| d.name == sbd_device_simple }
     disk = disks.first
     if disk.nil?
       # This is not a disk; let's see if this is a partition and deal with it
@@ -47,7 +47,7 @@ when "sbd"
         # and we want to get the "sda" part of this
         parent_sys_dir_full = sbd_sys_dir_full[1..sbd_sys_dir_full.rindex("/")-1]
         parent_disk = "/dev/#{File.basename(parent_sys_dir_full)}"
-        disks = BarclampLibrary::Barclamp::Inventory::Disk.all(node).select {|d| d.name == parent_disk}
+        disks = BarclampLibrary::Barclamp::Inventory::Disk.all(node).select { |d| d.name == parent_disk }
         disk = disks.first
       end
     end
@@ -66,7 +66,7 @@ when "sbd"
 when "shared"
   params = node[:pacemaker][:stonith][:shared][:params]
 
-  if params.respond_to?('to_hash')
+  if params.respond_to?("to_hash")
     params = params.to_hash
   elsif params.is_a?(String)
     params = ::Pacemaker::Resource.extract_hash(" params #{params}", "params")

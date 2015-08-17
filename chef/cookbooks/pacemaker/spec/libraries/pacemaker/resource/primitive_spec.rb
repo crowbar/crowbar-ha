@@ -1,11 +1,11 @@
-require 'spec_helper'
+require "spec_helper"
 
 this_dir = File.dirname(__FILE__)
-require File.expand_path('../../../../libraries/pacemaker/resource/primitive',
+require File.expand_path("../../../../libraries/pacemaker/resource/primitive",
                          this_dir)
-require File.expand_path('../../../fixtures/keystone_primitive', this_dir)
-require File.expand_path('../../../helpers/cib_object', this_dir)
-require File.expand_path('../../../helpers/meta_examples', this_dir)
+require File.expand_path("../../../fixtures/keystone_primitive", this_dir)
+require File.expand_path("../../../helpers/cib_object", this_dir)
+require File.expand_path("../../../helpers/meta_examples", this_dir)
 
 describe Pacemaker::Resource::Primitive do
   let(:fixture) { Chef::RSpec::Pacemaker::Config::KEYSTONE_PRIMITIVE.dup }
@@ -14,7 +14,7 @@ describe Pacemaker::Resource::Primitive do
   }
 
   def object_type
-    'primitive'
+    "primitive"
   end
 
   def pacemaker_object_class
@@ -41,7 +41,7 @@ describe Pacemaker::Resource::Primitive do
     it "should return a resource params string" do
       fixture.params = {
         "foo" => "bar",
-        "baz" => "qux",
+        "baz" => "qux"
       }
       expect(fixture.params_string).to eq(%'params baz="qux" foo="bar"')
     end
@@ -62,7 +62,7 @@ describe Pacemaker::Resource::Primitive do
       fixture.op = {
         "monitor" => {
           "foo" => "bar",
-          "baz" => "qux",
+          "baz" => "qux"
         }
       }
       expect(fixture.op_string).to eq(%'op monitor baz="qux" foo="bar"')
@@ -77,7 +77,7 @@ describe Pacemaker::Resource::Primitive do
     end
 
     it "should return a short definition string" do
-      primitive = pacemaker_object_class.new('foo')
+      primitive = pacemaker_object_class.new("foo")
       primitive.definition = \
         %!primitive foo ocf:heartbeat:IPaddr2 params foo="bar"!
       primitive.parse_definition
@@ -90,7 +90,7 @@ EOF
 
   describe "#quoted_definition_string" do
     it "should return the quoted definition string" do
-      primitive = pacemaker_object_class.new('foo')
+      primitive = pacemaker_object_class.new("foo")
       primitive.definition = <<'EOF'.chomp
 primitive foo ocf:openstack:keystone \
          params bar="foo\"bar$b!az\q%ux" bar2="ba'z\'qux"

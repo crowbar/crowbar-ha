@@ -18,7 +18,7 @@
 module Barclamp
   module PacemakerHelper
     def node_aliases
-      Hash[nodes_hash.map { |n| [n.first, { :alias => n.last[:alias] }] }]
+      Hash[nodes_hash.map { |n| [n.first, { alias: n.last[:alias] }] }]
     end
 
     def transport_for_pacemaker(selected)

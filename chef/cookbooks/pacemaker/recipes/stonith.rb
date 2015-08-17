@@ -26,7 +26,7 @@ when "manual"
   # nothing!
 
 when "sbd"
-  require 'shellwords'
+  require "shellwords"
 
   sbd_devices = nil
   sbd_devices ||= (node[:pacemaker][:stonith][:sbd][:nodes][node[:fqdn]][:devices] rescue nil)
@@ -46,7 +46,7 @@ when "sbd"
     command "#{sbd_cmd} dump &> /dev/null"
   end
 
-  if node.platform == 'suse'
+  if node.platform == "suse"
     # We will want to explicitly allocate a slot the first time we come here
     # (hence the use of a notification to trigger this execute).
     # According to the man page, it should not be required, but apparently,
@@ -63,7 +63,7 @@ when "sbd"
       group "root"
       mode 0644
       variables(
-        :sbd_devices => sbd_devices
+        sbd_devices: sbd_devices
       )
       # We want to allocate slots before restarting corosync
       notifies :run, "execute[Allocate SBD slot]", :immediately
@@ -90,7 +90,7 @@ when "shared"
     end
   end
 
-  if params.respond_to?('to_hash')
+  if params.respond_to?("to_hash")
     primitive_params = params.to_hash
   elsif params.is_a?(String)
     primitive_params = ::Pacemaker::Resource.extract_hash(" params #{params}", "params")
@@ -131,7 +131,7 @@ when "per_node"
     stonith_resource = "stonith-#{node_name}"
     params = node[:pacemaker][:stonith][:per_node][:nodes][node_name][:params]
 
-    if params.respond_to?('to_hash')
+    if params.respond_to?("to_hash")
       primitive_params = params.to_hash
     elsif params.is_a?(String)
       primitive_params = ::Pacemaker::Resource.extract_hash(" params #{params}", "params")

@@ -20,7 +20,7 @@
 include_recipe "haproxy::setup"
 
 service "haproxy" do
-  supports :restart => true, :status => true, :reload => true
+  supports restart: true, status: true, reload: true
   action [:enable, :start]
   subscribes :reload, "template[#{node[:haproxy][:platform][:config_file]}]", :immediately
 end

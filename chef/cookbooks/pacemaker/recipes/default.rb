@@ -26,7 +26,7 @@ node[:pacemaker][:platform][:packages].each do |pkg|
   package pkg
 end
 
-unless node.platform == 'suse' && node.platform_version.to_f >= 12.0
+unless node.platform == "suse" && node.platform_version.to_f >= 12.0
   if node[:pacemaker][:setup_hb_gui]
     node[:pacemaker][:platform][:graphical_packages].each do |pkg|
       package pkg
@@ -45,7 +45,7 @@ unless node.platform == 'suse' && node.platform_version.to_f >= 12.0
 end
 
 if Chef::Config[:solo]
-  unless ENV['RSPEC_RUNNING']
+  unless ENV["RSPEC_RUNNING"]
     Chef::Application.fatal! \
       "pacemaker::default needs corosync::default which uses search, " \
       "but Chef Solo does not support search."
@@ -66,7 +66,7 @@ if (platform_family?("suse") && node.platform_version.to_f >= 12.0) || platform_
   end
 
   service "pacemaker" do
-    action [ enable_or_disable, :start ]
+    action [enable_or_disable, :start]
     if platform_family? "rhel"
       notifies :restart, "service[clvm]", :immediately
     end
@@ -75,7 +75,7 @@ end
 
 ruby_block "wait for cluster to be online" do
   block do
-    require 'timeout'
+    require "timeout"
     begin
       Timeout.timeout(60) do
         cmd = "crm_mon -1 | grep -qi online"

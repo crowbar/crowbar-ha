@@ -32,31 +32,31 @@ action :create do
   end
 
   new_resource.servers.each do |server|
-    raise "One of the servers has no name." if server['name'].nil?
-    raise "Server #{server['name']} has no address." if server['address'].nil?
-    raise "Server #{server['name']} has no port." if server['port'].nil?
-    raise "Server #{server['name']} has invalid port." if (server['port'] < 1 || server['port'] > 65535)
+    raise "One of the servers has no name." if server["name"].nil?
+    raise "Server #{server['name']} has no address." if server["address"].nil?
+    raise "Server #{server['name']} has no port." if server["port"].nil?
+    raise "Server #{server['name']} has invalid port." if (server["port"] < 1 || server["port"] > 65535)
   end
 
   section = {}
-  section['address'] = new_resource.address
-  section['port'] = new_resource.port
-  section['use_ssl'] = new_resource.use_ssl
+  section["address"] = new_resource.address
+  section["port"] = new_resource.port
+  section["use_ssl"] = new_resource.use_ssl
   if new_resource.use_ssl
-    section['mode'] = 'tcp'
+    section["mode"] = "tcp"
   else
-    section['mode'] = new_resource.mode
+    section["mode"] = new_resource.mode
   end
-  section['options'] = new_resource.options || []
-  if section['options'].empty? || section['options'].include?("defaults")
-    section['options'].delete("defaults")
-    if section['use_ssl']
-      section['options'] = [['ssl-hello-chk', 'tcpka', 'tcplog'], section['options']].flatten
-    elsif section['mode'] == 'http'
-      section['options'] = [['tcpka', 'httplog', 'forwardfor'], section['options']].flatten
+  section["options"] = new_resource.options || []
+  if section["options"].empty? || section["options"].include?("defaults")
+    section["options"].delete("defaults")
+    if section["use_ssl"]
+      section["options"] = [["ssl-hello-chk", "tcpka", "tcplog"], section["options"]].flatten
+    elsif section["mode"] == "http"
+      section["options"] = [["tcpka", "httplog", "forwardfor"], section["options"]].flatten
     end
   end
-  section['servers'] = new_resource.servers
+  section["servers"] = new_resource.servers
 
-  node.default['haproxy']['sections'][new_resource.type][new_resource.name] = section
+  node.default["haproxy"]["sections"][new_resource.type][new_resource.name] = section
 end

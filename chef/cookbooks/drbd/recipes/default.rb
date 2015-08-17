@@ -22,8 +22,8 @@ include_recipe "drbd::config"
 
 service "drbd" do
   supports(
-    :restart => true,
-    :status => true
+    restart: true,
+    status: true
   )
   if node["drbd"]["rsc"].empty?
     action :nothing

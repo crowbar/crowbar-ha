@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-require 'chef/shell_out'
+require "chef/shell_out"
 
 module DrbdOverview
   def self.get(resource)

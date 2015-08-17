@@ -27,7 +27,7 @@ module CrowbarPacemaker
       # Via Chef::Pacemaker::StartHandler we track whether anything
       # has put the node into Pacemaker maintenance mode prior to this
       # chef-client run.  This may come in handy during debugging.
-      # 
+      #
       # We use a default attribute so that it will get reset at the
       # beginning of each chef-client run.
       node.default[:pacemaker][:maintenance_mode][$$][:at_start] = maintenance_mode?
@@ -39,7 +39,7 @@ module CrowbarPacemaker
       # whether to take it out of maintenance mode again at the end of
       # the run without interfering with external influences which
       # might set it.
-      # 
+      #
       # We use a default attribute so that it will get reset at the
       # beginning of each chef-client run.
       node.default[:pacemaker][:maintenance_mode][$$][:via_chef] = true

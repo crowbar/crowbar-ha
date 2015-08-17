@@ -26,7 +26,7 @@ if node[:pacemaker][:notifications][:smtp][:enabled]
   raise "No sender address for mail notifications!" if node[:pacemaker][:notifications][:smtp][:to].empty?
   raise "No recipient address for mail notifications!" if node[:pacemaker][:notifications][:smtp][:from].empty?
 
-  require 'shellwords'
+  require "shellwords"
 
   server = Shellwords.shellescape(node[:pacemaker][:notifications][:smtp][:server])
   to = Shellwords.shellescape(node[:pacemaker][:notifications][:smtp][:to])

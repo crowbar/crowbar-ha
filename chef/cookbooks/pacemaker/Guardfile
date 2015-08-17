@@ -3,9 +3,9 @@
 # More info at https://github.com/guard/guard#readme
 
 guard_opts = {
-  cmd: 'bundle exec rspec',
+  cmd: "bundle exec rspec",
   all_on_start:   true,
-  all_after_pass: true,
+  all_after_pass: true
 }
 
 DEBUG = false
@@ -15,12 +15,12 @@ def reload(target)
   target
 end
 
-def all_specs;      reload 'all_specs';      'spec'           end
-def library_specs;  reload 'library_specs';  'spec/libraries' end
-def provider_specs; reload 'provider_specs'; 'spec/providers' end
+def all_specs;      reload "all_specs";      "spec"           end
+def library_specs;  reload "library_specs";  "spec/libraries" end
+def provider_specs; reload "provider_specs"; "spec/providers" end
 
 group :rspec do
-  guard 'rspec', guard_opts do
+  guard "rspec", guard_opts do
     watch(%r{^Gemfile$})                   { all_specs }
     watch(%r{^Gemfile.lock$})              { all_specs }
     watch(%r{^spec/spec_helper\.rb$})      { all_specs }
@@ -44,7 +44,7 @@ group :rspec do
 end
 
 group :bundler do
-  guard 'bundler' do
-    watch('Gemfile')
+  guard "bundler" do
+    watch("Gemfile")
   end
 end

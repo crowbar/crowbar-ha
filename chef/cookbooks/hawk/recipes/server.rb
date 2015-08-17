@@ -21,7 +21,7 @@ node[:hawk][:platform][:packages].each do |pkg|
 end
 
 service "hawk" do
-  supports :status => true, :restart => true
+  supports status: true, restart: true
   action [:enable, :start]
 end
 

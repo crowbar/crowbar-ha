@@ -1,7 +1,7 @@
-require File.expand_path('../constraint', File.dirname(__FILE__))
+require File.expand_path("../constraint", File.dirname(__FILE__))
 
 class Pacemaker::Constraint::Colocation < Pacemaker::Constraint
-  TYPE = 'colocation'
+  TYPE = "colocation"
   register_type TYPE
 
   attr_accessor :score
@@ -10,7 +10,7 @@ class Pacemaker::Constraint::Colocation < Pacemaker::Constraint
   def resources=(val)
     case val
     when Array
-      @resources = val.join ' '
+      @resources = val.join " "
     when String
       @resources = val
     else
@@ -29,7 +29,7 @@ class Pacemaker::Constraint::Colocation < Pacemaker::Constraint
     # See the crm(8) man page for the official BNF grammar.
     unless definition =~ /^#{self.class::TYPE} (\S+) (\d+|[-+]?inf): (.+?)\s*$/
       raise Pacemaker::CIBObject::DefinitionParseError, \
-        "Couldn't parse definition '#{definition}'"
+            "Couldn't parse definition '#{definition}'"
     end
     self.name  = $1
     self.score = $2
@@ -39,5 +39,4 @@ class Pacemaker::Constraint::Colocation < Pacemaker::Constraint
   def definition_string
     "#{self.class::TYPE} #{name} #{score}: #{resources}"
   end
-
 end

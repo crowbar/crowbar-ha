@@ -22,7 +22,7 @@
 # server side. This only happens the very first time (which is when we don't
 # even have an auth key); on next runs, we know we're good.
 if node[:corosync][:authkey].nil?
-  require 'timeout'
+  require "timeout"
 
   begin
     Timeout.timeout(20) do

@@ -19,7 +19,6 @@
 
 # Define pacemaker primitive for apache service
 
-
 # This is required for the OCF resource agent
 include_recipe "apache2::mod_status"
 
@@ -41,27 +40,27 @@ service_name = "apache2"
 agent_name = node[:pacemaker][service_name][:agent]
 
 apache_params = {}
-unless agent_name == 'systemd:apache2'
+unless agent_name == "systemd:apache2"
   apache_params["statusurl"] = "http://127.0.0.1:#{listening_port}/server-status"
 end
-unless crowbar_defined_ports.values.select{|service| service.has_key? :ssl}.empty?
+unless crowbar_defined_ports.values.select{ |service| service.has_key? :ssl }.empty?
   apache_params["options"] = "-DSSL"
 end
 
 pacemaker_primitive service_name do
   agent agent_name
   params apache_params
-  op    apache_op
+  op apache_op
   action :create
   only_if { CrowbarPacemakerHelper.is_cluster_founder?(node) }
 end
 
 pacemaker_clone "cl-#{service_name}" do
   rsc service_name
-  action [ :create, :start ]
+  action [:create, :start]
   only_if { CrowbarPacemakerHelper.is_cluster_founder?(node) }
 end
 
 # Override service provider for apache2 resource defined in apache2 cookbook
-resource = resources(:service => "apache2")
+resource = resources(service: "apache2")
 resource.provider(Chef::Provider::CrowbarPacemakerService)

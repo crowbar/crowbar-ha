@@ -49,14 +49,14 @@ default_action :guess
 # resources: one for wait and one for create. However, we detect some magic
 # names: if the mark is not set and the name is "wait-XYZ" or "create-XYZ",
 # then "XYZ" will be used as the mark
-attribute :name,      :kind_of => String,  :name_attribute => true
+attribute :name,      kind_of: String,  name_attribute: true
 
 # see comment above for magic that can be used for the name to skip this
 # paramater
-attribute :mark,      :kind_of => String,  :default => nil
+attribute :mark,      kind_of: String,  default: nil
 
 # this is optional in crowbar; the barclamp proposal revision will be used
-attribute :revision,  :kind_of => Integer, :default => nil
+attribute :revision,  kind_of: Integer, default: nil
 
-attribute :fatal,     :kind_of => [TrueClass, FalseClass], :default => true
-attribute :timeout,   :kind_of => Integer, :default => 60
+attribute :fatal,     kind_of: [TrueClass, FalseClass], default: true
+attribute :timeout,   kind_of: Integer, default: 60

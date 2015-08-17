@@ -56,8 +56,8 @@ action :create do
     next_free_device = 0
 
     node["drbd"]["rsc"].each do |other_resource_name, other_resource|
-      next_free_port = [next_free_port, other_resource['port'] + 1].max
-      device = other_resource['device'].gsub("/dev/drbd", "").to_i
+      next_free_port = [next_free_port, other_resource["port"] + 1].max
+      device = other_resource["device"].gsub("/dev/drbd", "").to_i
       next_free_device = [next_free_device, device + 1].max
     end
 
