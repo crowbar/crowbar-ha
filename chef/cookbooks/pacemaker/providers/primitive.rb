@@ -117,6 +117,7 @@ def maybe_modify_resource(name)
   #
   # This can result in a primitive not being started with [:create, :start].
   # Therefore, we just delete this deprecated bit from meta to avoid any issue.
+  new_resource.meta.delete("target-role")
   desired_primitive.meta.delete("target-role")
 
   if desired_primitive.op_string != @current_cib_object.op_string
