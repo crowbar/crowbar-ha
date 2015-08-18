@@ -55,9 +55,16 @@ def create_resource(name)
 end
 
 def maybe_modify_resource(name)
+  deprecate_target_role
+
   Chef::Log.info "Checking existing #{@current_cib_object} for modifications"
 
   desired_group = cib_object_class.from_chef_resource(new_resource)
+
+  # See comment in primitive provider as to why we do this
+  new_resource.meta.delete("target-role")
+  desired_group.meta.delete("target-role")
+
   if desired_group.definition_string != @current_cib_object.definition_string
     Chef::Log.debug "changed from [#{@current_cib_object.definition_string}] to [#{desired_group.definition_string}]"
     cmd = desired_group.reconfigure_command
