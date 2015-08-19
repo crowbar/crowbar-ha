@@ -7,6 +7,12 @@ The [Crowbar Framework](https://github.com/crowbar/crowbar) is currently maintai
 an [OpenStack](http://openstack.org) installation framework but is prepared to be a much broader function tool. It was
 originally developed by the [Dell CloudEdge Solutions Team](http://dell.com/openstack).
 
+This component will automatically deploy and configure Pacemaker clusters, with the end goal of making the OpenStack
+infrastructure services and their dependencies highly available. It will be based to a large extent on the architecture
+documented at:
+
+  http://docs.openstack.org/high-availability-guide/content/
+
 ## Badges
 
 [![Build Status](https://travis-ci.org/crowbar/crowbar-ha.svg?branch=master)](https://travis-ci.org/crowbar/crowbar-ha)
