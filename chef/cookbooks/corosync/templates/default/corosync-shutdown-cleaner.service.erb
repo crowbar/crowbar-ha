@@ -5,8 +5,9 @@ Before=<%= @service_name %>.service
 [Service]
 Type=oneshot
 RemainAfterExit=true
-ExecStart=
-ExecStop=rm -f <%= @block_corosync_file %>
+ExecStart=/usr/bin/true
+ExecStop=/usr/bin/rm -f <%= @block_corosync_file %>
+ExecStopPost=/usr/bin/echo "corosync-shutdown-cleaner.service cleaning up <%= @block_corosync_file %> done"
 
 [Install]
 WantedBy=multi-user.target
