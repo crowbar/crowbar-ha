@@ -3,3 +3,7 @@ sudo: false
 
 rvm:
   - 2.1.0
+
+gemfile: chef/cookbooks/pacemaker/Gemfile
+install: cd chef/cookbooks/pacemaker && bundle install --without development
+script: exec rspec
