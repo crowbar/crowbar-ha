@@ -56,6 +56,6 @@ ruby_block "Store authkey to Chef server" do
   # we didn't run corosync-keygen)
   unless node[:corosync][:authkey].nil?
     action :nothing
-    subscribes :create, resources(execute: "corosync-keygen"), :immediately
+    subscribes :create, 'execute[corosync-keygen]', :immediately
   end
 end
