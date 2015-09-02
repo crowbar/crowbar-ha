@@ -1,0 +1,53 @@
+require 'rspec/core/rake_task'
+require 'rubocop/rake_task'
+require 'foodcritic'
+require 'kitchen'
+require 'mixlib/shellout'
+require 'kitchen/rake_tasks'
+
+# Integration tests. Kitchen.ci
+namespace :integration do
+  desc 'Setup the test-kitchen vagrant instances'
+  task :vagrant_setup do
+    Kitchen.logger = Kitchen.default_file_logger
+    Kitchen::Config.new.instances.each do |instance|
+      # this happens serially because virualbox/vagrant can't handle
+      # parallel vm creation
+      instance.create()
+
+      # Initial converge
+      instance.converge()
+    end
+  end
+
+  desc 'Verify the test-kitchen vagrant instances'
+  task :vagrant_verify do
+    Kitchen.logger = Kitchen.default_file_logger
+    Kitchen::Config.new.instances.each do |instance|
+      # Run the integration tests now
+      instance.verify()
+    end
+  end
+end
+
+# Clean up
+namespace :cleanup do
+  desc 'Destroy test-kitchen instances'
+  task :kitchen_destroy do
+    destroy = Kitchen::RakeTasks.new do |obj|
+      def obj.destroy
+        config.instances.each(&:destroy)
+      end
+    end
+    destroy.destroy
+  end
+end
+
+desc 'Clean up generated files'
+task cleanup: ['cleanup:kitchen_destroy']
+
+desc 'Run full integration'
+task integration: ['integration:vagrant_setup', 'integration:vagrant_verify']
+
+# Default
+task default: ['integration', 'cleanup']
