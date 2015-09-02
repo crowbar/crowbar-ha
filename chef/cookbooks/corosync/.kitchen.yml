@@ -1,0 +1,38 @@
+---
+driver:
+  name: vagrant
+
+provisioner:
+  name: chef_zero
+
+platforms:
+- name: centos-6.4
+
+suites:
+- name: node-1
+  driver:
+    network:
+      - ["private_network", {ip: "192.168.33.33"}]
+  run_list:
+    - recipe[corosync::default]
+  attributes:
+    corosync:
+      cluster_name: test_cluster
+      bind_addr: "192.168.33.0"
+      members: ["192.168.33.33", "192.168.33.34"]
+      transport: "udpu"
+      authkey: "6g4AqkD6s/1+CiH/6UWq78oMxXrkWd7wApBGsossAFy4smoFAIq5GUgTlwiz\nkzoPaSU7J7YSo9dmkZJv3oAWYCMPxpMBpWdleVZVyufomqPXKssfj0AwW0Gh\n5OBNcBToVaf6UD2dUSZiWnh2+3G30zdhqWwKrmcT2TVi8xJdCC8=\n"
+
+- name: node-2
+  driver:
+    network:
+      - ["private_network", {ip: "192.168.33.34"}]
+  run_list:
+    - recipe[corosync::default]
+  attributes:
+    corosync:
+      cluster_name: test_cluster
+      bind_addr: "192.168.33.0"
+      members: ["192.168.33.33", "192.168.33.34"]
+      transport: "udpu"
+      authkey: "6g4AqkD6s/1+CiH/6UWq78oMxXrkWd7wApBGsossAFy4smoFAIq5GUgTlwiz\nkzoPaSU7J7YSo9dmkZJv3oAWYCMPxpMBpWdleVZVyufomqPXKssfj0AwW0Gh\n5OBNcBToVaf6UD2dUSZiWnh2+3G30zdhqWwKrmcT2TVi8xJdCC8=\n"
