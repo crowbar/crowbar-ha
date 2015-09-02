@@ -3,6 +3,7 @@
 # Recipe:: client
 #
 # Copyright 2012, Rackspace US, Inc.
+# Copyright 2015, Ovais Tariq <me@ovaistariq.net>
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,6 +18,13 @@
 # limitations under the License.
 #
 
+# Configure the necessary yum repositories for RHEL platform
+case node["platform_family"]
+when 'rhel'
+  include_recipe 'yum-epel'
+end
+
+# Install the required pacakges
 node[:corosync][:platform][:packages].each do |pkg|
   package pkg do
     action :install
