@@ -18,16 +18,13 @@
 #
 
 # chef makes csync2 redundant
-if platform_family? "suse"
+case node["platform_family"]
+when 'suse'
   service "csync2" do
     action [:stop, :disable]
   end
-end
-
-if platform_family? "rhel"
-  # http://clusterlabs.org/quickstart.html
-  Chef::Application.fatal! "FIXME: RedHat-based platforms configure corosync via cluster.conf"
-  return
+when 'rhel'
+  Chef::Log.warn("RedHat-based platforms configure corosync via cluster.conf")
 end
 
 unless %(udp udpu).include?(node[:corosync][:transport])
@@ -39,7 +36,7 @@ if node[:corosync][:transport] == "udpu" && (node[:corosync][:members].nil? || n
 end
 
 template "/etc/corosync/corosync.conf" do
-  if node.platform == "suse" && node.platform_version.to_f >= 12.0
+  if node["platform_family"] == "suse" && node["platform_version"].to_f >= 12.0
     source "corosync.conf.v2.erb"
   else
     source "corosync.conf.erb"
@@ -48,16 +45,16 @@ template "/etc/corosync/corosync.conf" do
   group "root"
   mode 0600
   variables(
-    cluster_name: node[:corosync][:cluster_name],
-    bind_addr: node[:corosync][:bind_addr],
-    mcast_addr: node[:corosync][:mcast_addr],
-    mcast_port: node[:corosync][:mcast_port],
-    members: node[:corosync][:members],
-    transport: node[:corosync][:transport]
+    :cluster_name => node[:corosync][:cluster_name],
+    :bind_addr    => node[:corosync][:bind_addr],
+    :mcast_addr   => node[:corosync][:mcast_addr],
+    :mcast_port   => node[:corosync][:mcast_port],
+    :members      => node[:corosync][:members],
+    :transport    => node[:corosync][:transport]
   )
 
   service_name = node[:pacemaker][:platform][:service_name] rescue nil
   if service_name
-    notifies :restart, "service[#{service_name}]"
+    notifies :restart, "service[#{service_name}]", :immediately
   end
 end
