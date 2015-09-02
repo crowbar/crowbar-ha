@@ -160,7 +160,7 @@ else
     action :disable
   end
 
-  if node["platform_family"] != "suse" || node["platform_version"]to_f < 12.0
+  if node["platform_family"] != "suse" || node["platform_version"].to_f < 12.0
     file "/etc/init.d/#{corosync_shutdown}" do
       action :delete
     end
