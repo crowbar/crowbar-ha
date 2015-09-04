@@ -20,7 +20,7 @@ module CrowbarPacemaker
   module MaintenanceModeHelpers
     def maintenance_mode?
       # See https://bugzilla.suse.com/show_bug.cgi?id=870696
-      !! (%x(crm_attribute -G -N #{node.hostname} -n maintenance -q) =~ /^on$/)
+      `crm_attribute -G -N #{node.hostname} -n maintenance -q` =~ /^on$/
     end
 
     def set_maintenance_mode_via_this_chef_run
@@ -32,14 +32,14 @@ module CrowbarPacemaker
       #
       # We use a default attribute so that it will get reset at the
       # beginning of each chef-client run.
-      node.default[:pacemaker][:maintenance_mode][$$][:via_chef] = true
+      node.default[:pacemaker][:maintenance_mode][$PID][:via_chef] = true
     end
 
     def maintenance_mode_set_via_this_chef_run?
       # The "== true" is required because Chef::Node::Attribute does
       # auto-vivification on read (!), so the value will be initialized
       # to an empty Chef::Node::Attribute if not already set to true.
-      node.default[:pacemaker][:maintenance_mode][$$][:via_chef] == true
+      node.default[:pacemaker][:maintenance_mode][$PID][:via_chef] == true
     end
   end
 end
