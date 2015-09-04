@@ -23,16 +23,6 @@ module CrowbarPacemaker
       !! (%x(crm_attribute -G -N #{node.hostname} -n maintenance -q) =~ /^on$/)
     end
 
-    def record_maintenance_mode_before_this_chef_run
-      # Via Chef::Pacemaker::StartHandler we track whether anything
-      # has put the node into Pacemaker maintenance mode prior to this
-      # chef-client run.  This may come in handy during debugging.
-      #
-      # We use a default attribute so that it will get reset at the
-      # beginning of each chef-client run.
-      node.default[:pacemaker][:maintenance_mode][$$][:at_start] = maintenance_mode?
-    end
-
     def set_maintenance_mode_via_this_chef_run
       # We track whether anything has put the node into Pacemaker
       # maintenance mode during this chef-client run, so we know
