@@ -20,12 +20,12 @@
 
 # Configure the necessary yum repositories for RHEL platform
 case node["platform_family"]
-when 'rhel'
-  include_recipe 'yum-epel'
+when "rhel"
+  include_recipe "yum-epel"
 end
 
 # Install the required pacakges
-node[:corosync][:platform][:packages].each do |pkg|
+node["corosync"]["platform"]["packages"].each do |pkg|
   package pkg do
     action :install
   end
