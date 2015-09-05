@@ -1,11 +1,11 @@
-require ::File.expand_path("../../../pacemaker/cib_object",
-                           File.dirname(__FILE__))
 
 # Common code used by Pacemaker LWRP providers
 
 class Chef
   module Mixin::Pacemaker
     module StandardCIBObject
+      extend self
+
       def standard_create_action
         name = new_resource.name
 
