@@ -1,5 +1,6 @@
-require ::File.expand_path("../../libraries/pacemaker/constraint/order",
-                           File.dirname(__FILE__))
+require "chef/mixin/shell_out"
+require File.expand_path("../../libraries/pacemaker",
+                         File.dirname(__FILE__))
 
 module Chef::RSpec
   module Pacemaker
