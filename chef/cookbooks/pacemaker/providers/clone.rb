@@ -50,7 +50,8 @@ end
 def init_current_resource
   name = @new_resource.name
   @current_resource = Chef::Resource::PacemakerClone.new(name)
-  @current_cib_object.copy_attrs_to_chef_resource(@current_resource, :rsc)
+  attrs = [:rsc]
+  @current_cib_object.copy_attrs_to_chef_resource(@current_resource, *attrs)
 end
 
 def create_resource(name)

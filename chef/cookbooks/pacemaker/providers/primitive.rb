@@ -74,8 +74,8 @@ end
 def init_current_resource
   name = @new_resource.name
   @current_resource = Chef::Resource::PacemakerPrimitive.new(name)
-  @current_cib_object.copy_attrs_to_chef_resource(@current_resource,
-                                                  :agent, :params, :meta)
+  attrs = [:agent, :params, :meta]
+  @current_cib_object.copy_attrs_to_chef_resource(@current_resource, *attrs)
 end
 
 def create_resource(name)
