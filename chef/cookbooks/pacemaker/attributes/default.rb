@@ -1,4 +1,5 @@
 # Copyright 2011, Dell, Inc.
+# Copyright 2015, Ovais Tariq
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,20 +14,25 @@
 # limitations under the License.
 #
 
-case node.platform
+case node["platform_family"]
 when "suse"
-  default[:pacemaker][:platform][:packages] = %w(pacemaker crmsh)
+  default["pacemaker"]["platform"]["packages"] = %w(pacemaker crmsh)
 
   # pacemaker-mgmt-client provides hb_gui, which it's useful
   # to run over ssh.  Note that pacemaker-mgmt needs to be installed
   # *before* the corosync service is started, otherwise the mgmtd
   # plugin won't be forked as a child process.
-  default[:pacemaker][:platform][:graphical_packages] = %w(
+  default["pacemaker"]["platform"]["graphical_packages"] = %w(
     pacemaker-mgmt pacemaker-mgmt-client
     xorg-x11-xauth xorg-x11-fonts
   )
-else
-
+  default["pacemaker"]["platform"]["crm_package"] = nil
+when "rhel"
+  default["pacemaker"]["platform"]["packages"] = %w(pacemaker)
+  default["pacemaker"]["platform"]["crm_package"] = "crmsh"
+  default["pacemaker"]["platform"]["graphical_packages"] = nil
+  default["pacemaker"]["platform"]["service_name"] = "pacemaker"
+when "debian"
   #
   # These ubuntu package requirements have to be validated before we will
   # activate that, these packages have been taken from an old notes file:
@@ -46,48 +52,58 @@ else
   # * pacemaker
   # * haveged
   #
-
+  
   default[:pacemaker][:platform][:packages] = nil
   default[:pacemaker][:platform][:graphical_packages] = nil
 end
 
-default[:pacemaker][:founder] = false
-default[:pacemaker][:crm][:initial_config_file] = "/etc/corosync/crm-initial.conf"
-default[:pacemaker][:crm][:no_quorum_policy] = "ignore"
-default[:pacemaker][:crm][:op_default_timeout] = 60
+default["pacemaker"]["founder"] = false
+default["pacemaker"]["crm"]["initial_config_file"] = "/etc/corosync/crm-initial.conf"
 
+# We ignore the quorum by default, this is needed for a 2 node cluster
+# as both the nodes go down in case of them is down as the remaining one will
+# also loose quorum
+default["pacemaker"]["crm"]["no_quorum_policy"] = "ignore"
+
+# Default timeout for operations in seconds
+default["pacemaker"]["crm"]["op_default_timeout"] = 60
+
+# Don't setup/configure heartbeat GUI
+default["pacemaker"]["setup_hb_gui"] = false
+
+# stonith is disabled by default
 # Values can be "disabled", "manual", "sbd", "shared", "per_node"
-default[:pacemaker][:stonith][:mode] = "disabled"
+default["pacemaker"]["stonith"]["mode"] = "disabled"
 
 # This hash will contain devices for each node.
 # For instance:
 #  default[:pacemaker][:stonith][:sbd][:nodes][$node][:devices] = ['/dev/disk/by-id/foo-part1', '/dev/disk/by-id/bar-part1']
-default[:pacemaker][:stonith][:sbd][:nodes] = {}
+default["pacemaker"]["stonith"]["sbd"]["nodes"] = {}
 
-default[:pacemaker][:stonith][:shared][:agent] = ""
+default["pacemaker"]["stonith"]["shared"]["agent"] = ""
 # This can be either a string (containing a list of parameters) or a hash.
 # For instance:
 #   default[:pacemaker][:stonith][:shared][:params] = 'hostname="foo" password="bar"'
 # will give the same result as:
 #   default[:pacemaker][:stonith][:shared][:params] = {"hostname" => "foo", "password" => "bar"}
-default[:pacemaker][:stonith][:shared][:params] = {}
+default["pacemaker"]["stonith"]["shared"]["params"] = {}
 
-default[:pacemaker][:stonith][:per_node][:agent] = ""
+default["pacemaker"]["stonith"]["per_node"]["agent"] = ""
 # This can be "all" or "self":
 #   - if set to "all", then every node will configure the stonith resources for
 #     all nodes in the cluster
 #   - if set to "self", then every node will configure the stonith resource for
 #     itself only
-default[:pacemaker][:stonith][:per_node][:mode] = "all"
+default["pacemaker"]["stonith"]["per_node"]["mode"] = "all"
 # This hash will contain parameters for each node. See documentation for
 # default[:pacemaker][:stonith][:shared][:params] about the format.
 # For instance:
 #  default[:pacemaker][:stonith][:per_node][:nodes][$node][:params] = 'hostname="foo" password="bar"'
-default[:pacemaker][:stonith][:per_node][:nodes] = {}
+default["pacemaker"]["stonith"]["per_node"]["nodes"] = {}
 
-default[:pacemaker][:notifications][:agent] = "ocf:heartbeat:ClusterMon"
-default[:pacemaker][:notifications][:smtp][:enabled] = false
-default[:pacemaker][:notifications][:smtp][:to] = ""
-default[:pacemaker][:notifications][:smtp][:from] = ""
-default[:pacemaker][:notifications][:smtp][:server] = ""
-default[:pacemaker][:notifications][:smtp][:prefix] = ""
+default["pacemaker"]["notifications"]["agent"] = "ocf:heartbeat:ClusterMon"
+default["pacemaker"]["notifications"]["smtp"]["enabled"] = false
+default["pacemaker"]["notifications"]["smtp"]["to"] = ""
+default["pacemaker"]["notifications"]["smtp"]["from"] = ""
+default["pacemaker"]["notifications"]["smtp"]["server"] = ""
+default["pacemaker"]["notifications"]["smtp"]["prefix"] = ""
