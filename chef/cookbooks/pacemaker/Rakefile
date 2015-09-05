@@ -142,4 +142,4 @@ desc 'Run full integration'
 task integration: ['integration:pre_cmds', 'integration:vagrant_setup', 'integration:vagrant_verify']
 
 # Default
-task default: ['style', 'spec', 'integration:vagrant_setup', 'integration']
+task default: ['style', 'spec', 'integration']
