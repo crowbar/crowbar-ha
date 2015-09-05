@@ -1,5 +1,6 @@
 define :pacemaker_vip_primitive, cb_network: nil, hostname: nil, domain: nil, op: nil do
   network = params[:cb_network]
+  op_params = params[:op]
   net_db = data_bag_item("crowbar", "#{network}_network")
   raise "#{network}_network data bag missing?!" unless net_db
   fqdn = "#{params[:hostname]}.#{params[:domain]}"
@@ -15,7 +16,7 @@ define :pacemaker_vip_primitive, cb_network: nil, hostname: nil, domain: nil, op
     params ({
       "ip" => ip_addr
     })
-    op params[:op]
+    op op_params
     action :create
     only_if { CrowbarPacemakerHelper.is_cluster_founder?(node) }
   end
