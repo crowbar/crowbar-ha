@@ -1,0 +1,7 @@
+source "https://supermarket.getchef.com"
+
+cookbook 'corosync', path: '../corosync'
+cookbook 'pacemaker_test', path: 'test/fixtures/cookbooks/pacemaker_test'
+cookbook 'drbd', git: 'git://github.com/ovaistariq/drbd.git'
+
+metadata
