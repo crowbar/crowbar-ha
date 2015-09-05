@@ -1,2 +1,13 @@
+metadata.json
+
+.vagrant
+Berksfile.lock
 Gemfile.lock
-tmp/
+/cookbooks
+
+# Bundler
+bin/*
+.bundle/*
+
+.kitchen/
+.kitchen.local.yml
