@@ -17,11 +17,8 @@
 # limitations under the License.
 #
 
-this_dir = ::File.dirname(__FILE__)
-require ::File.expand_path("../libraries/pacemaker", this_dir)
-require ::File.expand_path("../libraries/chef/mixin/pacemaker", this_dir)
-
 include Chef::Mixin::Pacemaker::RunnableResource
+include Chef::Mixin::Pacemaker::StandardCIBObject
 
 action :create do
   standard_create_action
