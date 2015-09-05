@@ -37,7 +37,7 @@ class Chef
           return
         end
 
-        ::Chef::Log.debug "CIB object definition #{cib_object.definition}"
+        ::Chef::Log.debug "CIB object '#{name}' currently defined as:\n#{cib_object.definition}"
         @current_resource_definition = cib_object.definition
         cib_object.parse_definition
 
