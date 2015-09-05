@@ -42,7 +42,13 @@ class Chef
         cib_object.parse_definition
 
         @current_cib_object = cib_object
-        init_current_resource
+
+        resource_class_name = self.class.to_s.sub("Chef::Provider::", "")
+        resource_class = Kernel.const_get("Chef").const_get("Resource").const_get(resource_class_name)
+
+        @current_resource = resource_class.new(name)
+        @current_cib_object.copy_attrs_to_chef_resource(@current_resource,
+                                                        *resource_attrs)
       end
 
       # In Pacemaker, target-role defaults to 'Started', but we want
