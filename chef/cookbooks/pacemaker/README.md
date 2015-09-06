@@ -1,9 +1,19 @@
-[![Build Status](https://travis-ci.org/crowbar/barclamp-pacemaker.png?branch=release/roxy/master)](https://travis-ci.org/crowbar/barclamp-pacemaker)
-
-DESCRIPTION
+Pacemaker
 ===========
 
-This is a cookbook for installing and configuring pacemaker.
+This cookbook configures and sets up Pacemaker. To use, assign
+the `pacemaker::default` recipe to the cluster members.
+
+Make sure one of the nodes is setup as the founder node by
+setting the attribute `node[:pacemaker][:founder]`.
+
+Make sure that the node attribute `node[:corosync][:cluster_name]`
+is set to the same same cluster name on all nodes in the cluster.
+
+There is a complete example cookbook that can be found in the
+test/integration/fixtures/cookbooks directory. The example
+cookbook sets up a two node cluster with Pacemaker managing
+shared DRBD volume, HAProxy service and a VIP. 
 
 Recipes
 =======
