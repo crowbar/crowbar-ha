@@ -8,7 +8,7 @@ require File.expand_path("../../fixtures/keystone_primitive", this_dir)
 
 describe Pacemaker::CIBObject do
   before(:each) do
-    Mixlib::ShellOut.any_instance.stub(:run_command)
+    allow_any_instance_of(Mixlib::ShellOut).to receive(:run_command)
   end
 
   let(:cib_object) { Chef::RSpec::Pacemaker::Config::KEYSTONE_PRIMITIVE.dup }
@@ -40,7 +40,7 @@ describe Pacemaker::CIBObject do
 
   context "keystone primitive resource CIB object" do
     before(:each) do
-      Mixlib::ShellOut.any_instance.stub(:error!)
+      allow_any_instance_of(Mixlib::ShellOut).to receive(:error!)
       expect_any_instance_of(Mixlib::ShellOut) \
         .to receive(:stdout) \
         .and_return(cib_object.definition_string)
@@ -73,7 +73,7 @@ describe Pacemaker::CIBObject do
 
   context "CIB object with unregistered type" do
     before(:each) do
-      Mixlib::ShellOut.any_instance.stub(:error!)
+      allow_any_instance_of(Mixlib::ShellOut).to receive(:error!)
     end
 
     describe "::from_name" do
@@ -90,7 +90,7 @@ describe Pacemaker::CIBObject do
 
   context "invalid CIB object definition" do
     before(:each) do
-      Mixlib::ShellOut.any_instance.stub(:error!)
+      allow_any_instance_of(Mixlib::ShellOut).to receive(:error!)
       expect_any_instance_of(Mixlib::ShellOut) \
         .to receive(:stdout) \
         .and_return("nonsense")
