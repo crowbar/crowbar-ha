@@ -1,4 +1,3 @@
-require ::File.expand_path("standard_cib_object", File.dirname(__FILE__))
 
 # Common code used by Pacemaker LWRP providers for resources supporting
 # the :run action.
@@ -6,7 +5,7 @@ require ::File.expand_path("standard_cib_object", File.dirname(__FILE__))
 class Chef
   module Mixin::Pacemaker
     module RunnableResource
-      include StandardCIBObject
+      extend self
 
       def start_runnable_resource
         name = new_resource.name

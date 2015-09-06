@@ -1,9 +1,10 @@
 # Shared code used to test subclasses of Pacemaker::CIBObject
 
 require "mixlib/shellout"
+require "chef/mixin/shell_out"
 
 this_dir = File.dirname(__FILE__)
-require File.expand_path("../../libraries/pacemaker/cib_object", this_dir)
+require File.expand_path("../../libraries/pacemaker", this_dir)
 require File.expand_path("shellout", this_dir)
 
 shared_examples "a CIB object" do

@@ -1,5 +1,6 @@
-require ::File.expand_path("../../libraries/pacemaker/resource/primitive",
-                           File.dirname(__FILE__))
+require "chef/mixin/shell_out"
+require File.expand_path("../../libraries/pacemaker",
+                         File.dirname(__FILE__))
 
 module Chef::RSpec
   module Pacemaker

@@ -1,1 +1,13 @@
 metadata.json
+
+.vagrant
+Berksfile.lock
+Gemfile.lock
+/cookbooks
+
+# Bundler
+bin/*
+.bundle/*
+
+.kitchen/
+.kitchen.local.yml

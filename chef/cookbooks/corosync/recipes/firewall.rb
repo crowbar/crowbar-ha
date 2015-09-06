@@ -17,14 +17,14 @@
 # limitations under the License.
 #
 
-case node.platform
+case node["platform_family"]
 when "suse"
   template "/etc/sysconfig/SuSEfirewall2.d/services/cluster" do
     source "firewall.erb"
     mode "0640"
     owner "root"
     variables(
-      mcast_port: node[:corosync][:mcast_port]
+      mcast_port: node["corosync"]["mcast_port"]
     )
 
     # FIXME: where do I get the name for this from?

@@ -1,0 +1,56 @@
+---
+driver:
+  name: vagrant
+
+provisioner:
+  name: chef_zero
+
+platforms:
+- name: centos-6.6
+
+suites:
+- name: node-1
+  driver:
+    network:
+      - ["private_network", {ip: "192.168.33.33"}]
+  run_list:
+    - recipe[pacemaker_test::default]
+  attributes:
+    add_vagrant_disk: true
+    vagrant_disk_size: 5
+    corosync:
+      cluster_name: test_cluster
+      bind_addr: "192.168.33.0"
+      members: ["192.168.33.33", "192.168.33.34"]
+      transport: "udpu"
+      authkey: "6g4AqkD6s/1+CiH/6UWq78oMxXrkWd7wApBGsossAFy4smoFAIq5GUgTlwiz\nkzoPaSU7J7YSo9dmkZJv3oAWYCMPxpMBpWdleVZVyufomqPXKssfj0AwW0Gh\n5OBNcBToVaf6UD2dUSZiWnh2+3G30zdhqWwKrmcT2TVi8xJdCC8=\n"
+    pacemaker:
+      founder: true
+    drbd:
+      master: true
+      remote_host: "node-2-centos-64"
+      remote_ip: "192.168.33.34"
+      local_ip: "192.168.33.33"
+      disk: "/dev/sdb"
+
+- name: node-2
+  driver:
+    network:
+      - ["private_network", {ip: "192.168.33.34"}]
+  run_list:
+    - recipe[pacemaker_test::default]
+  attributes:
+    add_vagrant_disk: true
+    vagrant_disk_size: 5
+    corosync:
+      cluster_name: test_cluster
+      bind_addr: "192.168.33.0"
+      members: ["192.168.33.33", "192.168.33.34"]
+      transport: "udpu"
+      authkey: "6g4AqkD6s/1+CiH/6UWq78oMxXrkWd7wApBGsossAFy4smoFAIq5GUgTlwiz\nkzoPaSU7J7YSo9dmkZJv3oAWYCMPxpMBpWdleVZVyufomqPXKssfj0AwW0Gh\n5OBNcBToVaf6UD2dUSZiWnh2+3G30zdhqWwKrmcT2TVi8xJdCC8=\n"
+    pacemaker:
+    drbd:
+      remote_host: "node-1-centos-64"
+      remote_ip: "192.168.33.33"
+      local_ip: "192.168.33.34"
+      disk: "/dev/sdb"

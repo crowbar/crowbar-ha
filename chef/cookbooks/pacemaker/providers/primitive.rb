@@ -19,11 +19,8 @@
 
 require "shellwords"
 
-this_dir = ::File.dirname(__FILE__)
-require ::File.expand_path("../libraries/pacemaker", this_dir)
-require ::File.expand_path("../libraries/chef/mixin/pacemaker", this_dir)
-
 include Chef::Mixin::Pacemaker::RunnableResource
+include Chef::Mixin::Pacemaker::StandardCIBObject
 
 action :create do
   name = new_resource.name
@@ -31,17 +28,10 @@ action :create do
   if @current_resource_definition.nil?
     create_resource(name)
   else
-    current_agent = @current_resource.agent
-    unless current_agent.include? ":"
-      current_agent = "ocf:heartbeat:" + current_agent
-    end
-
-    new_agent = new_resource.agent
-    unless new_agent.include? ":"
-      new_agent = "ocf:heartbeat:" + new_agent
-    end
-
-    if current_agent != new_agent
+    # "ocf:heartbeat" is assumed to be the default and hence also skipped in
+    # the output of the command `crm configure show`
+    if (@current_resource.agent != new_resource.agent &&
+        "ocf:heartbeat:#{@current_resource.agent}" != new_resource.agent)
       raise "Existing %s has agent '%s' " \
             "but recipe wanted '%s'" % \
             [@current_cib_object, @current_resource.agent, new_resource.agent]
@@ -142,8 +132,8 @@ def maybe_configure_params(name, cmds, data_type)
     else
       Chef::Log.info("#{name}'s #{param} #{data_type} changed from #{current_value} to #{new_value}")
       cmd = configure_cmd_prefix +
-        %' --set-parameter #{Shellwords.escape param}' +
-        %' --parameter-value #{Shellwords.escape new_value}'
+        %' --set-parameter "#{Shellwords.escape param}"' +
+        %' --parameter-value "#{Shellwords.escape new_value}"'
       cmd += " --meta" if data_type == :meta
       cmds << cmd
     end

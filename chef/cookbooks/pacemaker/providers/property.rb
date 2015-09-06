@@ -17,9 +17,6 @@
 # limitations under the License.
 #
 
-this_dir = ::File.dirname(__FILE__)
-require ::File.expand_path("../libraries/pacemaker/cib_object", this_dir)
-
 action :create do
   name = new_resource.name
   val = new_resource.value

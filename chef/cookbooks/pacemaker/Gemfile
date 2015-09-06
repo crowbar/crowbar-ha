@@ -1,21 +1,32 @@
-source "https://rubygems.org"
+source 'https://rubygems.org'
 
-#gem 'berkshelf',  '~> 2.0'
+group :common do
+  gem 'rspec'
+  gem 'rake'
+  gem 'berkshelf'
+end
+
+group :kitchen_common do
+  gem 'test-kitchen', '~> 1.4'
+end
+
+group :kitchen_vagrant do
+  gem 'kitchen-vagrant', '~> 0.16'
+end
 
 group :test, :development do
-  gem "chefspec", "~> 3.0"
-  gem "rspec-expectations", "~> 2.14.0"
-  gem "rubydeps"
+  gem 'chefspec', '~> 3.0'
+  gem 'rspec-expectations', '~> 2.14.0'
+  gem 'rubydeps'
 end
 
 group :development do
-  gem "foodcritic", "~> 3.0"
-  gem "rubocop"
-  gem "jazz_fingers"
-  gem "guard-rspec"
-  gem "guard-bundler"
+  gem 'foodcritic', '~> 3.0'
+  gem 'rubocop'
+  gem 'jazz_fingers'
+  gem 'guard-rspec'
+  gem 'guard-bundler'
   # Prevent "Error: can't modify string; temporarily locked"
   # http://stackoverflow.com/a/19505033/179332
   gem "rb-readline", "~> 0.5.0"
 end
-

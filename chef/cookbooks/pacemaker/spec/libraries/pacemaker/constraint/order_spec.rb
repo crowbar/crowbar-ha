@@ -1,8 +1,7 @@
 require "spec_helper"
 
 this_dir = File.dirname(__FILE__)
-require File.expand_path("../../../../libraries/pacemaker/constraint/order",
-                         this_dir)
+require File.expand_path("../../../../libraries/pacemaker", this_dir)
 require File.expand_path("../../../fixtures/order_constraint", this_dir)
 require File.expand_path("../../../helpers/cib_object", this_dir)
 

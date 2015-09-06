@@ -1,5 +1,4 @@
 require "chef/mixin/shell_out"
-require File.expand_path("cib_object", File.dirname(__FILE__))
 
 module Pacemaker
   class Resource < Pacemaker::CIBObject
@@ -34,6 +33,8 @@ module Pacemaker
     #
     # This method extracts a Hash from one of the params / meta / op lines.
     def self.extract_hash(obj_definition, data_type)
+      # Updated the pattern from (.+?) to (.*?) to allow matching params / meta
+      # lines that are empty and only have "\\"
       unless obj_definition =~ /\s+#{data_type} (.*?)\s*\\?$/
         return {}
       end

@@ -1,4 +1,5 @@
 # Copyright 2011, Dell, Inc.
+# Copyright 2015, Ovais Tariq <me@ovaistariq.net>
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,14 +16,14 @@
 
 default[:corosync][:cluster_name] = "hacluster"
 
-default[:corosync][:bind_addr]   = "192.168.124.0"
+default[:corosync][:bind_addr ]   = "192.168.124.0"
 default[:corosync][:mcast_addr]   = "239.1.2.3"
 default[:corosync][:mcast_port]   = 5405
 default[:corosync][:members]      = []
 default[:corosync][:transport]    = "udp"
 
-case node.platform
-when "suse"
+case node["platform_family"]
+when 'suse'
   if node.platform_version.to_f >= 12.0
     default[:corosync][:platform][:packages] = %w(sle-ha-release corosync)
     default[:corosync][:platform][:service_name] = "corosync"
@@ -34,10 +35,18 @@ when "suse"
   # The UNIX user for the cluster is typically determined by the
   # cluster-glue package:
   default[:corosync][:platform][:packages].push "cluster-glue"
-else
-  # FIXME: untested, probably wrong
+
+  default[:corosync][:pacemaker_plugin][:version] = "0"
+when 'rhel'
   default[:corosync][:platform][:packages] = %w(corosync)
   default[:corosync][:platform][:service_name] = "corosync"
+  default[:corosync][:pacemaker_plugin][:version] = "1"
+
+  # Disabling sslverify for EPEL repository because of a bug with SSL verification
+  # on the 6.4 image, otherwise the package ca-certificates needs to be upgraded
+  # together with disabling the epel repo when upgrading
+  # sudo yum upgrade ca-certificates --disablerepo=epel
+  default['yum']['epel']['sslverify'] = false
 end
 
 # values should be 'yes' or 'no'.

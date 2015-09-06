@@ -17,6 +17,13 @@ module Pacemaker
       def get_definition(name)
         cmd = Mixlib::ShellOut.new("crm --display=plain configure show #{name}")
         cmd.environment["HOME"] = ENV.fetch("HOME", "/root")
+
+        # Unset the TERM environment variable otherwise the shell output will
+        # contain shell escape sequence (\E[?1034h) and the string cannot then
+        # be used as is besides why do we want the TERM to be set when we only
+        # want to look at the output of the command
+        # source: http://www.incenp.org/notes/2012/python-term-smm-fix.html
+        cmd.environment['TERM'] = ''
         cmd.run_command
         begin
           cmd.error!
@@ -27,7 +34,7 @@ module Pacemaker
       end
 
       def definition_type(definition)
-        unless definition =~ /\A(\w+)\s/
+        if definition !~ /\A(\w+)\s/
           raise "Couldn't extract CIB object type from '#{definition}'"
         end
         return $1
@@ -105,7 +112,7 @@ module Pacemaker
 
       if @definition and ! @definition.empty? and type != self.class.object_type
         raise CIBObject::TypeMismatch, \
-              "Expected #{self.class.object_type} type but loaded definition was type #{type}"
+          "Expected #{self.class.object_type} type but loaded definition was type #{type}"
       end
     end
 
