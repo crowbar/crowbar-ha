@@ -8,9 +8,9 @@ module Chef::RSpec
       # execution of a command, returning the given string on STDOUT.
       def succeeding_shellout_double(string)
         shellout = double(Mixlib::ShellOut)
-        shellout.stub(:environment).and_return({})
-        shellout.stub(:run_command)
-        shellout.stub(:error!)
+        allow(shellout).to receive(:environment).and_return({})
+        allow(shellout).to receive(:run_command)
+        allow(shellout).to receive(:error!)
         expect(shellout).to receive(:stdout).and_return(string)
         shellout
       end
@@ -22,11 +22,11 @@ module Chef::RSpec
       # may need to be relaxed in the future.
       def failing_shellout_double(stdout="", stderr="", exitstatus=1)
         shellout = double(Mixlib::ShellOut)
-        shellout.stub(:environment).and_return({})
-        shellout.stub(:run_command)
-        shellout.stub(:stdout).and_return(stdout)
-        shellout.stub(:stderr).and_return(stderr)
-        shellout.stub(:exitstatus).and_return(exitstatus)
+        allow(shellout).to receive(:environment).and_return({})
+        allow(shellout).to receive(:run_command)
+        allow(shellout).to receive(:stdout).and_return(stdout)
+        allow(shellout).to receive(:stderr).and_return(stderr)
+        allow(shellout).to receive(:exitstatus).and_return(exitstatus)
         exception = ::Mixlib::ShellOut::ShellCommandFailed.new(
           "Expected process to exit with 0, " +
           "but received '#{exitstatus}'"
@@ -62,7 +62,7 @@ module Chef::RSpec
               succeeding_shellout_double(result)
             : failing_shellout_double(*result)
         }
-        ::Mixlib::ShellOut.stub(:new).and_return(*doubles)
+        allow(::Mixlib::ShellOut).to receive(:new).and_return(*doubles)
       end
     end
   end
