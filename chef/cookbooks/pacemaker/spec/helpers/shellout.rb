@@ -1,4 +1,5 @@
 require "mixlib/shellout"
+require "chef/mixin/shell_out"
 
 module Chef::RSpec
   module Mixlib
