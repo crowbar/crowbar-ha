@@ -510,6 +510,12 @@ class PacemakerService < ServiceObject
     elements = proposal["deployment"]["pacemaker"]["elements"]
     members = elements["pacemaker-cluster-member"] || []
 
+    if members.length.even? && members.length > 2
+      validation_error I18n.t(
+        "barclamp.#{bc_name}.validation.cluster_size_even"
+      )
+    end
+
     if elements.key?("hawk-server")
       elements["hawk-server"].each do |n|
         @logger.debug("checking #{n}")

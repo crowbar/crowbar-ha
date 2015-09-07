@@ -124,3 +124,6 @@ en:
         quorum_policy: 'Invalid no-quorum-policy value: %{no_quorum_policy}.'
         platform: 'All nodes in proposal must have the same platform.'
         pacemaker_proposal: 'Nodes cannot be part of multiple Pacemaker proposals, but %{other_member} is already part of proposal \"%{p_name}\".'
+        cluster_size_even:
+          'Clusters must have an odd number of nodes to ensure quorum during
+          partitioning. 2-node clusters are allowed as a special exception.'
