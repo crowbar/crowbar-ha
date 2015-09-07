@@ -46,11 +46,8 @@ def load_current_resource
   standard_load_current_resource
 end
 
-def init_current_resource
-  name = @new_resource.name
-  @current_resource = Chef::Resource::PacemakerLocation.new(name)
-  attrs = [:rsc, :score, :node]
-  @current_cib_object.copy_attrs_to_chef_resource(@current_resource, *attrs)
+def resource_attrs
+  [:rsc, :score, :node]
 end
 
 def create_resource(name)
