@@ -24,7 +24,7 @@ default[:haproxy][:platform][:config_file] = "/etc/haproxy/haproxy.cfg"
 
 default[:haproxy][:global][:maxconn] = 4096
 default[:haproxy][:global][:bufsize] = 16384
-default[:haproxy][:global][:maxrewrite] = 8192
+default[:haproxy][:global][:maxrewrite] = 4096
 default[:haproxy][:global][:chksize] = 16384
 
 default[:haproxy][:defaults][:balance] = "roundrobin"
