@@ -150,7 +150,7 @@ if node[:corosync][:require_clean_for_autostart]
   end
 
   service corosync_shutdown do
-    action :enable
+    action [:enable, :start]
   end
 
   # we make sure that corosync is not enabled to start on boot
