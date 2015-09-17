@@ -2,7 +2,7 @@
   "type": "map",
   "required": true,
   "mapping": {
-    "id": { "type": "str", "required": true, "pattern": "/^bc-pacemaker-|^bc-template-pacemaker$/" },
+    "id": { "type": "str", "required": true, "pattern": "/^pacemaker-|^template-pacemaker$/" },
     "description": { "type": "str", "required": true },
     "attributes": {
       "type": "map",

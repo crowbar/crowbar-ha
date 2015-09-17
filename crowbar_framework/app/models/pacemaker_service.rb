@@ -533,7 +533,7 @@ class PacemakerService < ServiceObject
 
       (p["deployment"][@bc_name]["elements"]["pacemaker-cluster-member"] || []).each do |other_member|
         if members.include?(other_member)
-          p_name = p["id"].gsub("bc-#{@bc_name}-", "")
+          p_name = p["id"].gsub("#{@bc_name}-", "")
           validation_error "Nodes cannot be part of multiple Pacemaker proposals, but #{other_member} is already part of proposal \"#{p_name}\"."
         end
       end
