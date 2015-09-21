@@ -1,3 +1,7 @@
+default["drbd"]["common"]["disk"]["c_plan_ahead"] = 20
+default["drbd"]["common"]["disk"]["c_max_rate"] = "100M"
+default["drbd"]["common"]["disk"]["c_fill_target"] = "15M"
+
 default["drbd"]["rsc"] = {}
 
 default[:drbd][:pacemaker][:agent] = "ocf:linbit:drbd"
