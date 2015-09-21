@@ -14,4 +14,8 @@ common {
     c-max-rate <%= @c_max_rate %>;
     c-fill-target <%= @c_fill_target %>;
   }
+  net {
+    cram-hmac-alg "sha256";
+    shared-secret "<%= @shared_secret %>";
+  }
 }
