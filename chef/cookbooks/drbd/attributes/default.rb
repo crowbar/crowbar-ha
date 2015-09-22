@@ -1,6 +1,19 @@
+# Comments for the c-* settings come from
+#   https://drbd.linbit.com/users-guide/s-configure-sync-rate.html
+#   https://blogs.linbit.com/p/128/drbd-sync-rate-controller/
+#   https://blogs.linbit.com/p/443/drbd-sync-rate-controller-2
+
+# Set c-plan-ahead to approximately 10 times the RTT; so if ping from one node
+# to the other says 200msec, configure 2 seconds (ie. a value of 20, as the
+# unit is tenths of a second).
 default["drbd"]["common"]["disk"]["c_plan_ahead"] = 20
-default["drbd"]["common"]["disk"]["c_max_rate"] = "100M"
-default["drbd"]["common"]["disk"]["c_fill_target"] = "15M"
+# The resync controller tries to use up as much network and disk bandwidth as
+# it can get, but no more than c-max-rate.
+default["drbd"]["common"]["disk"]["c_max_rate"] = "15M"
+# A good starting value for c-fill-target is BDPx3, where BDP is your bandwidth
+# delay product on the replication link.
+default["drbd"]["common"]["disk"]["c_fill_target"] = "5M"
+
 default["drbd"]["common"]["net"]["shared_secret"] = "secret"
 
 default["drbd"]["rsc"] = {}
