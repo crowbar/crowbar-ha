@@ -27,5 +27,11 @@ template "/etc/drbd.d/global_common.conf" do
   source "global_conf.erb"
   owner "root"
   group "root"
+  variables(
+    c_plan_ahead: node["drbd"]["common"]["disk"]["c_plan_ahead"],
+    c_max_rate: node["drbd"]["common"]["disk"]["c_max_rate"],
+    c_fill_target: node["drbd"]["common"]["disk"]["c_fill_target"],
+    shared_secret: node["drbd"]["common"]["net"]["shared_secret"]
+  )
   action :create
 end

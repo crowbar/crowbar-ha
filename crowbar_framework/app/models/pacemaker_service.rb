@@ -76,6 +76,8 @@ class PacemakerService < ServiceObject
 
     raise "Cannot find an available multicast address!" unless free_mcast_addr_found
 
+    base["attributes"][@bc_name]["drbd"]["shared_secret"] = random_password
+
     @logger.debug("Pacemaker create_proposal: exiting")
     base
   end
@@ -303,6 +305,11 @@ class PacemakerService < ServiceObject
     role.default_attributes["corosync"]["mcast_port"] = role.default_attributes["pacemaker"]["corosync"]["mcast_port"]
     role.default_attributes["corosync"]["members"] = member_nodes.map{ |n| n.get_network_by_type("admin")["address"] }
     role.default_attributes["corosync"]["transport"] = role.default_attributes["pacemaker"]["corosync"]["transport"]
+
+    role.default_attributes["drbd"] ||= {}
+    role.default_attributes["drbd"]["common"] ||= {}
+    role.default_attributes["drbd"]["common"]["net"] ||= {}
+    role.default_attributes["drbd"]["common"]["net"]["shared_secret"] = role.default_attributes["pacemaker"]["drbd"]["shared_secret"]
 
     case role.default_attributes["pacemaker"]["corosync"]["require_clean_for_autostart_wrapper"]
     when "auto"

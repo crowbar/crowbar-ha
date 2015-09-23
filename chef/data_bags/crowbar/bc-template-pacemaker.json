@@ -41,7 +41,8 @@
 	}
       },
       "drbd": {
-        "enabled": false
+        "enabled": false,
+        "shared_secret": ""
       },
       "haproxy": {
         "admin_name": "",
@@ -53,7 +54,7 @@
     "pacemaker": {
       "crowbar-revision": 0,
       "crowbar-applied": false,
-      "schema-revision": 20,
+      "schema-revision": 30,
       "element_states": {
         "pacemaker-cluster-member" : [ "readying", "ready", "applying" ],
         "hawk-server"              : [ "readying", "ready", "applying" ]
