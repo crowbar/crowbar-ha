@@ -33,7 +33,10 @@ node["provisioner"]["access_keys"].strip.split("\n").each do |key|
 end
 
 CrowbarPacemakerHelper.cluster_nodes(node).each do |cluster_node|
-  pkey = cluster_node[:crowbar][:ssh][:root_pub_key] rescue nil
+  pkey = nil
+  if cluster_node[:crowbar][:ssh]
+    pkey = cluster_node[:crowbar][:ssh][:root_pub_key]
+  end
   if !pkey.nil? && cluster_node.name != node.name && !access_keys.values.include?(pkey)
     access_keys[cluster_node.name] = pkey
   end
