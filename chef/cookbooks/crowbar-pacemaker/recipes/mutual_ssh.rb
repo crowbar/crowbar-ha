@@ -18,7 +18,9 @@
 #
 
 # Allow mutual ssh connection among cluster members: go through the
-# cluster nodes and remember the public keys so the provisioner can save them.
+# cluster nodes and remember the public keys so the provisioner can
+# save them.  This is required so that hb_report can gather logs from
+# all cluster members.
 
 access_keys = {}
 
