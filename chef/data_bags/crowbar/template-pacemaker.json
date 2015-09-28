@@ -1,5 +1,5 @@
 {
-  "id": "bc-template-pacemaker",
+  "id": "template-pacemaker",
   "description": "Installation for Pacemaker",
   "attributes": {
     "pacemaker": {
