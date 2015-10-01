@@ -21,7 +21,7 @@
 
 default[:pacemaker][:platform][:resource_packages][:openstack] = %w(openstack-resource-agents)
 
-if node.platform == "suse" && node.platform_version.to_f >= 12.0
+if node[:platform_family] == "suse" && node[:platform_version].to_f >= 12.0
   default[:pacemaker][:apache2][:agent] = "systemd:apache2"
   default[:pacemaker][:haproxy][:agent] = "systemd:haproxy"
 else
