@@ -32,7 +32,7 @@ default[:drbd][:pacemaker][:ms][:meta][:notify] = "true"
 default[:drbd][:pacemaker][:ms][:meta][:resource_stickiness] = "100"
 default[:drbd][:pacemaker][:ms][:meta][:target_role] = "Started"
 
-case node.platform
+case node[:platform_family]
 when "suse"
   default[:drbd][:packages] = %w(drbd-utils drbd-bash-completion drbd-kmp-default drbd-pacemaker drbd-udev)
 else
