@@ -26,7 +26,7 @@ node[:pacemaker][:platform][:packages].each do |pkg|
   package pkg
 end
 
-unless node.platform == "suse" && node.platform_version.to_f >= 12.0
+unless node[:platform] == "suse" && node[:platform_version].to_f >= 12.0
   if node[:pacemaker][:setup_hb_gui]
     node[:pacemaker][:platform][:graphical_packages].each do |pkg|
       package pkg
