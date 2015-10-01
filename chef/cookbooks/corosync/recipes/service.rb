@@ -93,6 +93,8 @@ end
 block_corosync_file = "/var/spool/corosync/block_automatic_start"
 corosync_shutdown = "#{node[:corosync][:platform][:service_name]}-shutdown-cleaner"
 
+use_systemd = (node[:platform] != "suse" || node[:platform_version].to_f >= 12.0)
+
 if node[:corosync][:require_clean_for_autostart]
   # We want to fail (so we do not start corosync) if these two conditions are
   # both met:
@@ -111,7 +113,7 @@ if node[:corosync][:require_clean_for_autostart]
           "#{block_corosync_file} and run chef-client."
   end
 
-  if node[:platform_family] != "suse" || node[:platform_version].to_f < 12.0
+  if !use_systemd
     # this service will remove the blocking file on proper shutdown
     template "/etc/init.d/#{corosync_shutdown}" do
       source "corosync-shutdown.init.erb"
@@ -161,7 +163,7 @@ else
     action :disable
   end
 
-  if node[:platform_family] != "suse" || node[:platform_version].to_f < 12.0
+  if !use_systemd
     file "/etc/init.d/#{corosync_shutdown}" do
       action :delete
     end
@@ -186,7 +188,7 @@ end
 
 service node[:corosync][:platform][:service_name] do
   supports restart: true, status: :true
-  if node[:platform_family] != "suse" || node[:platform_version].to_f < 12.0
+  unless use_systemd
     action [enable_or_disable, :start]
   end
 end

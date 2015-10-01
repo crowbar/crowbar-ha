@@ -21,12 +21,13 @@
 
 default[:pacemaker][:platform][:resource_packages][:openstack] = %w(openstack-resource-agents)
 
-if node[:platform_family] == "suse" && node[:platform_version].to_f >= 12.0
-  default[:pacemaker][:apache2][:agent] = "systemd:apache2"
-  default[:pacemaker][:haproxy][:agent] = "systemd:haproxy"
-else
+if node[:platform] == "suse" && node[:platform_version].to_f < 12.0
+  # SLE11
   default[:pacemaker][:apache2][:agent] = "ocf:heartbeat:apache"
   default[:pacemaker][:haproxy][:agent] = "lsb:haproxy"
+else
+  default[:pacemaker][:apache2][:agent] = "systemd:apache2"
+  default[:pacemaker][:haproxy][:agent] = "systemd:haproxy"
 end
 default[:pacemaker][:haproxy][:op][:monitor][:interval] = "10s"
 default[:pacemaker][:haproxy][:clusters] = {}

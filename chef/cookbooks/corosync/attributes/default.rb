@@ -23,11 +23,16 @@ default[:corosync][:transport]    = "udp"
 
 case node[:platform_family]
 when "suse"
-  if node[:platform] == "suse" && node[:platform_version].to_f < 12.0
-    default[:corosync][:platform][:packages] = %w(sle-hae-release corosync openais)
-    default[:corosync][:platform][:service_name] = "openais"
+  if node[:platform] == "suse"
+    if node[:platform_version].to_f < 12.0
+      default[:corosync][:platform][:packages] = %w(sle-hae-release corosync openais)
+      default[:corosync][:platform][:service_name] = "openais"
+    else
+      default[:corosync][:platform][:packages] = %w(sle-ha-release corosync)
+      default[:corosync][:platform][:service_name] = "corosync"
+    end
   else
-    default[:corosync][:platform][:packages] = %w(sle-ha-release corosync)
+    default[:corosync][:platform][:packages] = %w(corosync)
     default[:corosync][:platform][:service_name] = "corosync"
   end
 

@@ -67,7 +67,8 @@ action :create do
     node.save
   end
 
-  if node[:platform_family] == "suse" && node[:platform_version].to_f >= 12.0
+  # for non-SLE11 (systemd)
+  unless (node[:platform] == "suse" && node[:platform_version].to_f < 12.0)
     template "/etc/modules-load.d/10-crowbar-drbd.conf" do
       source "crowbar-drbd.conf.erb"
       owner "root"
