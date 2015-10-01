@@ -12,7 +12,6 @@
           "type": "map",
           "required": true,
           "mapping": {
-            "setup_hb_gui": { "type": "bool", "required": true },
             "corosync": {
               "type": "map",
               "required": true,
