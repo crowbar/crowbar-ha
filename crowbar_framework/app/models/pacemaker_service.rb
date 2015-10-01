@@ -493,7 +493,7 @@ class PacemakerService < ServiceObject
     nodes = NodeObject.find("roles:provisioner-server")
     unless nodes.nil? or nodes.length < 1
       provisioner_server_node = nodes[0]
-      if provisioner_server_node[:platform] == "suse"
+      if provisioner_server_node[:platform_family] == "suse"
         if (!provisioner_server_node[:provisioner][:suse][:hae_available] rescue true)
           validation_error "The HAE repositories have not been setup."
         end
