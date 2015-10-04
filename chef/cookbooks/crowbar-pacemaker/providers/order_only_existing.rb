@@ -24,10 +24,33 @@ def delete_order(name)
 end
 
 action :create do
+  ordering = new_resource.ordering
   # evil command line; there must be a better way to fetch the list of resources
   # unfortunately, "crm_resource --list-raw" doesn't list groups/clones/etc.
   all_resources = %x{crm --display=plain configure show | awk '/^(primitive|group|clone|ms)/ {print $2}'}.split("\n")
-  ordering_for_existing_resources = new_resource.ordering.select { |r| all_resources.include?(r) }
+  case ordering
+  when Array
+    ordering_for_existing_resources = ordering.select { |r| all_resources.include?(r) }
+  when String
+    # Try to ensure the syntax makes sense
+    raise "Sets in ordering cannot be nested." if ordering =~ /\([^\)]*[\(\[\]]/ || ordering =~ /\[[^\]]*[\[\(\)]/
+    # Only keep valid items, including what's valid in the crm syntax, which
+    # is:
+    # - foo ( bar foobar ) xyz
+    # - foo [ bar foobar ] xyz
+    # - foo [ bar foobar sequantial=true ] xyz
+    # - foo [ bar foobar require-all=true ] xyz
+    ordering_array = ordering.split(" ")
+    existing_ordering_array = ordering_array.select do |r|
+      all_resources.include?(r) || %w{( ) [ ]}.include?(r) || r =~ /sequential=/ || r =~ /require-all=/
+    end
+    # Drop empty sets; we don't want something like:
+    #  order Mandatory: foo ( ) bar
+    # It should become:
+    #  order Mandatory: foo bar
+    existing_ordering = existing_ordering_array.join(" ").gsub(/[\(\[](( sequential=[^ ]*)|( require-all=[^ ]*))* [\)\]]/, "")
+    ordering_for_existing_resources = existing_ordering.split(" ")
+  end
 
   if ordering_for_existing_resources.length <= 1
     delete_order(new_resource.name)
