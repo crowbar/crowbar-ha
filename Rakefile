@@ -104,7 +104,7 @@ unless ENV["PACKAGING"] && ENV["PACKAGING"] == "yes"
 
   task :syntaxcheck do
     system <<-'EOF'
-      for f in `find -name \*.rb`; do
+      for f in `find -name vendor -prune -o -name \*.rb -print`; do
         echo -n "Syntaxcheck $f: "
         ruby -c $f || exit $?
       done
