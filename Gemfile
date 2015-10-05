@@ -22,11 +22,11 @@ group :development do
   gem "sass", "~> 3.2.19"
   gem "sprockets-standalone", "~> 1.2.1"
   gem "sprockets", "~> 2.11.0"
-  gem "rspec", "~> 3.1.0"
 end
 
 unless ENV["PACKAGING"] && ENV["PACKAGING"] == "yes"
   group :test do
+    gem "rspec", "~> 3.1.0"
     gem "simplecov", require: false
 
     if ENV["CODECLIMATE_REPO_TOKEN"]
