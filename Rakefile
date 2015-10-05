@@ -103,7 +103,12 @@ unless ENV["PACKAGING"] && ENV["PACKAGING"] == "yes"
   RSpec::Core::RakeTask.new(:spec)
 
   task :syntaxcheck do
-    system("for f in `find -name \*.rb`; do echo -n \"Syntaxcheck $f: \"; ruby -c $f || exit $? ; done")
+    system <<-'EOF'
+      for f in `find -name \*.rb`; do
+        echo -n "Syntaxcheck $f: "
+        ruby -c $f || exit $?
+      done
+    EOF
     exit $?.exitstatus
   end
 
