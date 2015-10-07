@@ -3,7 +3,11 @@ DUMP_FILE = "rubydeps.dump"
 DOT_FILE  = "rubydeps.dot"
 SVG_FILE  = "rubydeps.svg"
 
-task default: "rubydeps:svg"
+task default: "spec"
+
+task :spec do
+  sh "rspec"
+end
 
 file DUMP_FILE do
   sh "RUBYDEPS=y rspec"
