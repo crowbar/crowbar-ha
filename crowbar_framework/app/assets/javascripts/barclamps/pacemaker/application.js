@@ -79,7 +79,7 @@
     });
 
     // Append new table row and update JSON on node alloc
-    this.root.on('nodeListNodeAllocated', function(evt, data) {
+    $(document).on('nodeListNodeAllocated', this.root, function(evt, data) {
       if (self._ignore_event(evt, data)) { return; }
 
       $(this).find('tbody').append(self.html.table_row.format(data.id, self._node_name_to_alias(data.id), ''));
@@ -92,7 +92,7 @@
     });
 
     // Remove the table row and update JSON on node dealloc
-    this.root.on('nodeListNodeUnallocated', function(evt, data) {
+    $(document).on('nodeListNodeUnallocated', this.root, function(evt, data) {
       if (self._ignore_event(evt, data)) { return; }
 
       $(this).find('[data-id="{0}"]'.format(data.id)).remove();
@@ -288,11 +288,11 @@ $(document).ready(function($) {
 
   // FIXME: apparently using something else than
   // $('#stonith_per_node_container') breaks the per-node table :/
-  $('#stonith_per_node_container').on('nodeListNodeAllocated', function(evt, data) {
+  $(document).on('nodeListNodeAllocated', function(evt, data) {
     update_no_quorum_policy(evt, false)
     update_drbd_enabled(evt, false)
   });
-  $('#stonith_per_node_container').on('nodeListNodeUnallocated', function(evt, data) {
+  $(document).on('nodeListNodeUnallocated', function(evt, data) {
     update_no_quorum_policy(evt, false)
     update_drbd_enabled(evt, false)
   });
