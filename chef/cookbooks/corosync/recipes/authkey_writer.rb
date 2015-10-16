@@ -3,6 +3,7 @@
 # Recipe:: authkey_writer
 #
 # Copyright 2012, Rackspace US, Inc.
+# Copyright 2015, Ovais Tariq <me@ovaistariq.net>
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,11 +18,13 @@
 # limitations under the License.
 #
 
-authkey      = node[:corosync][:authkey]
+require 'base64'
+
+authkey      = node["corosync"]["authkey"]
 authkey_file = node[:corosync][:authkey_file]
 
 # decode so we can write out to file below
-corosync_authkey = Base64.decode64(authkey)
+corosync_authkey = Base64.decode64(authkey) if authkey != nil
 
 file authkey_file do
   content corosync_authkey

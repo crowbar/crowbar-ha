@@ -21,20 +21,19 @@ include_recipe "corosync::install"
 include_recipe "corosync::config"
 include_recipe "corosync::authkey"
 
-case node.platform
-when %w(debian ubuntu)
+case node["platform_family"]
+when "debian"
   template "/etc/default/corosync" do
     source "corosync.default.upstart.erb"
     owner "root"
     group "root"
     mode 0600
-    variables(enable_openais_service: node["corosync"]["enable_openais_service"])
+    variables(enable_openais_service: node['corosync']['enable_openais_service'])
   end
-end
 
-unless node.platform == "suse"
   # This block is not really necessary because chef would automatically backup the file.
   # However, it's good to have the backup file in the same directory. (Easier to find later.)
+  # This block is only needed in case of debian based distributions
   ruby_block "backup corosync init script" do
     block do
         original_pathname = "/etc/init.d/corosync"
@@ -64,7 +63,7 @@ rubygem_ruby_shadow = "ruby#{node["languages"]["ruby"]["version"].to_f}-rubygem-
 pkg = package rubygem_ruby_shadow do
   action :nothing
 end
-pkg.run_action(:install) if node.platform == "suse"
+pkg.run_action(:install) if node["platform_family"] == "suse"
 
 # After installation of ruby-shadow, we have a new path for the new gem, so we
 # need to reset the paths if we can't load ruby-shadow
@@ -75,7 +74,7 @@ rescue LoadError
 end
 
 user node[:corosync][:user] do
-  action :modify
+  action :create
   # requires ruby-shadow gem
   password node[:corosync][:password]
 end
@@ -111,7 +110,7 @@ if node[:corosync][:require_clean_for_autostart]
           "#{block_corosync_file} and run chef-client."
   end
 
-  if node.platform_family != "suse" || node.platform_version.to_f < 12.0
+  if node["platform_family"] != "suse" || node["platform_version"].to_f < 12.0
     # this service will remove the blocking file on proper shutdown
     template "/etc/init.d/#{corosync_shutdown}" do
       source "corosync-shutdown.init.erb"
@@ -119,7 +118,7 @@ if node[:corosync][:require_clean_for_autostart]
       group "root"
       mode 0755
       variables(
-        service_name: node[:corosync][:platform][:service_name],
+        service_name: node["corosync"]["platform"]["service_name"],
         block_corosync_file: block_corosync_file
       )
     end
@@ -161,7 +160,7 @@ else
     action :disable
   end
 
-  if node.platform_family != "suse" || node.platform_version.to_f < 12.0
+  if node["platform_family"] != "suse" || node["platform_version"].to_f < 12.0
     file "/etc/init.d/#{corosync_shutdown}" do
       action :delete
     end
@@ -185,8 +184,8 @@ else
 end
 
 service node[:corosync][:platform][:service_name] do
-  supports restart: true, status: :true
-  if node.platform_family != "suse" || node.platform_version.to_f < 12.0
+  supports restart: true, status: true
+  if node["platform_family"] != "suse" || node["platform_version"].to_f < 12.0
     action [enable_or_disable, :start]
   end
 end

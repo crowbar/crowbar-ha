@@ -1,0 +1,20 @@
+source 'https://rubygems.org'
+
+group :common do
+  gem 'rspec'
+  gem 'rake'
+  gem 'berkshelf'
+end
+
+group :kitchen_common do
+  gem 'test-kitchen', '~> 1.4'
+end
+
+group :kitchen_vagrant do
+  gem 'kitchen-vagrant', '~> 0.16'
+end
+
+group :kitchen_cloud do
+  gem 'kitchen-digitalocean'
+  gem 'kitchen-ec2'
+end
