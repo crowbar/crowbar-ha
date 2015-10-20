@@ -13,7 +13,7 @@
 # limitations under the License.
 #
 
-case node.platform
+case node[:platform_family]
 when "suse"
   default[:pacemaker][:platform][:packages] = %w(pacemaker crmsh)
 

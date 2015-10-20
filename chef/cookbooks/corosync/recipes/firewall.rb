@@ -17,7 +17,7 @@
 # limitations under the License.
 #
 
-case node.platform
+case node[:platform_family]
 when "suse"
   template "/etc/sysconfig/SuSEfirewall2.d/services/cluster" do
     source "firewall.erb"

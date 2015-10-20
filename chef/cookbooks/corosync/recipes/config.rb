@@ -18,13 +18,13 @@
 #
 
 # chef makes csync2 redundant
-if platform_family? "suse"
+if node[:platform_family] == "suse"
   service "csync2" do
     action [:stop, :disable]
   end
 end
 
-if platform_family? "rhel"
+if node[:platform_family] == "rhel"
   # http://clusterlabs.org/quickstart.html
   Chef::Application.fatal! "FIXME: RedHat-based platforms configure corosync via cluster.conf"
   return
@@ -39,10 +39,10 @@ if node[:corosync][:transport] == "udpu" && (node[:corosync][:members].nil? || n
 end
 
 template "/etc/corosync/corosync.conf" do
-  if node.platform == "suse" && node.platform_version.to_f >= 12.0
-    source "corosync.conf.v2.erb"
-  else
+  if node[:platform] == "suse" && node[:platform_version].to_f < 12.0
     source "corosync.conf.erb"
+  else
+    source "corosync.conf.v2.erb"
   end
   owner "root"
   group "root"

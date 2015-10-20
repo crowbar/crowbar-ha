@@ -46,7 +46,7 @@ when "sbd"
     command "#{sbd_cmd} dump &> /dev/null"
   end
 
-  if node.platform == "suse"
+  if node[:platform_family] == "suse"
     # We will want to explicitly allocate a slot the first time we come here
     # (hence the use of a notification to trigger this execute).
     # According to the man page, it should not be required, but apparently,
