@@ -494,7 +494,7 @@ class PacemakerService < ServiceObject
     unless nodes.nil? or nodes.length < 1
       provisioner_server_node = nodes[0]
       if provisioner_server_node[:platform] == "suse"
-        if (!provisioner_server_node[:provisioner][:suse][:hae_available] rescue true)
+        unless Crowbar::Repository.provided_and_enabled? "ha"
           validation_error "The HAE repositories have not been setup."
         end
       end
