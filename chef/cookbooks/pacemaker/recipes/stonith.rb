@@ -38,6 +38,21 @@ when "sbd"
     sbd_cmd += " -d #{Shellwords.shellescape(sbd_device)}"
   end
 
+  watchdog_module = node[:pacemaker][:stonith][:sbd][:watchdog_module]
+
+  execute "Load watchdog module #{watchdog_module}" do
+    command "/sbin/modprobe #{watchdog_module}"
+    not_if { watchdog_module.empty? }
+  end
+
+  file "/etc/modules-load.d/crowbar-watchdog.conf" do
+    content watchdog_module
+    mode 0644
+    owner "root"
+    group "root"
+    not_if { watchdog_module.empty? }
+  end
+
   execute "Check if watchdog is present" do
     command "test -c /dev/watchdog"
   end
@@ -177,4 +192,11 @@ else
   message = "Unknown STONITH mode: #{node[:pacemaker][:stonith][:mode]}."
   Chef::Log.fatal(message)
   raise message
+end
+
+file "delete crowbar-watchdog.conf if not needed" do
+  path "/etc/modules-load.d/crowbar-watchdog.conf"
+  action :delete
+  only_if { node[:pacemaker][:stonith][:mode] != "sbd" ||
+            node[:pacemaker][:stonith][:sbd][:watchdog_module].empty? }
 end
