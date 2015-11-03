@@ -388,7 +388,10 @@ class PacemakerService < ServiceObject
       nodes = stonith_attributes["sbd"]["nodes"]
 
       members.each do |member|
-        validation_error "Missing SBD devices for node #{member}" unless nodes.has_key?(member)
+        validation_error I18n.t(
+          "barclamp.#{@bc_name}.validation.missing_sbd_device",
+          member: member
+        ) unless nodes.has_key?(:member)
       end
 
       sbd_devices_nb = -1
@@ -400,64 +403,102 @@ class PacemakerService < ServiceObject
           # note that when nothing is defined, we actually have an empty array
           # with an empty string, hence the == 1 test
           unless node_devices.count == 1 || node_devices.select{ |d| d.empty? }.empty?
-            validation_error "Some SBD devices for node #{node_name} are empty"
+            validation_error I18n.t(
+              "barclamp.#{@bc_name}.validation.empty_sbd_device",
+              node_name: node_name
+            )
           end
 
           devices = node_devices.select{ |d| !d.empty? }
-          validation_error "Missing SBD devices for node #{node_name}" if devices.empty?
+          validation_error I18n.t(
+            "barclamp.#{@bc_name}.validation.missing_sbd_for_node",
+            node_name: node_name
+          ) if devices.empty?
 
           sbd_devices_nb = devices.length if sbd_devices_nb == -1
           sbd_devices_mismatch = true if devices.length != sbd_devices_nb
         else
-          validation_error "SBD devices present for node #{node_name}, while this node is a not a member of the cluster"
+          validation_error I18n.t(
+            "barclamp.#{@bc_name}.validation.node_no_cluster_member",
+            node_name: node_name
+          )
         end
       end
-      validation_error "All nodes must share the same number of SBD devices (with possibly different paths)" if sbd_devices_mismatch
+      validation_error validation_error I18n.t(
+        "barclamp.#{@bc_name}.validation.same_number_of_devices"
+      ) if sbd_devices_mismatch
     when "shared"
       agent = stonith_attributes["shared"]["agent"]
       params = stonith_attributes["shared"]["params"]
-      validation_error "Missing fencing agent for shared setup" if agent.blank?
-      validation_error "Missing fencing agent parameters for shared setup" if params.blank?
+      validation_error I18n.t(
+        "barclamp.#{bc_name}.validation.missing_fencing_agent"
+      ) if agent.blank?
+      validation_error I18n.t(
+        "barclamp.#{bc_name}.validation.missing_fencing_agent_params"
+      ) if params.blank?
     when "per_node"
       agent = stonith_attributes["per_node"]["agent"]
       nodes = stonith_attributes["per_node"]["nodes"]
 
-      validation_error "Missing fencing agent for per-node setup" if agent.blank?
+      validation_error I18n.t(
+        "barclamp.#{bc_name}.validation.missing_fencing_agent_per_node"
+      ) if agent.blank?
 
       members.each do |member|
-        validation_error "Missing fencing agent parameters for node #{member}" unless nodes.has_key?(member)
+        validation_error I18n.t(
+          "barclamp.#{bc_name}.validation.node_missing_fencing_params",
+          member: member
+        ) unless nodes.has_key?(:member)
       end
 
       nodes.keys.each do |node_name|
         if members.include? node_name
           params = nodes[node_name]["params"]
-          validation_error "Missing fencing agent parameters for node #{node_name}" if params.blank?
+          validation_error I18n.t(
+            "barclamp.#{bc_name}.validation.node_missing_fencing_params",
+            member: node_name
+          ) if params.blank?
         else
-          validation_error "Fencing agent parameters present for node #{node_name}, while this node is a not a member of the cluster"
+          validation_error I18n.t(
+            "barclamp.#{bc_name}.validation.fencing_agent_no_cluster",
+            node_name: node_name
+          )
         end
       end
     when "ipmi_barclamp"
       members.each do |member|
         node = NodeObject.find_node_by_name(member)
         unless !node[:ipmi].nil? && node[:ipmi][:bmc_enable]
-          validation_error "Automatic IPMI setup not available for node #{member}"
+          validation_error I18n.t(
+            "barclamp.#{bc_name}.validation.automatic_ipmi_setup",
+            member: member
+          )
         end
       end
     when "libvirt"
       hypervisor_ip = stonith_attributes["libvirt"]["hypervisor_ip"]
       # FIXME: we really need to have crowbar provide a helper to validate IP addresses
       if hypervisor_ip.blank? || hypervisor_ip =~ /[^\.0-9]/
-        validation_error "Hypervisor IP \"#{hypervisor_ip}\" is invalid."
+        validation_error I18n.t(
+          "barclamp.#{bc_name}.validation.hypervisor_ip",
+          hypervisor_ip: hypervisor_ip
+        )
       end
       members.each do |member|
         node = NodeObject.find_node_by_name(member)
         manufacturer = node[:dmi][:system][:manufacturer] rescue "unknown"
         unless %w(Bochs QEMU).include? manufacturer
-          validation_error "Node  #{member} does not seem to be running in libvirt."
+          validation_error I18n.t(
+            "barclamp.#{bc_name}.validation.libvirt",
+            member: member
+          )
         end
       end
     else
-      validation_error "Unknown STONITH mode: #{stonith_attributes["mode"]}."
+      validation_error I18n.t(
+        "barclamp.#{bc_name}.validation.stonith_mode",
+        stonith_mode: stonith_attributes["mode"]
+      )
     end
   end
 
@@ -474,20 +515,31 @@ class PacemakerService < ServiceObject
           node = NodeObject.find_node_by_name(n)
           name = node.name
           name = "#{node.alias} (#{name})" if node.alias
-          validation_error "Node #{name} has the hawk-server role but not the pacemaker-cluster-member role."
+          validation_error I18n.t(
+            "barclamp.#{bc_name}.validation.hawk_server",
+            name: name
+          )
         end
       end
     end
 
     if proposal["attributes"][@bc_name]["notifications"]["smtp"]["enabled"]
       smtp_settings = proposal["attributes"][@bc_name]["notifications"]["smtp"]
-      validation_error "Invalid SMTP server for mail notifications." if smtp_settings["server"].blank?
-      validation_error "Invalid sender address for mail notifications." if smtp_settings["from"].blank?
-      validation_error "Invalid recipient address for mail notifications." if smtp_settings["to"].blank?
+      validation_error I18n.t(
+        "barclamp.#{bc_name}.validation.smtp_server"
+      ) if smtp_settings["server"].blank?
+      validation_error I18n.t(
+        "barclamp.#{bc_name}.validation.sender_address"
+      ) if smtp_settings["from"].blank?
+      validation_error I18n.t(
+        "barclamp.#{bc_name}.validation.recipient_address"
+      ) if smtp_settings["to"].blank?
     end
 
     if proposal["attributes"][@bc_name]["drbd"]["enabled"]
-      validation_error "Setting up DRBD requires a cluster of two nodes." if members.length != 2
+      validation_error I18n.t(
+        "barclamp.#{bc_name}.validation.drbd"
+      ) if members.length != 2
     end
 
     nodes = NodeObject.find("roles:provisioner-server")
@@ -495,19 +547,27 @@ class PacemakerService < ServiceObject
       provisioner_server_node = nodes[0]
       if provisioner_server_node[:platform] == "suse"
         unless Crowbar::Repository.provided_and_enabled? "ha"
-          validation_error "The HAE repositories have not been setup."
+          validation_error I18n.t(
+            "barclamp.#{bc_name}.validation.hae_repo"
+          )
         end
       end
     end
 
     transport = proposal["attributes"][@bc_name]["corosync"]["transport"]
     unless %w(udp udpu).include?(transport)
-      validation_error "Invalid transport value: #{transport}."
+      validation_error I18n.t(
+        "barclamp.#{bc_name}.validation.transport_value",
+        transport: transport
+      )
     end
 
     no_quorum_policy = proposal["attributes"][@bc_name]["crm"]["no_quorum_policy"]
     unless %w(ignore freeze stop suicide).include?(no_quorum_policy)
-      validation_error "Invalid no-quorum-policy value: #{no_quorum_policy}."
+      validation_error I18n.t(
+        "barclamp.#{bc_name}.validation.quorum_policy",
+        no_quorum_policy: no_quorum_policy
+      )
     end
 
     stonith_attributes = proposal["attributes"][@bc_name]["stonith"]
@@ -523,7 +583,9 @@ class PacemakerService < ServiceObject
       end
     end
     unless target_platforms.uniq.length <= 1
-      validation_error "All nodes in proposal must have the same platform."
+      validation_error validation_error I18n.t(
+        "barclamp.#{bc_name}.validation.platform"
+      )
     end
 
     ### Do not allow elements of this proposal to be in another proposal, since
@@ -534,7 +596,11 @@ class PacemakerService < ServiceObject
       (p["deployment"][@bc_name]["elements"]["pacemaker-cluster-member"] || []).each do |other_member|
         if members.include?(other_member)
           p_name = p["id"].gsub("#{@bc_name}-", "")
-          validation_error "Nodes cannot be part of multiple Pacemaker proposals, but #{other_member} is already part of proposal \"#{p_name}\"."
+          validation_error I18n.t(
+            "barclamp.#{bc_name}.validation.pacemaker_proposal",
+            other_members: other_members,
+            p_name: p_name
+          )
         end
       end
     end
