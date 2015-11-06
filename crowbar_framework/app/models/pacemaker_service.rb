@@ -391,7 +391,7 @@ class PacemakerService < ServiceObject
         validation_error I18n.t(
           "barclamp.#{@bc_name}.validation.missing_sbd_device",
           member: member
-        ) unless nodes.has_key?(:member)
+        ) unless nodes.key?(member)
       end
 
       sbd_devices_nb = -1
@@ -448,7 +448,7 @@ class PacemakerService < ServiceObject
         validation_error I18n.t(
           "barclamp.#{bc_name}.validation.node_missing_fencing_params",
           member: member
-        ) unless nodes.has_key?(:member)
+        ) unless nodes.key?(member)
       end
 
       nodes.keys.each do |node_name|
