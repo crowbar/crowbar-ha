@@ -1,6 +1,9 @@
 require ::File.expand_path("../../libraries/pacemaker/resource/primitive",
                            File.dirname(__FILE__))
 
+# For those who don't know, keystone is the Identity component of the
+# OpenStack project: http://docs.openstack.org/developer/keystone/
+
 module Chef::RSpec
   module Pacemaker
     module Config
