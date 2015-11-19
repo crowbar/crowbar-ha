@@ -6,3 +6,6 @@ rubydeps.*
 
 Gemfile.lock
 crowbar_framework/public/assets
+
+.bundle/config
+/vendor/
