@@ -35,6 +35,12 @@ describe Pacemaker::CIBObject do
         expect(cib_object.exists?).to be(false)
       end
     end
+
+    describe ".exists?" do
+      it "should return false" do
+        expect(::Pacemaker::CIBObject.exists?("not there")).to be(false)
+      end
+    end
   end
 
   context "keystone primitive resource CIB object" do
@@ -66,6 +72,12 @@ describe Pacemaker::CIBObject do
         it "should return primitive" do
           expect(cib_object.type).to eq("primitive")
         end
+      end
+    end
+
+    describe ".exists?" do
+      it "should return true" do
+        expect(::Pacemaker::CIBObject.exists?(cib_object.name)).to be(true)
       end
     end
   end

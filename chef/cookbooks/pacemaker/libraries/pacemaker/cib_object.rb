@@ -26,6 +26,10 @@ module Pacemaker
         end
       end
 
+      def exists?(name)
+        get_definition(name) ? true : false
+      end
+
       def definition_type(definition)
         unless definition =~ /\A(\w+)\s/
           raise "Couldn't extract CIB object type from '#{definition}'"
