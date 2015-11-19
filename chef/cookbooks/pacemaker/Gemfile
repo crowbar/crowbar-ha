@@ -9,7 +9,8 @@ group :test, :development do
 end
 
 group :development do
-  gem "rubydeps"
+  # rubydeps currently breaks bundler installation
+  #gem "rubydeps"
   gem "foodcritic", "~> 3.0"
   gem "rubocop"
   gem "jazz_fingers"
