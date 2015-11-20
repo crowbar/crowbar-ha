@@ -4,6 +4,8 @@ require_relative "shellout"
 require_relative "cib_object"
 
 shared_context "a Pacemaker LWRP" do
+  let(:test_runlist) { "pacemaker::default" }
+
   before(:each) do
     stub_command("crm configure show smtp-notifications")
     stub_command("crm configure show cl-smtp-notifications")
@@ -12,7 +14,7 @@ shared_context "a Pacemaker LWRP" do
       step_into: ["pacemaker_" + lwrp_name]
     }
     @chef_run = ::ChefSpec::Runner.new(runner_opts)
-    @chef_run.converge "pacemaker::default"
+    @chef_run.converge(*test_runlist)
     @node = @chef_run.node
     @run_context = @chef_run.run_context
 
