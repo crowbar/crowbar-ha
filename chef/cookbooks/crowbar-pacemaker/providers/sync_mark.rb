@@ -34,7 +34,7 @@ def get_options resource
     mark = new_resource.mark
   end
 
-  if new_resource.revision.nil? && node.has_key?(cookbook_name)
+  if new_resource.revision.nil? && node.key?(cookbook_name)
     # Shortcut for integration in Crowbar; in the worst case, this is nil and
     # we'll hit the check a few lines later
     revision = node[cookbook_name]["crowbar-revision"]

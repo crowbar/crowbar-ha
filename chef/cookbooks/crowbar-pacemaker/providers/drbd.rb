@@ -35,7 +35,7 @@ action :create do
 
   is_master = CrowbarPacemakerHelper.is_cluster_founder?(node)
 
-  if node["drbd"]["rsc"].has_key?(name)
+  if node["drbd"]["rsc"].key?(name)
     resource = node["drbd"]["rsc"][name]
 
     dirty = false

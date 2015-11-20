@@ -147,7 +147,7 @@ def maybe_configure_params(name, cmds, data_type)
   end
 
   @current_resource.send(data_type).each do |param, value|
-    unless new_resource.send(data_type).has_key? param
+    unless new_resource.send(data_type).key? param
       Chef::Log.info("#{name}'s #{param} #{data_type} was removed")
       cmd = configure_cmd_prefix + \
         %' --delete-parameter #{Shellwords.escape param}'
