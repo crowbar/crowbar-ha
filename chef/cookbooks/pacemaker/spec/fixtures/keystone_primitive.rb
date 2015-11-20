@@ -7,7 +7,9 @@ class Chef
   module RSpec
     module Pacemaker
       module Config
-        KEYSTONE_PRIMITIVE = ::Pacemaker::Resource::Primitive.new("keystone")
+        KEYSTONE_PRIMITIVE_NAME = "keystone"
+        KEYSTONE_PRIMITIVE =
+          ::Pacemaker::Resource::Primitive.new(KEYSTONE_PRIMITIVE_NAME)
         KEYSTONE_PRIMITIVE.agent = "ocf:openstack:keystone"
         KEYSTONE_PRIMITIVE.params = [
           ["os_password",    %{ad"min$pa&ss'wo%rd}],
