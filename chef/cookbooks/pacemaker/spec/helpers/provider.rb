@@ -14,14 +14,24 @@ shared_context "a Pacemaker LWRP" do
       step_into: [lwrp_name]
     }
     @chef_run = ::ChefSpec::Runner.new(runner_opts)
-    @chef_run.converge(*test_runlist)
     @node = @chef_run.node
+  end
+
+  def converge
+    @chef_run.converge(*test_runlist)
     @run_context = @chef_run.run_context
 
     camelized_subclass_name = "Pacemaker" + lwrp_name.capitalize
     @resource_class = ::Chef::Resource.const_get(camelized_subclass_name)
     @provider_class = ::Chef::Provider.const_get(camelized_subclass_name)
+  end
+end
 
+shared_context "a Pacemaker LWRP with artificially constructed resource" do
+  include_context "a Pacemaker LWRP"
+
+  before(:each) do
+    converge
     @resource = @resource_class.new(fixture.name, @run_context)
   end
 

@@ -13,7 +13,7 @@ describe "Chef::Provider::PacemakerGroup" do
     "group"
   end
 
-  include_context "a Pacemaker LWRP"
+  include_context "a Pacemaker LWRP with artificially constructed resource"
 
   before(:each) do
     @resource.members fixture.members.dup
