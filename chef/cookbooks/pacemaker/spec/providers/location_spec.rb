@@ -19,7 +19,7 @@ describe "Chef::Provider::PacemakerLocation" do
   before(:each) do
     @resource.rsc fixture.rsc
     @resource.score fixture.score
-    @resource.node fixture.node.dup
+    @resource.lnode fixture.lnode.dup
   end
 
   def cib_object_class
@@ -49,10 +49,10 @@ describe "Chef::Provider::PacemakerLocation" do
 
     it "should modify the constraint if it has a different node" do
       new_node = "node2"
-      fixture.node = new_node
+      fixture.lnode = new_node
       expected_configure_cmd_args = [fixture.reconfigure_command]
       test_modify(expected_configure_cmd_args) do
-        @resource.node new_node
+        @resource.lnode new_node
       end
     end
   end

@@ -51,7 +51,7 @@ def load_current_resource
 end
 
 def resource_attrs
-  [:rsc, :score, :node]
+  [:rsc, :score, :lnode]
 end
 
 def create_resource(name)

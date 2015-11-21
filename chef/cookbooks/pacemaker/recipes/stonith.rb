@@ -157,7 +157,7 @@ when "per_node"
     pacemaker_location "l-#{stonith_resource}" do
       rsc stonith_resource
       score "-inf"
-      node node_name
+      lnode node_name
       action :create
     end
   end
