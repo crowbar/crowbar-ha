@@ -9,7 +9,7 @@ shared_context "a Pacemaker LWRP" do
     stub_command("crm configure show cl-smtp-notifications")
 
     runner_opts = {
-      step_into: [lwrp_name]
+      step_into: ["pacemaker_" + lwrp_name]
     }
     @chef_run = ::ChefSpec::Runner.new(runner_opts)
     @chef_run.converge "pacemaker::default"
