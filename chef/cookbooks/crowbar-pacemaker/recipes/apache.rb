@@ -42,7 +42,7 @@ agent_name = node[:pacemaker][service_name][:agent]
 apache_params = {}
 if agent_name == "ocf:heartbeat:apache"
   apache_params["statusurl"] = "http://127.0.0.1:#{listening_port}/server-status"
-  unless crowbar_defined_ports.values.select { |service| service.has_key? :ssl }.empty?
+  unless crowbar_defined_ports.values.select { |service| service.key? :ssl }.empty?
     apache_params["options"] = "-DSSL"
   end
 end

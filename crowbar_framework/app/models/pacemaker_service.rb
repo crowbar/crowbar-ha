@@ -65,7 +65,7 @@ class PacemakerService < ServiceObject
     (0..255).each do |mcast_third|
       (1..254).each do |mcast_fourth|
         mcast_addr = "239.255.#{mcast_third}.#{mcast_fourth}"
-        unless used_mcast_addrs.has_key? mcast_addr
+        unless used_mcast_addrs.key? mcast_addr
           base["attributes"][@bc_name]["corosync"]["mcast_addr"] = mcast_addr
           free_mcast_addr_found = true
           break
@@ -508,7 +508,7 @@ class PacemakerService < ServiceObject
     elements = proposal["deployment"]["pacemaker"]["elements"]
     members = elements["pacemaker-cluster-member"] || []
 
-    if elements.has_key?("hawk-server")
+    if elements.key?("hawk-server")
       elements["hawk-server"].each do |n|
         @logger.debug("checking #{n}")
         unless members.include? n

@@ -35,7 +35,7 @@ include_recipe "haproxy::setup"
 
 cluster_name = CrowbarPacemakerHelper.cluster_name(node)
 
-if node[:pacemaker][:haproxy][:clusters].has_key?(cluster_name) && node[:pacemaker][:haproxy][:clusters][cluster_name][:enabled]
+if node[:pacemaker][:haproxy][:clusters].key?(cluster_name) && node[:pacemaker][:haproxy][:clusters][cluster_name][:enabled]
   service "haproxy" do
     supports restart: true, status: true, reload: true
     action :nothing

@@ -103,7 +103,7 @@ when "ipmi_barclamp"
   node.default[:pacemaker][:stonith][:per_node][:nodes] = {}
 
   CrowbarPacemakerHelper.cluster_nodes(node).each do |cluster_node|
-    unless cluster_node.has_key?("ipmi") && cluster_node[:ipmi][:bmc_enable]
+    unless cluster_node.key?("ipmi") && cluster_node[:ipmi][:bmc_enable]
       message = "Node #{cluster_node[:hostname]} has no IPMI configuration from IPMI barclamp; another STONITH method must be used."
       Chef::Log.fatal(message)
       raise message

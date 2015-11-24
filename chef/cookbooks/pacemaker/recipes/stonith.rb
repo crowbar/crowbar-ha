@@ -100,7 +100,7 @@ when "shared"
     raise message
   end
 
-  unless primitive_params.has_key?("hostlist")
+  unless primitive_params.key?("hostlist")
     message = "Missing hostlist parameter for shared fencing agent!"
     Chef::Log.fatal(message)
     raise message
@@ -144,7 +144,7 @@ when "per_node"
     # Only set one of hostname / hostlist param if none of them are present; we
     # do not overwrite it as the user might have passed more information than
     # just the hostname (some agents accept hostname:data in hostlist)
-    unless primitive_params.has_key?("hostname") || primitive_params.has_key?("hostlist")
+    unless primitive_params.key?("hostname") || primitive_params.key?("hostlist")
       primitive_params["hostname"] = node_name
     end
 

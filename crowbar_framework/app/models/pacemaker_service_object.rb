@@ -116,7 +116,7 @@ class PacemakerServiceObject < ServiceObject
   def role_expand_elements(role, role_name)
     elements = role.override_attributes[@bc_name]["elements"][role_name]
     expanded_nodes = nil
-    if role.override_attributes[@bc_name].has_key?("elements_expanded")
+    if role.override_attributes[@bc_name].key?("elements_expanded")
       expanded_nodes = role.override_attributes[@bc_name]["elements_expanded"][role_name]
     end
     elements ||= []
@@ -246,7 +246,7 @@ class PacemakerServiceObject < ServiceObject
 
     data = role.default_attributes
     attribute_path[0, attribute_path.length - 1].each { |attribute|
-      if not (data.has_key?(attribute) && data[attribute].is_a?(Hash))
+      if not (data.key?(attribute) && data[attribute].is_a?(Hash))
         data[attribute] = {}
       end
       data = data[attribute]
