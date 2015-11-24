@@ -1,10 +1,9 @@
 require "spec_helper"
 
-this_dir = File.dirname(__FILE__)
-require File.expand_path("../../../../libraries/pacemaker/resource/clone", this_dir)
-require File.expand_path("../../../fixtures/clone_resource", this_dir)
-require File.expand_path("../../../helpers/cib_object", this_dir)
-require File.expand_path("../../../helpers/meta_examples", this_dir)
+require_relative "../../../../libraries/pacemaker/resource/clone"
+require_relative "../../../fixtures/clone_resource"
+require_relative "../../../helpers/cib_object"
+require_relative "../../../helpers/meta_examples"
 
 describe Pacemaker::Resource::Clone do
   let(:fixture) { Chef::RSpec::Pacemaker::Config::CLONE_RESOURCE.dup }

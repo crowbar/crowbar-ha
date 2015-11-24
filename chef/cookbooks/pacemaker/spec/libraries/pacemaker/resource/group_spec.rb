@@ -1,11 +1,9 @@
 require "spec_helper"
 
-require File.expand_path("../../../../libraries/pacemaker/resource/group",
-                         File.dirname(__FILE__))
-require File.expand_path("../../../fixtures/resource_group", File.dirname(__FILE__))
-require File.expand_path("../../../helpers/cib_object", File.dirname(__FILE__))
-require File.expand_path("../../../helpers/meta_examples",
-                         File.dirname(__FILE__))
+require_relative "../../../../libraries/pacemaker/resource/group"
+require_relative "../../../fixtures/resource_group"
+require_relative "../../../helpers/cib_object"
+require_relative "../../../helpers/meta_examples"
 
 describe Pacemaker::Resource::Group do
   let(:fixture) { Chef::RSpec::Pacemaker::Config::RESOURCE_GROUP.dup }

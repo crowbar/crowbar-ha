@@ -1,9 +1,8 @@
 require "spec_helper"
 
-this_dir = File.dirname(__FILE__)
-require File.expand_path("../helpers/provider",               this_dir)
-require File.expand_path("../helpers/non_runnable_resource",  this_dir)
-require File.expand_path("../fixtures/order_constraint",      this_dir)
+require_relative "../helpers/provider"
+require_relative "../helpers/non_runnable_resource"
+require_relative "../fixtures/order_constraint"
 
 describe "Chef::Provider::PacemakerOrder" do
   # for use inside examples:

@@ -1,4 +1,4 @@
-require File.expand_path("cib_object", File.dirname(__FILE__))
+require_relative "cib_object"
 
 module Pacemaker
   class Constraint < Pacemaker::CIBObject

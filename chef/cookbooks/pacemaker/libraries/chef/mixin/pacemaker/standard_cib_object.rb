@@ -1,5 +1,4 @@
-require ::File.expand_path("../../../pacemaker/cib_object",
-                           File.dirname(__FILE__))
+require_relative "../../../pacemaker/cib_object"
 
 # Common code used by Pacemaker LWRP providers
 

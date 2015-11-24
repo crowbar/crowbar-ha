@@ -2,9 +2,8 @@ require "mixlib/shellout"
 
 require "spec_helper"
 
-this_dir = File.dirname(__FILE__)
-require File.expand_path("../../../libraries/pacemaker", this_dir)
-require File.expand_path("../../fixtures/keystone_primitive", this_dir)
+require_relative "../../../libraries/pacemaker"
+require_relative "../../fixtures/keystone_primitive"
 
 describe Pacemaker::CIBObject do
   before(:each) do

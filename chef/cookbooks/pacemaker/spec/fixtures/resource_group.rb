@@ -1,5 +1,4 @@
-require File.expand_path("../../libraries/pacemaker/resource/group",
-                         File.dirname(__FILE__))
+require_relative "../../libraries/pacemaker/resource/group"
 
 module Chef::RSpec
   module Pacemaker

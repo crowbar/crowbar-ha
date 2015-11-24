@@ -1,4 +1,4 @@
-require ::File.expand_path("standard_cib_object", File.dirname(__FILE__))
+require_relative "standard_cib_object"
 
 # Common code used by Pacemaker LWRP providers for resources supporting
 # the :run action.

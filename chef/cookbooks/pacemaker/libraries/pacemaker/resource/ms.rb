@@ -1,4 +1,4 @@
-require File.expand_path("clone", File.dirname(__FILE__))
+require_relative "clone"
 
 class Pacemaker::Resource::MasterSlave < Pacemaker::Resource::Clone
   TYPE = "ms"

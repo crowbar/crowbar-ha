@@ -1,5 +1,4 @@
-require ::File.expand_path("../../libraries/pacemaker/constraint/order",
-                           File.dirname(__FILE__))
+require_relative "../../libraries/pacemaker/constraint/order"
 
 module Chef::RSpec
   module Pacemaker

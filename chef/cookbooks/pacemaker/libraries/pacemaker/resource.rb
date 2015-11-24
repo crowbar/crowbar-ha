@@ -1,5 +1,6 @@
 require "chef/mixin/shell_out"
-require File.expand_path("cib_object", File.dirname(__FILE__))
+
+require_relative "cib_object"
 
 module Pacemaker
   class Resource < Pacemaker::CIBObject
