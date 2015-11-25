@@ -15,7 +15,7 @@ describe Pacemaker::CIBObject do
   #####################################################################
   # examples start here
 
-  context "no CIB object" do
+  context "with no CIB object" do
     before(:each) do
       expect_any_instance_of(Mixlib::ShellOut) \
         .to receive(:error!) \
@@ -23,7 +23,7 @@ describe Pacemaker::CIBObject do
     end
 
     describe "#load_definition" do
-      it "should return nil cluster config" do
+      it "should return nil" do
         cib_object.load_definition
         expect(cib_object.definition).to eq(nil)
       end
