@@ -2,8 +2,7 @@ require_relative "../resource"
 require_relative "../mixins/resource_meta"
 
 class Pacemaker::Resource::Clone < Pacemaker::Resource
-  TYPE = "clone"
-  register_type TYPE
+  register_type :clone
 
   include Pacemaker::Mixins::Resource::Meta
 
@@ -16,7 +15,7 @@ class Pacemaker::Resource::Clone < Pacemaker::Resource
   end
 
   def definition_string
-    str = "#{self.class::TYPE} #{name} #{rsc}"
+    str = "#{self.class.object_type} #{name} #{rsc}"
     unless meta.empty?
       str << continuation_line(meta_string)
     end
@@ -24,7 +23,7 @@ class Pacemaker::Resource::Clone < Pacemaker::Resource
   end
 
   def parse_definition
-    unless definition =~ /^#{self.class::TYPE} (\S+) (\S+)/
+    unless definition =~ /^#{self.class.object_type} (\S+) (\S+)/
       raise Pacemaker::CIBObject::DefinitionParseError, \
             "Couldn't parse definition '#{definition}'"
     end

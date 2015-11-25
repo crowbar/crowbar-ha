@@ -30,7 +30,7 @@ module Pacemaker
         unless definition =~ /\A(\w+)\s/
           raise "Couldn't extract CIB object type from '#{definition}'"
         end
-        return $1
+        $1.to_sym
       end
 
       def from_name(name)

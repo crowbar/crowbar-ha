@@ -2,8 +2,7 @@ require_relative "../resource"
 require_relative "../mixins/resource_meta"
 
 class Pacemaker::Resource::Group < Pacemaker::Resource
-  TYPE = "group"
-  register_type TYPE
+  register_type :group
 
   include Pacemaker::Mixins::Resource::Meta
 
@@ -16,7 +15,7 @@ class Pacemaker::Resource::Group < Pacemaker::Resource
   end
 
   def parse_definition
-    unless definition =~ /^#{self.class::TYPE} (\S+) (.+?)(\s+\\)?$/
+    unless definition =~ /^#{self.class.object_type} (\S+) (.+?)(\s+\\)?$/
       raise Pacemaker::CIBObject::DefinitionParseError, \
             "Couldn't parse definition '#{definition}'"
     end
@@ -29,7 +28,7 @@ class Pacemaker::Resource::Group < Pacemaker::Resource
   end
 
   def definition_string
-    str = "#{self.class::TYPE} #{name} " + members.join(" ")
+    str = "#{self.class.object_type} #{name} " + members.join(" ")
     unless meta.empty?
       str << continuation_line(meta_string)
     end

@@ -1,8 +1,7 @@
 require_relative "../constraint"
 
 class Pacemaker::Constraint::Colocation < Pacemaker::Constraint
-  TYPE = "colocation"
-  register_type TYPE
+  register_type :colocation
 
   attr_accessor :score
   attr_reader :resources
@@ -27,7 +26,7 @@ class Pacemaker::Constraint::Colocation < Pacemaker::Constraint
     # FIXME: this is incomplete.  It probably doesn't handle resource
     # sets correctly, and certainly doesn't handle node attributes.
     # See the crm(8) man page for the official BNF grammar.
-    unless definition =~ /^#{self.class::TYPE} (\S+) (\d+|[-+]?inf): (.+?)\s*$/
+    unless definition =~ /^#{self.class.object_type} (\S+) (\d+|[-+]?inf): (.+?)\s*$/
       raise Pacemaker::CIBObject::DefinitionParseError, \
             "Couldn't parse definition '#{definition}'"
     end
@@ -37,6 +36,6 @@ class Pacemaker::Constraint::Colocation < Pacemaker::Constraint
   end
 
   def definition_string
-    "#{self.class::TYPE} #{name} #{score}: #{resources}"
+    "#{self.class.object_type} #{name} #{score}: #{resources}"
   end
 end

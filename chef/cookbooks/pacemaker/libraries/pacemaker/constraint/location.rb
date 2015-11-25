@@ -1,8 +1,7 @@
 require_relative "../constraint"
 
 class Pacemaker::Constraint::Location < Pacemaker::Constraint
-  TYPE = "location"
-  register_type TYPE
+  register_type :location
 
   attr_accessor :rsc, :score, :node
 
@@ -14,7 +13,7 @@ class Pacemaker::Constraint::Location < Pacemaker::Constraint
     # FIXME: this is woefully incomplete, and doesn't cope with any of
     # the rules syntax.  See the crm(8) man page for the official BNF
     # grammar.
-    unless definition =~ /^#{self.class::TYPE} (\S+) (\S+) (\d+|[-+]?inf): (\S+)\s*$/
+    unless definition =~ /^#{self.class.object_type} (\S+) (\S+) (\d+|[-+]?inf): (\S+)\s*$/
       raise Pacemaker::CIBObject::DefinitionParseError, \
             "Couldn't parse definition '#{definition}'"
     end
@@ -25,6 +24,6 @@ class Pacemaker::Constraint::Location < Pacemaker::Constraint
   end
 
   def definition_string
-    "#{self.class::TYPE} #{name} #{rsc} #{score}: #{node}"
+    "#{self.class.object_type} #{name} #{rsc} #{score}: #{node}"
   end
 end
