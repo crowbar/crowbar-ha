@@ -2,7 +2,6 @@ require "mixlib/shellout"
 
 require "spec_helper"
 
-require_relative "../../../libraries/pacemaker"
 require_relative "../../fixtures/keystone_primitive"
 
 describe Pacemaker::CIBObject do
