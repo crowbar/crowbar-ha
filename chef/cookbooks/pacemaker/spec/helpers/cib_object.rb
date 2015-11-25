@@ -1,12 +1,10 @@
 # Shared code used to test subclasses of Pacemaker::CIBObject
 
-require "mixlib/shellout"
-
 require_relative "../../libraries/pacemaker/cib_object"
-require_relative "shellout"
+require_relative "crm_mocks"
 
 shared_examples "a CIB object" do
-  include Chef::RSpec::Mixlib::ShellOut
+  include Chef::RSpec::Pacemaker::Mocks
 
   def expect_to_match_fixture(obj)
     expect(obj.class).to eq(pacemaker_object_class)
@@ -17,7 +15,7 @@ shared_examples "a CIB object" do
   end
 
   it "should be instantiated via Pacemaker::CIBObject.from_name" do
-    stub_shellout(fixture.definition_string)
+    mock_existing_cib_object_from_fixture(fixture)
     obj = Pacemaker::CIBObject.from_name(fixture.name)
     expect_to_match_fixture(obj)
   end
@@ -28,7 +26,7 @@ shared_examples "a CIB object" do
   end
 
   it "should barf if the loaded definition's type is not right" do
-    stub_shellout("sometype foo blah blah")
+    mock_existing_cib_object(fixture.name, "sometype #{fixture.name} blah blah")
     expect { fixture.load_definition }.to \
       raise_error(Pacemaker::CIBObject::TypeMismatch,
                   "Expected #{object_type} type but loaded definition was type sometype")

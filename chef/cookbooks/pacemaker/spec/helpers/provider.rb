@@ -1,6 +1,6 @@
 # Shared code used to test providers of CIB objects
 
-require_relative "shellout"
+require_relative "crm_mocks"
 require_relative "cib_object"
 
 shared_context "a Pacemaker LWRP" do
@@ -41,12 +41,12 @@ end
 module Chef::RSpec
   module Pacemaker
     module CIBObject
-      include Chef::RSpec::Mixlib::ShellOut
+      include Chef::RSpec::Pacemaker::Mocks
 
       def test_modify(expected_cmds)
         yield
 
-        stub_shellout(fixture.definition_string)
+        mock_existing_cib_object_from_fixture(fixture)
 
         provider.run_action :create
 
@@ -60,10 +60,10 @@ module Chef::RSpec
 end
 
 shared_examples "action on non-existent resource" do |action, cmd, expected_error|
-  include Chef::RSpec::Mixlib::ShellOut
+  include Chef::RSpec::Pacemaker::Mocks
 
   it "should not attempt to #{action.to_s} a non-existent resource" do
-    stub_shellout("")
+    mock_nonexistent_cib_object(fixture.name)
 
     if expected_error
       expect { provider.run_action action }.to \

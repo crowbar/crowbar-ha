@@ -3,65 +3,57 @@ require "mixlib/shellout"
 module Chef::RSpec
   module Mixlib
     module ShellOut
-      # Return a Mixlib::ShellOut double which mimics successful
-      # execution of a command, returning the given string on STDOUT.
-      def succeeding_shellout_double(string)
-        shellout = double(Mixlib::ShellOut)
-        shellout.stub(:environment).and_return({})
-        shellout.stub(:run_command)
-        shellout.stub(:error!)
-        expect(shellout).to receive(:stdout).and_return(string)
-        shellout
+      # Stubs Mixlib::ShellOut.new to return a double mimicking the
+      # behaviour of Mixlib::ShellOut being used to run a real
+      # command.  This allows us to simulate a shell command being run
+      # via Mixlib::ShellOut.  The arguments are passed to
+      # #shellout_double.
+      def stub_shellout(opts)
+        double = shellout_double(opts)
+        expect(::Mixlib::ShellOut).
+          to receive(:new).with(opts[:command]).and_return(double)
+        # puts "expecting [#{opts[:command]}]"
+        # puts "to yield [#{opts[:stdout]}, #{opts[:stderr]}, #{opts[:exitstatus]}]"
+        # puts "double #{double.object_id}"
       end
 
-      # Return a Mixlib::ShellOut double which mimics failed
-      # execution of a command, raising an exception when #error! is
-      # called.  We expect #error! to be called, because if it isn't,
-      # that probably indicates the code isn't robust enough.  This
-      # may need to be relaxed in the future.
-      def failing_shellout_double(stdout="", stderr="", exitstatus=1)
-        shellout = double(Mixlib::ShellOut)
-        shellout.stub(:environment).and_return({})
-        shellout.stub(:run_command)
-        shellout.stub(:stdout).and_return(stdout)
-        shellout.stub(:stderr).and_return(stderr)
-        shellout.stub(:exitstatus).and_return(exitstatus)
-        exception = ::Mixlib::ShellOut::ShellCommandFailed.new(
-          "Expected process to exit with 0, " +
-          "but received '#{exitstatus}'"
-        )
-        expect(shellout).to receive(:error!).and_raise(exception)
-        shellout
+      # Stubs Mixlib::ShellOut.new to return a sequence of doubles,
+      # each mimicking the behaviour of Mixlib::ShellOut being used to
+      # run a real command.  This allows us to simulate the output of
+      # a series of shell commands being run via Mixlib::ShellOut.
+      # Each argument is a Hash containing the options to be passed to
+      # #shellout_double which describe the command and the
+      # corresponding double which should be returned.
+      #
+      # FIXME: this usage mode doesn't verify the argument passed to
+      # #new, because I couldn't figure out how to do that for
+      # multiple return values.
+      def stub_shellouts(*sequence)
+        expect(::Mixlib::ShellOut).
+          to receive(:new).and_return(*sequence)
       end
 
-      # This stubs Mixlib::ShellOut.new with a sequence of doubles
-      # with a corresponding sequence of behaviours.  This allows us
-      # to simulate the output of a series of shell commands being run
-      # via Mixlib::ShellOut.  Each double either mimics a successful
-      # command execution whose #stdout method returns the given
-      # string, or a failed execution with the given exit code and
-      # STDOUT/STDERR.
-      #
-      # results is an Array describing the sequence of behaviours;
-      # each element is either a string mimicking STDOUT from
-      # successful command execution, or a [stdout, stderr, exitcode]
-      # status mimicking command execution failure.
-      #
-      # For example, "crm configure show" is executed by
-      # #load_current_resource, and again later on for the :create
-      # action, to see whether to create or modify.  So the first
-      # double in the sequence would return an empty definition if we
-      # wanted to test creation of a new CIB object, or an existing
-      # definition if we wanted to test modification of an existing
-      # one.  If the test needs subsequent doubles to return different
-      # values then stdout_strings can have more than one element.
-      def stub_shellout(*results)
-        doubles = results.map { |result|
-          result.is_a?(String) ?
-              succeeding_shellout_double(result)
-            : failing_shellout_double(*result)
-        }
-        ::Mixlib::ShellOut.stub(:new).and_return(*doubles)
+      # Constructs a Mixlib::ShellOut double for use with
+      # #stub_shellout, mimicking execution of the given command, as
+      # if it outputted the given strings on STDOUT and STDERR and
+      # exited with the given exit code.
+      def shellout_double(command:, stdout: "", stderr: "", exitstatus: 0)
+        shellout = double(::Mixlib::ShellOut)
+        expect(shellout).to receive(:environment).and_return({})
+        expect(shellout).to receive(:run_command)
+        allow(shellout).to receive(:stdout).and_return(stdout)
+        allow(shellout).to receive(:stderr).and_return(stderr)
+        allow(shellout).to receive(:exitstatus).and_return(exitstatus)
+        if exitstatus == 0
+          expect(shellout).to receive(:error!)
+        else
+          exception = ::Mixlib::ShellOut::ShellCommandFailed.new(
+            "Expected process to exit with 0, " \
+            "but received '#{exitstatus}'"
+          )
+          expect(shellout).to receive(:error!).and_raise(exception)
+        end
+        shellout
       end
     end
   end
