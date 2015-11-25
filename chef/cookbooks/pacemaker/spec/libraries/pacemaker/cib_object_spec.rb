@@ -70,7 +70,7 @@ describe Pacemaker::CIBObject do
 
       describe "#type" do
         it "should return primitive" do
-          expect(cib_object.type).to eq("primitive")
+          expect(cib_object.type).to eq(:primitive)
         end
       end
     end

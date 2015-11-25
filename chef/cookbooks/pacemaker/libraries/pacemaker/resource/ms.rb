@@ -1,8 +1,7 @@
 require_relative "clone"
 
 class Pacemaker::Resource::MasterSlave < Pacemaker::Resource::Clone
-  TYPE = "ms"
-  register_type TYPE
+  register_type :ms
 
   #include Pacemaker::Mixins::Resource::Meta
 
