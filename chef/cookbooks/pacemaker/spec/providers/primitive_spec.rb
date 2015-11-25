@@ -28,7 +28,7 @@ describe "Chef::Provider::PacemakerPrimitive" do
 
   describe ":create action" do
     include Chef::RSpec::Pacemaker::CIBObject
-    include Chef::RSpec::Mixlib::ShellOut
+    include Chef::RSpec::Pacemaker::Mocks
 
     it "should modify the primitive if it has different params" do
       expected_configure_cmd_args = [
@@ -46,6 +46,7 @@ describe "Chef::Provider::PacemakerPrimitive" do
     end
 
     def assert_no_modifications(recipe_agent, existing_agent)
+      @resource.name "vip"
       @resource.agent (recipe_agent)
       @resource.params({ "ip" => "192.168.138.84" })
       @resource.meta ({})
@@ -58,7 +59,7 @@ primitive vip #{existing_agent} \\
         meta \\
         op monitor interval=10s
 EOF
-      stub_shellout(existing_definition)
+      mock_existing_cib_object("vip", existing_definition)
 
       provider.run_action :create
 
@@ -118,7 +119,8 @@ EOF
         # The first time, Mixlib::ShellOut needs to return an empty definition.
         # Then the resource gets created so the second time it needs to return
         # the definition used for creation.
-        stub_shellout("", fixture.definition_string)
+        mock_nonexistent_cib_object(fixture.name)
+        mock_existing_cib_object_from_fixture(fixture)
 
         provider.run_action :create
 
@@ -127,7 +129,13 @@ EOF
       end
 
       it "should barf if crm fails to create the primitive" do
-        stub_shellout("", ["crm configure failed", "oh noes", 3])
+        double1 = nonexistent_cib_object_double(fixture.name)
+        double2 = shellout_double(
+          command: fixture.configure_command,
+          stderr: "ERROR: crm configure failed",
+          exitstatus: 1
+        )
+        stub_shellouts(double1, double2)
 
         expect { provider.run_action :create }.to \
           raise_error(RuntimeError, "Failed to create #{fixture}")
@@ -139,7 +147,8 @@ EOF
       # This scenario seems rather artificial and unlikely, but it doesn't
       # do any harm to test it.
       it "should barf if crm creates a primitive with empty definition" do
-        stub_shellout("", "")
+        mock_nonexistent_cib_object(fixture.name)
+        mock_nonexistent_cib_object(fixture.name)
 
         expect { provider.run_action :create }.to \
           raise_error(RuntimeError, "Failed to create #{fixture}")
@@ -152,7 +161,7 @@ EOF
     it "should barf if the primitive is already defined with the wrong agent" do
       existing_agent = "ocf:openstack:something-else"
       definition = fixture.definition_string.sub(fixture.agent, existing_agent)
-      stub_shellout(definition)
+      mock_existing_cib_object(fixture.name, definition)
 
       expected_error = \
         "Existing #{fixture} has agent '#{existing_agent}' " \
