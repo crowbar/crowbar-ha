@@ -1,7 +1,7 @@
-this_dir = File.dirname(__FILE__)
-
-require File.expand_path("pacemaker/resource/primitive",    this_dir)
-require File.expand_path("pacemaker/resource/clone",        this_dir)
-require File.expand_path("pacemaker/resource/ms",           this_dir)
-require File.expand_path("pacemaker/resource/group",        this_dir)
-require File.expand_path("pacemaker/constraint/colocation", this_dir)
+require_relative "pacemaker/resource/primitive"
+require_relative "pacemaker/resource/clone"
+require_relative "pacemaker/resource/ms"
+require_relative "pacemaker/resource/group"
+require_relative "pacemaker/constraint/colocation"
+require_relative "pacemaker/constraint/location"
+require_relative "pacemaker/constraint/order"

@@ -3,9 +3,8 @@
 # primitives is runnable (since primitives can be started and stopped)
 # but constraints cannot.
 
-this_dir = File.dirname(__FILE__)
-require File.expand_path("provider", this_dir)
-require File.expand_path("shellout", this_dir)
+require_relative "provider"
+require_relative "shellout"
 
 shared_examples "a non-runnable resource" do |fixture|
   include Chef::RSpec::Mixlib::ShellOut

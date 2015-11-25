@@ -2,9 +2,8 @@ require "mixlib/shellout"
 
 require "spec_helper"
 
-this_dir = File.dirname(__FILE__)
-require File.expand_path("../../../libraries/pacemaker/resource", this_dir)
-require File.expand_path("../../fixtures/keystone_primitive", this_dir)
+require_relative "../../../libraries/pacemaker/resource"
+require_relative "../../fixtures/keystone_primitive"
 
 describe Pacemaker::Resource do
   describe "#running?" do

@@ -1,8 +1,7 @@
 # Shared code used to test providers of CIB objects
 
-this_dir = File.dirname(__FILE__)
-require File.expand_path("shellout",   this_dir)
-require File.expand_path("cib_object", this_dir)
+require_relative "shellout"
+require_relative "cib_object"
 
 shared_context "a Pacemaker LWRP" do
   before(:each) do

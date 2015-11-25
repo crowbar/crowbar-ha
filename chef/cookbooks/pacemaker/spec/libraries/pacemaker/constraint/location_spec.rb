@@ -1,10 +1,8 @@
 require "spec_helper"
 
-this_dir = File.dirname(__FILE__)
-require File.expand_path("../../../../libraries/pacemaker/constraint/location",
-                         this_dir)
-require File.expand_path("../../../fixtures/location_constraint", this_dir)
-require File.expand_path("../../../helpers/cib_object", this_dir)
+require_relative "../../../../libraries/pacemaker/constraint/location"
+require_relative "../../../fixtures/location_constraint"
+require_relative "../../../helpers/cib_object"
 
 describe Pacemaker::Constraint::Location do
   let(:fixture) { Chef::RSpec::Pacemaker::Config::LOCATION_CONSTRAINT.dup }

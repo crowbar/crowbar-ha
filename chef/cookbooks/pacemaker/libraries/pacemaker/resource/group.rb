@@ -1,6 +1,5 @@
-this_dir = File.dirname(__FILE__)
-require File.expand_path("../resource", this_dir)
-require File.expand_path("../mixins/resource_meta", this_dir)
+require_relative "../resource"
+require_relative "../mixins/resource_meta"
 
 class Pacemaker::Resource::Group < Pacemaker::Resource
   TYPE = "group"

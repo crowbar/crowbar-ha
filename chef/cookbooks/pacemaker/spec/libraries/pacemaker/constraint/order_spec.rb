@@ -1,10 +1,8 @@
 require "spec_helper"
 
-this_dir = File.dirname(__FILE__)
-require File.expand_path("../../../../libraries/pacemaker/constraint/order",
-                         this_dir)
-require File.expand_path("../../../fixtures/order_constraint", this_dir)
-require File.expand_path("../../../helpers/cib_object", this_dir)
+require_relative "../../../../libraries/pacemaker/constraint/order"
+require_relative "../../../fixtures/order_constraint"
+require_relative "../../../helpers/cib_object"
 
 describe Pacemaker::Constraint::Order do
   let(:fixture) { Chef::RSpec::Pacemaker::Config::ORDER_CONSTRAINT.dup }
