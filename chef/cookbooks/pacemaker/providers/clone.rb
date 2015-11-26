@@ -27,6 +27,10 @@ action :create do
   standard_create_action
 end
 
+action :update do
+  standard_update_action
+end
+
 action :delete do
   delete_runnable_resource
 end

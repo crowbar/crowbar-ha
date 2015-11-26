@@ -25,7 +25,7 @@ describe "Chef::Provider::PacemakerOrder" do
     Pacemaker::Constraint::Order
   end
 
-  describe ":create action" do
+  shared_examples "an updateable resource" do
     include Chef::RSpec::Pacemaker::CIBObject
 
     it "should modify the constraint if it has a different score" do
@@ -55,6 +55,16 @@ describe "Chef::Provider::PacemakerOrder" do
         @resource.ordering new_ordering
       end
     end
+  end
+
+  describe ":create action" do
+    let(:action) { :create }
+    it_should_behave_like "an updateable resource"
+  end
+
+  describe ":update action" do
+    let(:action) { :update }
+    it_should_behave_like "an updateable resource"
   end
 
   it_should_behave_like "a non-runnable resource", fixture

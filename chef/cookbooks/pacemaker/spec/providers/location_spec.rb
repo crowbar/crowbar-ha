@@ -26,7 +26,7 @@ describe "Chef::Provider::PacemakerLocation" do
     Pacemaker::Constraint::Location
   end
 
-  describe ":create action" do
+  shared_examples "an updateable resource" do
     include Chef::RSpec::Pacemaker::CIBObject
 
     it "should modify the constraint if it has a different resource" do
@@ -55,6 +55,16 @@ describe "Chef::Provider::PacemakerLocation" do
         @resource.node new_node
       end
     end
+  end
+
+  describe ":create action" do
+    let(:action) { :create }
+    it_should_behave_like "an updateable resource"
+  end
+
+  describe ":update action" do
+    let(:action) { :update }
+    it_should_behave_like "an updateable resource"
   end
 
   it_should_behave_like "a non-runnable resource", fixture

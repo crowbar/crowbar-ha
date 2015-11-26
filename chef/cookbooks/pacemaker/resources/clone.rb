@@ -16,7 +16,7 @@
 # limitations under the License.
 #
 
-actions :create, :delete, :start, :stop
+actions :create, :update, :delete, :start, :stop
 
 default_action :create
 

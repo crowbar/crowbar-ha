@@ -24,7 +24,7 @@ describe "Chef::Provider::PacemakerClone" do
     Pacemaker::Resource::Clone
   end
 
-  describe ":create action" do
+  shared_examples "an updateable resource" do
     include Chef::RSpec::Pacemaker::CIBObject
 
     it "should modify the clone if the resource is changed" do
@@ -35,6 +35,16 @@ describe "Chef::Provider::PacemakerClone" do
         @resource.rsc expected.rsc
       end
     end
+  end
+
+  describe ":create action" do
+    let(:action) { :create }
+    it_should_behave_like "an updateable resource"
+  end
+
+  describe ":update action" do
+    let(:action) { :update }
+    it_should_behave_like "an updateable resource"
   end
 
   it_should_behave_like "a runnable resource", fixture

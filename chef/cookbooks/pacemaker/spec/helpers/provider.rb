@@ -48,7 +48,8 @@ module Chef::RSpec
 
         mock_existing_cib_object_from_fixture(fixture)
 
-        provider.run_action :create
+        # action can be :create or :update
+        provider.run_action action
 
         expected_cmds.each do |cmd|
           expect(@chef_run).to run_execute(cmd)

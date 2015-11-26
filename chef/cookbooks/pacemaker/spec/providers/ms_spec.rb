@@ -27,6 +27,8 @@ describe "Chef::Provider::PacemakerMs" do
   describe ":create action" do
     include Chef::RSpec::Pacemaker::CIBObject
 
+    let(:action) { :create }
+
     it "should modify the resource if it's changed" do
       expected = fixture.dup
       expected.rsc = "primitive2"

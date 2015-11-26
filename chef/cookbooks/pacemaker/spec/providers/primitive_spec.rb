@@ -26,9 +26,10 @@ describe "Chef::Provider::PacemakerPrimitive" do
     Pacemaker::Resource::Primitive
   end
 
-  describe ":create action" do
+  include Chef::RSpec::Pacemaker::Mocks
+
+  shared_examples "an updateable resource" do
     include Chef::RSpec::Pacemaker::CIBObject
-    include Chef::RSpec::Pacemaker::Mocks
 
     it "should modify the primitive if it has different params" do
       expected_configure_cmd_args = [
@@ -111,6 +112,16 @@ EOF
         @resource.op new_op
       end
     end
+  end
+
+  describe ":update action" do
+    let(:action) { :update }
+    it_should_behave_like "an updateable resource"
+  end
+
+  describe ":create action" do
+    let(:action) { :create }
+    it_should_behave_like "an updateable resource"
 
     context "creation from scratch" do
       include_context "stopped resource"
