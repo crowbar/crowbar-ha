@@ -14,7 +14,7 @@ describe "Chef::Provider::PacemakerLocation" do
     "location"
   end
 
-  include_context "a Pacemaker LWRP"
+  include_context "a Pacemaker LWRP with artificially constructed resource"
 
   before(:each) do
     @resource.rsc fixture.rsc

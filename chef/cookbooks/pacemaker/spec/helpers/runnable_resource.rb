@@ -4,7 +4,7 @@
 # and stopped) but constraints cannot.
 
 require_relative "provider"
-require_relative "shellout"
+require_relative "crm_mocks"
 
 shared_context "stopped resource" do
   def stopped_fixture
@@ -28,13 +28,14 @@ shared_examples "a runnable resource" do |fixture|
 
   it_should_behave_like "all Pacemaker LWRPs", fixture
 
-  include Chef::RSpec::Mixlib::ShellOut
+  include Chef::RSpec::Pacemaker::Mocks
 
   describe ":create action" do
     include_context "stopped resource"
 
     it "should not start a newly-created resource" do
-      stub_shellout("", fixture.definition_string)
+      mock_nonexistent_cib_object(fixture.name)
+      mock_existing_cib_object_from_fixture(fixture)
 
       provider.run_action :create
 
@@ -45,7 +46,7 @@ shared_examples "a runnable resource" do |fixture|
 
   describe ":delete action" do
     it "should not delete a running resource" do
-      stub_shellout(fixture.definition_string)
+      mock_existing_cib_object_from_fixture(fixture)
       expect_running(true)
 
       expected_error = "Cannot delete running #{fixture}"
@@ -58,7 +59,7 @@ shared_examples "a runnable resource" do |fixture|
     end
 
     it "should delete a non-running resource" do
-      stub_shellout(fixture.definition_string)
+      mock_existing_cib_object_from_fixture(fixture)
       expect_running(false)
 
       provider.run_action :delete
@@ -76,7 +77,7 @@ shared_examples "a runnable resource" do |fixture|
                           "Cannot start non-existent #{fixture}"
 
     it "should do nothing to a started resource" do
-      stub_shellout(fixture.definition_string)
+      mock_existing_cib_object_from_fixture(fixture)
       expect_running(true)
 
       provider.run_action :start
@@ -88,7 +89,7 @@ shared_examples "a runnable resource" do |fixture|
 
     it "should start a stopped resource" do
       config = fixture.definition_string.sub("Started", "Stopped")
-      stub_shellout(config)
+      mock_existing_cib_object(fixture.name, config)
       expect_running(false)
 
       provider.run_action :start
@@ -106,7 +107,8 @@ shared_examples "a runnable resource" do |fixture|
                           "Cannot stop non-existent #{fixture}"
 
     it "should do nothing to a stopped resource" do
-      stub_shellout(fixture.definition_string)
+      config = fixture.definition_string.sub("Started", "Stopped")
+      mock_existing_cib_object(fixture.name, config)
       expect_running(false)
 
       provider.run_action :stop
@@ -117,7 +119,7 @@ shared_examples "a runnable resource" do |fixture|
     end
 
     it "should stop a started resource" do
-      stub_shellout(fixture.definition_string)
+      mock_existing_cib_object_from_fixture(fixture)
       expect_running(true)
 
       provider.run_action :stop

@@ -14,7 +14,7 @@ describe "Chef::Provider::PacemakerColocation" do
     "colocation"
   end
 
-  include_context "a Pacemaker LWRP"
+  include_context "a Pacemaker LWRP with artificially constructed resource"
 
   before(:each) do
     @resource.score fixture.score
