@@ -23,7 +23,7 @@ shared_context "a Pacemaker LWRP" do
     @resource = @resource_class.new(fixture.name, @run_context)
   end
 
-  let (:provider) { @provider_class.new(@resource, @run_context) }
+  let(:provider) { @provider_class.new(@resource, @run_context) }
 end
 
 module Chef::RSpec
