@@ -26,7 +26,7 @@ access_keys = {}
 
 node["provisioner"]["access_keys"].strip.split("\n").each do |key|
   key.strip!
-  if !key.empty?
+  unless key.empty?
     nodename = key.split(" ")[2]
     access_keys[nodename] = key
   end
