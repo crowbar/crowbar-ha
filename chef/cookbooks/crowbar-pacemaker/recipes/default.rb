@@ -49,6 +49,9 @@ end.run_action(:guess)
 
 include_recipe "pacemaker::default"
 
+# Set up authkey for pacemaker remotes (different to corosync authkey)
+include_recipe "crowbar-pacemaker::pacemaker_authkey"
+
 # This part of the synchronization is *not* done in the compile phase, because
 # saving the corosync authkey attribute is done in convergence phase for
 # founder (but reading the attribute is done in compile phase for non-founder

@@ -81,3 +81,6 @@ default[:pacemaker][:notifications][:smtp][:to] = ""
 default[:pacemaker][:notifications][:smtp][:from] = ""
 default[:pacemaker][:notifications][:smtp][:server] = ""
 default[:pacemaker][:notifications][:smtp][:prefix] = ""
+
+default[:pacemaker][:authkey_file] = "/etc/pacemaker/authkey"
+default[:pacemaker][:authkey_file_owner] = "hacluster" # same as default[:corosync][:user]
