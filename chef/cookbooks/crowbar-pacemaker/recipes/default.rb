@@ -45,17 +45,7 @@ end
 
 node[:corosync][:cluster_name] = CrowbarPacemakerHelper.cluster_name(node)
 
-# Enforce no-quorum-policy based on the number of members in the clusters
-# We know that for 2 members (or 1, where it doesn't matter), the setting
-# should be "ignore". If we have more members, then we use the value set in the
-# barclamp.
-# For details on the different policies, see
-# https://www.suse.com/documentation/sle_ha/book_sleha/data/sec_ha_configuration_basics_global.html
-cluster_members_nb = CrowbarPacemakerHelper.cluster_nodes(node).length
-if cluster_members_nb <= 2
-  node.default[:pacemaker][:crm][:no_quorum_policy] = "ignore"
-end
-
+include_recipe "crowbar-pacemaker::quorum_policy"
 include_recipe "crowbar-pacemaker::stonith"
 
 # We let the founder go first, so it can generate the authkey and some other
