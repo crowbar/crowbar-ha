@@ -55,12 +55,16 @@
       "crowbar-applied": false,
       "schema-revision": 32,
       "element_states": {
-        "pacemaker-cluster-member" : [ "readying", "ready", "applying" ],
-        "hawk-server"              : [ "readying", "ready", "applying" ]
+        "pacemaker-cluster-member"    : [ "readying", "ready", "applying" ],
+        "hawk-server"                 : [ "readying", "ready", "applying" ],
+        "pacemaker-remote"            : [ "readying", "ready", "applying" ],
+        "pacemaker-remote-delegator"  : [ "readying", "ready", "applying" ]
       },
       "elements": {},
       "element_order": [
-        [ "pacemaker-cluster-member", "hawk-server" ]
+        [ "pacemaker-cluster-member", "hawk-server" ],
+        [ "pacemaker-remote" ],
+        [ "pacemaker-remote-delegator" ]
       ],
       "config": {
         "environment": "pacemaker-base-config",
