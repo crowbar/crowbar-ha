@@ -44,6 +44,9 @@ end.run_action(:guess)
 
 include_recipe "pacemaker::default"
 
+# Set up authkey for pacemaker remotes (different to corosync authkey)
+include_recipe "crowbar-pacemaker::pacemaker_authkey"
+
 # This is not done in the compile phase, because saving the authkey attribute
 # is done in a ruby_block
 crowbar_pacemaker_sync_mark "create-pacemaker_setup" do
