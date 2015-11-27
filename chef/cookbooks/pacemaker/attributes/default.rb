@@ -15,7 +15,10 @@
 
 case node[:platform_family]
 when "suse"
-  default[:pacemaker][:platform][:packages] = %w(pacemaker crmsh)
+  default[:pacemaker][:platform][:packages] =
+    %w(pacemaker crmsh fence-agents)
+  default[:pacemaker][:platform][:remote_packages] =
+    %w(pacemaker-remote fence-agents)
 else
 
   #

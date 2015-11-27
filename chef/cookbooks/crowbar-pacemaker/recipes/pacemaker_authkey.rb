@@ -17,6 +17,13 @@
 # limitations under the License.
 #
 
+# This recipe is intended for use on *all* cluster nodes, i.e. both
+# corosync and remote nodes.  Only the founder generates an authkey
+# for communication with remote nodes, and all the others copy it;
+# thefore it must be run on the corosync nodes first.  Crowbar
+# achieves this by first running it via the pacemaker-cluster-member
+# role, and then later by the pacemaker-remote role.
+
 require "base64"
 
 if Chef::Config[:solo]

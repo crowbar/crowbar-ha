@@ -43,6 +43,22 @@ class PacemakerService < ServiceObject
             "suse" => "/.*/",
             "opensuse" => "/.*/"
           }
+        },
+        "pacemaker-remote" => {
+          "unique" => false,
+          "count" => -1,
+          "platform" => {
+            "suse" => "/.*/",
+            "opensuse" => "/.*/"
+          }
+        },
+        "pacemaker-remote-delegator" => {
+          "unique" => false,
+          "count" => -1,
+          "platform" => {
+            "suse" => "/.*/",
+            "opensuse" => "/.*/"
+          }
         }
       }
     end
