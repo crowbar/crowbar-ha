@@ -22,25 +22,7 @@
 # server side. This only happens the very first time (which is when we don't
 # even have an auth key); on next runs, we know we're good.
 if node[:corosync][:authkey].nil?
-  require "timeout"
-
-  begin
-    Timeout.timeout(20) do
-      Chef::Log.info("Waiting for cluster founder to be indexed...")
-      while true
-        begin
-          founder = CrowbarPacemakerHelper.cluster_founder(node)
-          Chef::Log.info("Cluster founder found: #{founder.name}")
-          break
-        rescue
-          Chef::Log.info("No cluster founder found yet, waiting...")
-          sleep(2)
-        end
-      end # while true
-    end # Timeout
-  rescue Timeout::Error
-    Chef::Log.warn("Cluster founder not found!")
-  end
+  include_recipe "crowbar-pacemaker::wait_for_founder"
 end
 
 node[:corosync][:cluster_name] = CrowbarPacemakerHelper.cluster_name(node)
