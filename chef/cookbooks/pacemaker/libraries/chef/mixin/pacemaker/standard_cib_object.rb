@@ -50,10 +50,7 @@ class Chef
         @current_cib_object = load_current_cib_object(name)
         return if @current_cib_object.nil?
 
-        resource_class_name = self.class.to_s.sub("Chef::Provider::", "")
-        resource_class = Kernel.const_get("Chef").const_get("Resource").const_get(resource_class_name)
-
-        @current_resource = resource_class.new(name)
+        @current_resource = @new_resource.class.new(name)
         @current_cib_object.copy_attrs_to_chef_resource(@current_resource,
                                                         *resource_attrs)
       end
