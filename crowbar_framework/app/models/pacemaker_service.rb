@@ -32,14 +32,16 @@ class PacemakerService < ServiceObject
           "unique" => false,
           "count" => 32,
           "platform" => {
-            "suse" => "/.*/"
+            "suse" => "/.*/",
+            "opensuse" => "/.*/"
           }
         },
         "hawk-server" => {
           "unique" => false,
           "count" => -1,
           "platform" => {
-            "suse" => "/.*/"
+            "suse" => "/.*/",
+            "opensuse" => "/.*/"
           }
         }
       }
