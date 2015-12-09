@@ -25,14 +25,32 @@ unclaimed_disks = BarclampLibrary::Barclamp::Inventory::Disk.unclaimed(node).sor
 claimed_disks = BarclampLibrary::Barclamp::Inventory::Disk.claimed(node, claim_string).sort
 
 if claimed_disks.empty? and not unclaimed_disks.empty?
+
+  disk_roles = node["crowbar_wall"].disk_roles
+  disk_for_drbd = disk_roles.find { |_, role| role == claim_string }[0] rescue ""
+
   unclaimed_disks.each do |disk|
-    if disk.claim(claim_string)
-      Chef::Log.info("#{claim_string}: Claimed #{disk.name}")
-      lvm_disk = disk
+    if disk_for_drbd == disk.unique_name
+      disk_to_claim = disk
       break
-    else
-      Chef::Log.info("#{claim_string}: Ignoring #{disk.name}")
+    # use disk with no role assigned if there is none marked for DRBD
+    elsif (disk_roles[disk.unique_name] || "") == ""
+      disk_to_claim = disk
     end
+  end
+
+  if disk_to_claim.nil?
+    message = "No unclaimed disk has DRBD role!"
+    Chef::Log.fatal(message)
+    raise message
+  end
+
+  if disk_to_claim.claim(claim_string)
+    Chef::Log.info("#{claim_string}: Claimed #{disk_to_claim.unique_name}")
+    lvm_disk = disk_to_claim
+    break
+  else
+    Chef::Log.info("#{claim_string}: Ignoring #{disk_to_claim.unique_name}")
   end
 else
   lvm_disk = claimed_disks.first
