@@ -21,6 +21,15 @@ module Barclamp
       Hash[nodes_hash.map { |n| [n.first, { alias: n.last[:alias] }] }]
     end
 
+    def sbd_disks
+      ret = {}
+      nodes_hash.each do |n|
+        next unless n.last[:disk_roles]
+        ret[n.first] = n.last[:disk_roles].select { |_, role| role == "sbd" }.keys.join(",")
+      end
+      ret
+    end
+
     def transport_for_pacemaker(selected)
       options_for_select(
         [

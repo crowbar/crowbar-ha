@@ -18,11 +18,17 @@
 ;(function($, doc, win) {
   'use strict';
 
+  var disks;
+
   function StonithNodeAgents(el, options) {
     this.root = $(el);
     this.html = {
       table_row: '<tr data-id="{0}" data-alias="{1}"><td>{1}</td><td><input type="text" class="form-control" value="{2}"/></td></tr>'
     };
+
+    if (disks === undefined) {
+      disks = this.root.data('disks');
+    }
 
     this.options = $.extend(
       {
@@ -141,7 +147,15 @@
 
     var rows = [];
     $.each(this.root.find('tbody tr'), function(index, tr) {
-      rows.push([$(tr).data('id'), $(tr).data('alias'), $(tr).find('input').val()]);
+      if (disks != undefined && disks[$(tr).data('id')] != undefined &&
+          $('#stonith_sbd_container').is(':visible'))
+      {
+        // if there's prepared value with sbd disk, fill it to the table
+        rows.push([$(tr).data('id'), $(tr).data('alias'), disks[$(tr).data('id')]]);
+      }
+      else {
+        rows.push([$(tr).data('id'), $(tr).data('alias'), $(tr).find('input').val()]);
+      }
     });
 
     // Sort by node alias

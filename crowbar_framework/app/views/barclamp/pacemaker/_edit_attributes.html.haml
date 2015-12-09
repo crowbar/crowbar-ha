@@ -15,7 +15,7 @@
 
       = select_field %w(stonith mode), :collection => :stonith_mode_for_pacemaker, "data-showit" => ["sbd", "shared", "per_node", "libvirt"].join(";"), "data-showit-target" => "#stonith_sbd_container;#stonith_shared_container;#stonith_per_node_container;#stonith_libvirt_container", "data-showit-direct" => "true"
 
-      #stonith_sbd_container{ "data-nodes" => node_aliases.to_json }
+      #stonith_sbd_container{ "data-nodes" => node_aliases.to_json, "data-disks" => sbd_disks.to_json }
         .alert.alert-info
           = t(".stonith.sbd.info_html")
         %table.table.table-middle
