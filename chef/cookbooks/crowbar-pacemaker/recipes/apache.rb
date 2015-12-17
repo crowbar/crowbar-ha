@@ -47,18 +47,27 @@ if agent_name == "ocf:heartbeat:apache"
   end
 end
 
+transaction_objects = []
+
 pacemaker_primitive service_name do
   agent agent_name
   params apache_params
   op apache_op
-  action :create
+  action :update
   only_if { CrowbarPacemakerHelper.is_cluster_founder?(node) }
 end
+transaction_objects << "pacemaker_primitive[#{service_name}]"
 
-pacemaker_clone "cl-#{service_name}" do
+clone_name = "cl-#{service_name}"
+pacemaker_clone clone_name do
   rsc service_name
-  action [:create, :start]
+  action :update
   only_if { CrowbarPacemakerHelper.is_cluster_founder?(node) }
+end
+transaction_objects << "pacemaker_clone[#{clone_name}]"
+
+pacemaker_transaction "#{service_name} clone" do
+  cib_objects transaction_objects
 end
 
 # Override service provider for apache2 resource defined in apache2 cookbook
