@@ -43,6 +43,7 @@ if node[:pacemaker][:haproxy][:clusters].key?(cluster_name) && node[:pacemaker][
     provider Chef::Provider::CrowbarPacemakerService
   end
 
+  transaction_objects = []
   vip_primitives = []
   service_name = "haproxy"
 
@@ -55,20 +56,31 @@ if node[:pacemaker][:haproxy][:clusters].key?(cluster_name) && node[:pacemaker][
       op node[:pacemaker][:haproxy][:op]
     end
     vip_primitives << vip_primitive
+    transaction_objects << "pacemaker_primitive[#{vip_primitive}]"
   end
 
   pacemaker_primitive service_name do
     agent node[:pacemaker][:haproxy][:agent]
     op node[:pacemaker][:haproxy][:op]
-    action :create
+    action :update
     only_if { CrowbarPacemakerHelper.is_cluster_founder?(node) }
   end
+  transaction_objects << "pacemaker_primitive[#{service_name}]"
 
-  pacemaker_group "g-#{service_name}" do
+  group_name = "g-#{service_name}"
+  pacemaker_group group_name do
     # Membership order *is* significant; VIPs should come first so
     # that they are available for the haproxy service to bind to.
     members vip_primitives.sort + [service_name]
-    action [:create, :start]
+    action :update
+    only_if { CrowbarPacemakerHelper.is_cluster_founder?(node) }
+  end
+  transaction_objects << "pacemaker_group[#{group_name}]"
+
+  pacemaker_transaction "haproxy service" do
+    cib_objects transaction_objects
+    # note that this will also automatically start the resources
+    action :commit_new
     only_if { CrowbarPacemakerHelper.is_cluster_founder?(node) }
   end
 end
