@@ -13,7 +13,7 @@ describe "Chef::Provider::PacemakerGroup" do
     "group"
   end
 
-  include_context "a Pacemaker LWRP"
+  include_context "a Pacemaker LWRP with artificially constructed resource"
 
   before(:each) do
     @resource.members fixture.members.dup
@@ -24,7 +24,7 @@ describe "Chef::Provider::PacemakerGroup" do
     Pacemaker::Resource::Group
   end
 
-  describe ":create action" do
+  shared_examples "an updateable resource" do
     include Chef::RSpec::Pacemaker::CIBObject
 
     it "should modify the group if it has a member resource added" do
@@ -44,6 +44,16 @@ describe "Chef::Provider::PacemakerGroup" do
         @resource.members expected.members
       end
     end
+  end
+
+  describe ":create action" do
+    let(:action) { :create }
+    it_should_behave_like "an updateable resource"
+  end
+
+  describe ":update action" do
+    let(:action) { :update }
+    it_should_behave_like "an updateable resource"
   end
 
   it_should_behave_like "a runnable resource", fixture

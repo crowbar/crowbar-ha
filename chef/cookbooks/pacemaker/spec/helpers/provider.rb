@@ -1,9 +1,11 @@
 # Shared code used to test providers of CIB objects
 
-require_relative "shellout"
+require_relative "crm_mocks"
 require_relative "cib_object"
 
 shared_context "a Pacemaker LWRP" do
+  let(:test_runlist) { "pacemaker::default" }
+
   before(:each) do
     stub_command("crm configure show smtp-notifications")
     stub_command("crm configure show cl-smtp-notifications")
@@ -12,14 +14,24 @@ shared_context "a Pacemaker LWRP" do
       step_into: ["pacemaker_" + lwrp_name]
     }
     @chef_run = ::ChefSpec::Runner.new(runner_opts)
-    @chef_run.converge "pacemaker::default"
     @node = @chef_run.node
+  end
+
+  def converge
+    @chef_run.converge(*test_runlist)
     @run_context = @chef_run.run_context
 
     camelized_subclass_name = "Pacemaker" + lwrp_name.capitalize
     @resource_class = ::Chef::Resource.const_get(camelized_subclass_name)
     @provider_class = ::Chef::Provider.const_get(camelized_subclass_name)
+  end
+end
 
+shared_context "a Pacemaker LWRP with artificially constructed resource" do
+  include_context "a Pacemaker LWRP"
+
+  before(:each) do
+    converge
     @resource = @resource_class.new(fixture.name, @run_context)
   end
 
@@ -29,14 +41,15 @@ end
 module Chef::RSpec
   module Pacemaker
     module CIBObject
-      include Chef::RSpec::Mixlib::ShellOut
+      include Chef::RSpec::Pacemaker::Mocks
 
       def test_modify(expected_cmds)
         yield
 
-        stub_shellout(fixture.definition_string)
+        mock_existing_cib_object_from_fixture(fixture)
 
-        provider.run_action :create
+        # action can be :create or :update
+        provider.run_action action
 
         expected_cmds.each do |cmd|
           expect(@chef_run).to run_execute(cmd)
@@ -48,10 +61,10 @@ module Chef::RSpec
 end
 
 shared_examples "action on non-existent resource" do |action, cmd, expected_error|
-  include Chef::RSpec::Mixlib::ShellOut
+  include Chef::RSpec::Pacemaker::Mocks
 
   it "should not attempt to #{action.to_s} a non-existent resource" do
-    stub_shellout("")
+    mock_nonexistent_cib_object(fixture.name)
 
     if expected_error
       expect { provider.run_action action }.to \

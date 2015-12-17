@@ -33,6 +33,10 @@ action :create do
   end
 end
 
+action :update do
+  standard_update_action
+end
+
 action :delete do
   next unless @current_resource
   standard_delete_resource

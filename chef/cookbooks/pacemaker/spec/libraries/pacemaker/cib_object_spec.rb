@@ -1,13 +1,12 @@
 require "mixlib/shellout"
 
 require "spec_helper"
+require "helpers/crm_mocks"
 
 require_relative "../../fixtures/keystone_primitive"
 
 describe Pacemaker::CIBObject do
-  before(:each) do
-    Mixlib::ShellOut.any_instance.stub(:run_command)
-  end
+  include Chef::RSpec::Pacemaker::Mocks
 
   let(:cib_object) { Chef::RSpec::Pacemaker::Config::KEYSTONE_PRIMITIVE.dup }
 
@@ -16,9 +15,7 @@ describe Pacemaker::CIBObject do
 
   context "with no CIB object" do
     before(:each) do
-      expect_any_instance_of(Mixlib::ShellOut) \
-        .to receive(:error!) \
-        .and_raise(RuntimeError)
+      mock_nonexistent_cib_object(cib_object.name)
     end
 
     describe "#load_definition" do
@@ -34,14 +31,17 @@ describe Pacemaker::CIBObject do
         expect(cib_object.exists?).to be(false)
       end
     end
+
+    describe ".exists?" do
+      it "should return false" do
+        expect(::Pacemaker::CIBObject.exists?(cib_object.name)).to be(false)
+      end
+    end
   end
 
   context "keystone primitive resource CIB object" do
     before(:each) do
-      Mixlib::ShellOut.any_instance.stub(:error!)
-      expect_any_instance_of(Mixlib::ShellOut) \
-        .to receive(:stdout) \
-        .and_return(cib_object.definition_string)
+      mock_existing_cib_object_from_fixture(cib_object)
     end
 
     context "with definition loaded" do
@@ -67,18 +67,21 @@ describe Pacemaker::CIBObject do
         end
       end
     end
+
+    describe ".exists?" do
+      it "should return true" do
+        expect(::Pacemaker::CIBObject.exists?(cib_object.name)).to be(true)
+      end
+    end
   end
 
   context "CIB object with unregistered type" do
     before(:each) do
-      Mixlib::ShellOut.any_instance.stub(:error!)
+      mock_existing_cib_object(cib_object.name, "unregistered #{cib_object.name} <definition>")
     end
 
     describe "::from_name" do
       it "should refuse to instantiate from any subclass" do
-        expect_any_instance_of(Mixlib::ShellOut) \
-          .to receive(:stdout) \
-          .and_return("unregistered #{cib_object.name} <definition>")
         expect {
           Pacemaker::CIBObject.from_name(cib_object.name)
         }.to raise_error "No subclass of Pacemaker::CIBObject was registered with type 'unregistered'"
@@ -88,10 +91,7 @@ describe Pacemaker::CIBObject do
 
   context "invalid CIB object definition" do
     before(:each) do
-      Mixlib::ShellOut.any_instance.stub(:error!)
-      expect_any_instance_of(Mixlib::ShellOut) \
-        .to receive(:stdout) \
-        .and_return("nonsense")
+      mock_existing_cib_object(cib_object.name, "nonsense")
     end
 
     describe "#type" do

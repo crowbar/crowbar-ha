@@ -14,7 +14,7 @@ describe "Chef::Provider::PacemakerColocation" do
     "colocation"
   end
 
-  include_context "a Pacemaker LWRP"
+  include_context "a Pacemaker LWRP with artificially constructed resource"
 
   before(:each) do
     @resource.score fixture.score
@@ -25,7 +25,7 @@ describe "Chef::Provider::PacemakerColocation" do
     Pacemaker::Constraint::Colocation
   end
 
-  describe ":create action" do
+  shared_examples "an updateable resource" do
     include Chef::RSpec::Pacemaker::CIBObject
 
     it "should accept resources provided in an Array" do
@@ -74,6 +74,16 @@ describe "Chef::Provider::PacemakerColocation" do
         @resource.resources new_resources
       end
     end
+  end
+
+  describe ":create action" do
+    let(:action) { :create }
+    it_should_behave_like "an updateable resource"
+  end
+
+  describe ":update action" do
+    let(:action) { :update }
+    it_should_behave_like "an updateable resource"
   end
 
   it_should_behave_like "a non-runnable resource", fixture

@@ -1,7 +1,7 @@
 # Cookbook Name:: pacemaker
-# Resource:: ms
+# Resource:: transaction
 #
-# Copyright:: 2013, Robert Choi, SUSE
+# Copyright:: 2015, Adam Spiers, SUSE
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,10 +16,9 @@
 # limitations under the License.
 #
 
-actions :create, :update, :delete, :start, :stop
+actions :commit_new
 
-default_action :create
+default_action :commit_new
 
 attribute :name, kind_of: String, name_attribute: true
-attribute :rsc,  kind_of: String
-attribute :meta, kind_of: Hash, default: {}
+attribute :cib_objects, kind_of: Array # refers to Chef resources

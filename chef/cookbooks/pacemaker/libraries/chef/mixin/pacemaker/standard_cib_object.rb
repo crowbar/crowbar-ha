@@ -15,6 +15,12 @@ class Chef
         end
       end
 
+      def standard_update_action
+        unless @current_resource_definition.nil?
+          maybe_modify_resource(new_resource.name)
+        end
+      end
+
       # Load the current definition of the object from the CIB, parse
       # it, and return it.  This is just a helper method for
       # #standard_load_current_resource.

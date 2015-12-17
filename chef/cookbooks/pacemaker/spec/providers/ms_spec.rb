@@ -13,7 +13,7 @@ describe "Chef::Provider::PacemakerMs" do
     "ms"
   end
 
-  include_context "a Pacemaker LWRP"
+  include_context "a Pacemaker LWRP with artificially constructed resource"
 
   before(:each) do
     @resource.rsc fixture.rsc.dup
@@ -26,6 +26,8 @@ describe "Chef::Provider::PacemakerMs" do
 
   describe ":create action" do
     include Chef::RSpec::Pacemaker::CIBObject
+
+    let(:action) { :create }
 
     it "should modify the resource if it's changed" do
       expected = fixture.dup
