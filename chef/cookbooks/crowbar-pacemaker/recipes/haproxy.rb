@@ -45,15 +45,29 @@ if node[:pacemaker][:haproxy][:clusters].key?(cluster_name) && node[:pacemaker][
 
   transaction_objects = []
   vip_primitives = []
+
+  cluster_vhostname = CrowbarPacemakerHelper.cluster_vhostname(node)
   service_name = "haproxy"
 
+  # Create VIP for HAProxy
   node[:pacemaker][:haproxy][:clusters][cluster_name][:networks].each do |network, enabled|
-    vip_primitive = pacemaker_vip_primitive "HAProxy VIP for #{network}" do
-      cb_network network
-      # See allocate_cluster_virtual_ips_for_networks in barclamp-crowbar
-      hostname CrowbarPacemakerHelper.cluster_vhostname(node)
-      domain node[:domain]
+    net_db = data_bag_item("crowbar", "#{network}_network")
+    raise "#{network}_network data bag missing?!" unless net_db
+    fqdn = "#{cluster_vhostname}.#{node[:domain]}"
+    unless net_db["allocated_by_name"][fqdn]
+      raise "Missing allocation for #{fqdn} in #{network} network"
+    end
+    ip_addr = net_db["allocated_by_name"][fqdn]["address"]
+
+    vip_primitive = "vip-#{network}-#{cluster_vhostname}"
+    pacemaker_primitive vip_primitive do
+      agent "ocf:heartbeat:IPaddr2"
+      params ({
+        "ip" => ip_addr
+      })
       op node[:pacemaker][:haproxy][:op]
+      action :update
+      only_if { CrowbarPacemakerHelper.is_cluster_founder?(node) }
     end
     vip_primitives << vip_primitive
     transaction_objects << "pacemaker_primitive[#{vip_primitive}]"
