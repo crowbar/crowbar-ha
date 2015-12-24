@@ -3,5 +3,5 @@ description "Hawk web server"
 run_list(
          "recipe[hawk::server]"
 )
-default_attributes()
-override_attributes()
+default_attributes
+override_attributes

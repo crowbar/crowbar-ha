@@ -25,7 +25,7 @@ if Chef::Config[:solo]
 end
 
 cluster_name = node[:corosync][:cluster_name]
-unless cluster_name and ! cluster_name.empty?
+unless cluster_name && !cluster_name.empty?
   Chef::Application.fatal! "Couldn't figure out corosync cluster name"
   return
 end
