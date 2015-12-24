@@ -26,7 +26,7 @@ require "timeout"
 begin
   Timeout.timeout(20) do
     Chef::Log.info("Waiting for cluster founder to be indexed...")
-    while true
+    loop do
       begin
         founder = CrowbarPacemakerHelper.cluster_founder(node)
         Chef::Log.info("Cluster founder found: #{founder.name}")
