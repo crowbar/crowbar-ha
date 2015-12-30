@@ -52,7 +52,7 @@ class Chef
         end
 
         def mock_existing_cib_object_from_fixture(fixture)
-          mock_existing_cib_object(fixture.name, fixture.definition_string)
+          mock_existing_cib_object(fixture.name, fixture.definition)
         end
 
         def mock_nonexistent_cib_object(name)

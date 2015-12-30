@@ -2,7 +2,7 @@ require "mixlib/shellout"
 
 module Pacemaker
   class CIBObject
-    attr_accessor :name, :definition
+    attr_accessor :name
 
     @@subclasses = { } unless class_variable_defined?(:@@subclasses)
 
@@ -67,14 +67,13 @@ module Pacemaker
             raise "Name '#{obj.name}' in definition didn't match name '#{name}' used for retrieval"
           end
           obj.definition = definition
-          obj.parse_definition
           obj
         end
       end
 
       def from_chef_resource(resource)
-        new(resource.name).copy_attrs_from_chef_resource(resource,
-                                                         *attrs_to_copy_from_chef)
+        new(resource.name).
+          copy_attrs_from_chef_resource(resource, *attrs_to_copy_from_chef)
       end
 
       def attrs_to_copy_from_chef
@@ -85,15 +84,62 @@ module Pacemaker
     def initialize(name)
       @name = name
       @definition = nil
+      @authority = nil
+    end
+
+    def definition=(new_definition)
+      @definition = new_definition
+      @authority = :definition
+      check_definition_type
+      parse_definition
+    end
+
+    # subclass#parse_definition should call this when parsing is
+    # successful, to indicate that the definition should be calculated
+    # from attributes rather than just regurgitating the raw string
+    # which was originally provided via #definition=.  Returns self to
+    # allow method chaining.
+    def attrs_authoritative
+      @authority = :attributes
+      self
+    end
+
+    def definition
+      case @authority
+      when :attributes
+        definition_from_attributes
+      when :definition
+        @definition
+      when nil
+        raise "#definition called on #{self} before any " \
+              "definition authority was set"
+      else
+        raise "BUG: unrecognised authority '#{@authority}' for #{self}"
+      end
     end
 
     def copy_attrs_from_chef_resource(resource, *attrs)
+      any_attrs_set = false
       attrs.each do |attr|
-        value = resource.send(attr.to_sym)
-        writer = (attr + "=").to_sym
-        send(writer, value)
+        if copy_attr_from_chef_resource(resource, attr)
+          any_attrs_set = true
+        end
       end
+
+      if any_attrs_set
+        attrs_authoritative
+      else
+        copy_attr_from_chef_resource(resource, "definition")
+      end
+
       self
+    end
+
+    def copy_attr_from_chef_resource(resource, attr)
+      value = resource.send(attr.to_sym)
+      writer = (attr + "=").to_sym
+      send(writer, value)
+      value
     end
 
     def copy_attrs_to_chef_resource(resource, *attrs)
@@ -104,9 +150,7 @@ module Pacemaker
       end
     end
 
-    def load_definition
-      @definition = self.class.crm_configure_show(name)
-
+    def check_definition_type
       if @definition and ! @definition.empty? and type != self.class.object_type
         raise CIBObject::TypeMismatch, \
               "Expected #{self.class.object_type} type but loaded definition was type #{type}"
@@ -115,6 +159,13 @@ module Pacemaker
 
     def parse_definition
       raise NotImplementedError, "#{self.class} must implement #parse_definition"
+    end
+
+    # N.B. It is not actually required for a subclass to implement
+    # this method unless the subclass calls #attrs_authoritative at
+    # some point.
+    def definition_from_attributes
+      raise NotImplementedError, "#{self.class} must implement #definition_from_attributes"
     end
 
     def exists?
@@ -148,15 +199,15 @@ module Pacemaker
     #
     #     $ echo 'foo'\''bar'
     #     foo'bar
-    def quoted_definition_string
+    def quoted_definition
       "'%s'" % \
-      definition_string \
-        .gsub("\\'") { |m| '\\' + m } \
-        .gsub("'"  ) { |m| %q['\''] }
+        definition.
+          gsub("\\'") { |m| '\\' + m }.
+          gsub("'")   { |m| %q['\''] }
     end
 
     def configure_command
-      "echo #{quoted_definition_string} | crm configure load update -"
+      "echo #{quoted_definition} | crm configure load update -"
     end
 
     def reconfigure_command

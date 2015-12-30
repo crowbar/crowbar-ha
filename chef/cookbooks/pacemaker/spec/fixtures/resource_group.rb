@@ -10,6 +10,7 @@ class Chef
         RESOURCE_GROUP.meta = [
           ["is-managed", "true"]
         ]
+        RESOURCE_GROUP.attrs_authoritative
         RESOURCE_GROUP_DEFINITION = <<'EOF'.chomp
 group group1 resource1 resource2 \
          meta is-managed="true"

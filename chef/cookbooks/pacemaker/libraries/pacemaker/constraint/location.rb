@@ -10,20 +10,22 @@ class Pacemaker::Constraint::Location < Pacemaker::Constraint
   end
 
   def parse_definition
-    # FIXME: this is woefully incomplete, and doesn't cope with any of
-    # the rules syntax.  See the crm(8) man page for the official BNF
-    # grammar.
-    unless definition =~ /^#{self.class.object_type} (\S+) (\S+) (\d+|[-+]?inf): (\S+)\s*$/
+    unless @definition =~ /^#{self.class.object_type} (\S+) (\S.+)/
       raise Pacemaker::CIBObject::DefinitionParseError, \
             "Couldn't parse definition '#{definition}'"
     end
-    self.name  = $1
-    self.rsc   = $2
-    self.score = $3
-    self.node  = $4
+    self.name = $1
+    rest = $2
+
+    if rest =~ /(\S+) (\d+|[-+]?inf): (\S+)\s*$/
+      self.rsc = $1
+      self.score = $2
+      self.node = $3
+      attrs_authoritative
+    end
   end
 
-  def definition_string
+  def definition_from_attributes
     "#{self.class.object_type} #{name} #{rsc} #{score}: #{node}"
   end
 end

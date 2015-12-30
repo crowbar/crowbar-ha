@@ -39,7 +39,6 @@ class Chef
 
         ::Chef::Log.debug "CIB object '#{name}' currently defined as:\n#{cib_object.definition}"
         @current_resource_definition = cib_object.definition
-        cib_object.parse_definition
 
         cib_object
       end
@@ -124,10 +123,10 @@ class Chef
         Chef::Log.info "Checking existing #{@current_cib_object} for modifications"
 
         desired = cib_object_class.from_chef_resource(new_resource)
-        if desired.definition_string != @current_cib_object.definition_string
+        if desired.definition != @current_cib_object.definition
           Chef::Log.debug \
-            "changed from [#{@current_cib_object.definition_string}] " \
-            "to [#{desired.definition_string}]"
+            "changed from [#{@current_cib_object.definition}] " \
+            "to [#{desired.definition}]"
           cmd = desired.reconfigure_command
           execute cmd do
             action :nothing

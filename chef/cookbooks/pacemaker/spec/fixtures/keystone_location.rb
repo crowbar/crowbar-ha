@@ -10,6 +10,7 @@ class Chef
         KEYSTONE_LOCATION.rsc   = "keystone"
         KEYSTONE_LOCATION.score = "-inf"
         KEYSTONE_LOCATION.node  = "node1"
+        KEYSTONE_LOCATION.attrs_authoritative
         KEYSTONE_LOCATION_DEFINITION = "location l-keystone keystone -inf: node1"
       end
     end
