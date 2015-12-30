@@ -1,8 +1,8 @@
 #
-# Cookbook Name:: corosync
+# Cookbook Name:: pacemaker
 # Recipe:: authkey_generator
 #
-# Copyright 2012, Rackspace US, Inc.
+# Copyright 2015, SUSE
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,29 +17,27 @@
 # limitations under the License.
 #
 
-# Generate the corosync auth key and then save it.  This is used to
-# establish trust between corosync ring members.
+# Generate the auth key and then save it.  This is used to establish
+# trust between Pacemaker remote nodes and the members of the core
+# corosync ring.
 #
-# N.B. it is different to the pacemaker auth key which is used to
-# establish trust between Pacemaker remote nodes and the members of
-# the core corosync ring!
+# N.B. it is not the same auth key which the corosync ring members use
+# to establish trust between each other!
 
-# Ensure that the RNG has access to a decent entropy pool,
-# so that corosync-keygen doesn't take too long.
-package "haveged" do
-  action :install
+authkey_file = node[:pacemaker][:authkey_file]
+
+directory File.dirname(authkey_file) do
+  owner "root"
+  group "root"
+  mode "0755"
+  action :create
 end
-
-service "haveged" do
-  action [:enable, :start]
-end
-
-authkey_file = node[:corosync][:authkey_file]
 
 # create the auth key
-execute "corosync-keygen" do
+execute "generate #{authkey_file}" do
+  command "dd if=/dev/urandom of=#{authkey_file} bs=4096 count=1"
   creates authkey_file
-  user "root"
+  user node[:pacemaker][:authkey_file_owner]
   group "root"
   umask "0400"
   action :run
@@ -54,13 +52,13 @@ ruby_block "Store authkey to Chef server" do
       contents << f
     end
     packed = Base64.encode64(contents)
-    node.set_unless[:corosync][:authkey] = packed
+    node.set_unless[:pacemaker][:authkey] = packed
     node.save
   end
   # If we don't have the attribute, always read the key (even if it existed and
   # we didn't run corosync-keygen)
-  unless node[:corosync][:authkey].nil?
+  unless node[:pacemaker][:authkey].nil?
     action :nothing
-    subscribes :create, resources(execute: "corosync-keygen"), :immediately
+    subscribes :create, resources(execute: "generate #{authkey_file}"), :immediately
   end
 end

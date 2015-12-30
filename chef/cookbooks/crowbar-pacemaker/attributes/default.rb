@@ -31,3 +31,9 @@ else
 end
 default[:pacemaker][:haproxy][:op][:monitor][:interval] = "10s"
 default[:pacemaker][:haproxy][:clusters] = {}
+
+default[:pacemaker][:remote][:agent] = "ocf:pacemaker:remote"
+default[:pacemaker][:remote][:op][:monitor][:interval] = "20s"
+default[:pacemaker][:remote][:op][:start][:timeout] = "60s"
+default[:pacemaker][:remote][:op][:stop][:timeout] = "60s"
+default[:pacemaker][:remote][:params][:reconnect_interval] = "60s"

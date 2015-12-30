@@ -22,40 +22,12 @@
 # server side. This only happens the very first time (which is when we don't
 # even have an auth key); on next runs, we know we're good.
 if node[:corosync][:authkey].nil?
-  require "timeout"
-
-  begin
-    Timeout.timeout(20) do
-      Chef::Log.info("Waiting for cluster founder to be indexed...")
-      while true
-        begin
-          founder = CrowbarPacemakerHelper.cluster_founder(node)
-          Chef::Log.info("Cluster founder found: #{founder.name}")
-          break
-        rescue
-          Chef::Log.info("No cluster founder found yet, waiting...")
-          sleep(2)
-        end
-      end # while true
-    end # Timeout
-  rescue Timeout::Error
-    Chef::Log.warn("Cluster founder not found!")
-  end
+  include_recipe "crowbar-pacemaker::wait_for_founder"
 end
 
 node[:corosync][:cluster_name] = CrowbarPacemakerHelper.cluster_name(node)
 
-# Enforce no-quorum-policy based on the number of members in the clusters
-# We know that for 2 members (or 1, where it doesn't matter), the setting
-# should be "ignore". If we have more members, then we use the value set in the
-# barclamp.
-# For details on the different policies, see
-# https://www.suse.com/documentation/sle_ha/book_sleha/data/sec_ha_configuration_basics_global.html
-cluster_members_nb = CrowbarPacemakerHelper.cluster_nodes(node).length
-if cluster_members_nb <= 2
-  node.default[:pacemaker][:crm][:no_quorum_policy] = "ignore"
-end
-
+include_recipe "crowbar-pacemaker::quorum_policy"
 include_recipe "crowbar-pacemaker::stonith"
 
 # We let the founder go first, so it can generate the authkey and some other
@@ -71,6 +43,9 @@ crowbar_pacemaker_sync_mark "wait-pacemaker_setup" do
 end.run_action(:guess)
 
 include_recipe "pacemaker::default"
+
+# Set up authkey for pacemaker remotes (different to corosync authkey)
+include_recipe "crowbar-pacemaker::pacemaker_authkey"
 
 # This is not done in the compile phase, because saving the authkey attribute
 # is done in a ruby_block
@@ -95,7 +70,5 @@ if node[:pacemaker][:drbd][:enabled]
 end
 
 include_recipe "crowbar-pacemaker::haproxy"
-
 include_recipe "crowbar-pacemaker::maintenance-mode"
-
 include_recipe "crowbar-pacemaker::mutual_ssh"
