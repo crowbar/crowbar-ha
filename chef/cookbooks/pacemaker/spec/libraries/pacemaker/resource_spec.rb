@@ -33,27 +33,27 @@ describe Pacemaker::Resource do
     let(:fixture) { Chef::RSpec::Pacemaker::Config::KEYSTONE_PRIMITIVE.dup }
 
     it "should extract a params hash from config" do
-      expect(fixture.class.extract_hash(fixture.definition_string, "params")).to \
+      expect(fixture.class.extract_hash(fixture.definition, "params")).to \
         eq(Hash[fixture.params])
     end
 
     it "should extract an op start hash from config" do
-      expect(fixture.class.extract_hash(fixture.definition_string, "op start")).to \
+      expect(fixture.class.extract_hash(fixture.definition, "op start")).to \
         eq(Hash[fixture.op]["start"])
     end
 
     it "should extract an op monitor hash from config" do
-      expect(fixture.class.extract_hash(fixture.definition_string, "op monitor")).to \
+      expect(fixture.class.extract_hash(fixture.definition, "op monitor")).to \
         eq(Hash[fixture.op]["monitor"])
     end
 
     it "should extract an op monitor hash from config" do
-      expect(fixture.class.extract_hash(fixture.definition_string, "meta")).to \
+      expect(fixture.class.extract_hash(fixture.definition, "meta")).to \
         eq(Hash[fixture.meta])
     end
 
     it "should handle an empty meta section gracefully" do
-      no_meta = fixture.definition_string.gsub(/\bmeta .*\\$/, "meta \\")
+      no_meta = fixture.definition.gsub(/\bmeta .*\\$/, "meta \\")
       expect(fixture.class.extract_hash(no_meta, "meta")).to eq({})
     end
   end

@@ -11,6 +11,7 @@ class Chef
           ["clone-max",       "2"],
           ["clone-node-max",  "2"]
         ]
+        CLONE_RESOURCE.attrs_authoritative
         CLONE_RESOURCE_DEFINITION = <<'EOF'.chomp
 clone clone1 primitive1 \
          meta clone-max="2" clone-node-max="2" globally-unique="true"
