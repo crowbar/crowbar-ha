@@ -63,7 +63,7 @@ class Pacemaker::Resource::Primitive < Pacemaker::Resource
   end
 
   def self.params_string(params)
-    return "" if ! params or params.empty?
+    return "" if !params || params.empty?
     "params " +
     params.sort.map do |key, value|
       safe = value.is_a?(String) ? value.gsub('"', '\\"') : value.to_s
@@ -72,7 +72,7 @@ class Pacemaker::Resource::Primitive < Pacemaker::Resource
   end
 
   def self.op_string(ops)
-    return "" if ! ops or ops.empty?
+    return "" if !ops || ops.empty?
     ops.sort.map do |op, attrs|
       attrs.empty? ? nil : "op #{op} " + \
       attrs.sort.map do |key, value|

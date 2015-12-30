@@ -6,9 +6,9 @@ require_relative "../../../helpers/cib_object"
 
 describe Pacemaker::Constraint::Colocation do
   let(:fixture) { Chef::RSpec::Pacemaker::Config::COLOCATION_CONSTRAINT.dup }
-  let(:fixture_definition) {
+  let(:fixture_definition) do
     Chef::RSpec::Pacemaker::Config::COLOCATION_CONSTRAINT_DEFINITION
-  }
+  end
 
   def object_type
     "colocation"

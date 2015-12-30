@@ -7,9 +7,9 @@ require_relative "../../../helpers/meta_examples"
 
 describe Pacemaker::Resource::Group do
   let(:fixture) { Chef::RSpec::Pacemaker::Config::RESOURCE_GROUP.dup }
-  let(:fixture_definition) {
+  let(:fixture_definition) do
     Chef::RSpec::Pacemaker::Config::RESOURCE_GROUP_DEFINITION
-  }
+  end
 
   def object_type
     "group"

@@ -7,9 +7,9 @@ require_relative "../../../helpers/meta_examples"
 
 describe Pacemaker::Resource::Clone do
   let(:fixture) { Chef::RSpec::Pacemaker::Config::CLONE_RESOURCE.dup }
-  let(:fixture_definition) {
+  let(:fixture_definition) do
     Chef::RSpec::Pacemaker::Config::CLONE_RESOURCE_DEFINITION
-  }
+  end
 
   def object_type
     "clone"
