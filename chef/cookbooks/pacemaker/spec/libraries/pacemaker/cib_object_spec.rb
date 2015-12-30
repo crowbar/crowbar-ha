@@ -28,13 +28,13 @@ describe Pacemaker::CIBObject do
     describe "#exists?" do
       it "should return false" do
         cib_object.load_definition
-        expect(cib_object.exists?).to be(false)
+        expect(cib_object.exists?).to be_false
       end
     end
 
     describe ".exists?" do
       it "should return false" do
-        expect(::Pacemaker::CIBObject.exists?(cib_object.name)).to be(false)
+        expect(::Pacemaker::CIBObject.exists?(cib_object.name)).to be_false
       end
     end
   end
@@ -51,7 +51,7 @@ describe Pacemaker::CIBObject do
 
       describe "#exists?" do
         it "should return true" do
-          expect(cib_object.exists?).to be(true)
+          expect(cib_object.exists?).to be_true
         end
       end
 
@@ -70,7 +70,7 @@ describe Pacemaker::CIBObject do
 
     describe ".exists?" do
       it "should return true" do
-        expect(::Pacemaker::CIBObject.exists?(cib_object.name)).to be(true)
+        expect(::Pacemaker::CIBObject.exists?(cib_object.name)).to be_true
       end
     end
   end
