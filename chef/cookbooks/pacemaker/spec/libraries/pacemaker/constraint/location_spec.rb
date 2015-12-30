@@ -16,9 +16,9 @@ describe Pacemaker::Constraint::Location do
 
   context "simple location constraint" do
     let(:fixture) { Chef::RSpec::Pacemaker::Config::LOCATION_CONSTRAINT.dup }
-    let(:fixture_definition) {
+    let(:fixture_definition) do
       Chef::RSpec::Pacemaker::Config::LOCATION_CONSTRAINT_DEFINITION
-    }
+    end
 
     def fields
       %w(name rsc score node)
@@ -63,9 +63,9 @@ EOF
 
   context "rule-based constraint" do
     let(:fixture) { Chef::RSpec::Pacemaker::Config::LOCATION_RULE_CONSTRAINT.dup }
-    let(:fixture_definition) {
+    let(:fixture_definition) do
       Chef::RSpec::Pacemaker::Config::LOCATION_RULE_CONSTRAINT_DEFINITION
-    }
+    end
 
     def fields
       %w(name definition)

@@ -7,9 +7,9 @@ require_relative "../../../helpers/meta_examples"
 
 describe Pacemaker::Resource::Primitive do
   let(:fixture) { Chef::RSpec::Pacemaker::Config::KEYSTONE_PRIMITIVE.dup }
-  let(:fixture_definition) {
+  let(:fixture_definition) do
     Chef::RSpec::Pacemaker::Config::KEYSTONE_PRIMITIVE_DEFINITION
-  }
+  end
 
   def object_type
     "primitive"

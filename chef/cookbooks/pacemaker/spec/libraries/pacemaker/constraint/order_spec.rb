@@ -6,9 +6,9 @@ require_relative "../../../helpers/cib_object"
 
 describe Pacemaker::Constraint::Order do
   let(:fixture) { Chef::RSpec::Pacemaker::Config::ORDER_CONSTRAINT.dup }
-  let(:fixture_definition) {
+  let(:fixture_definition) do
     Chef::RSpec::Pacemaker::Config::ORDER_CONSTRAINT_DEFINITION
-  }
+  end
 
   def object_type
     "order"

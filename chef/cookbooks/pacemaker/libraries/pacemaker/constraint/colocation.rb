@@ -13,7 +13,7 @@ class Pacemaker::Constraint::Colocation < Pacemaker::Constraint
     when String
       @resources = val
     else
-      raise "Tried to set resources attribute for colocation '#{name}' " +
+      raise "Tried to set resources attribute for colocation '#{name}' " \
         "to invalid type #{val.class} (#{val.inspect})"
     end
   end
