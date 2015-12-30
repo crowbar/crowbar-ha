@@ -5,8 +5,8 @@ class Chef
     module Pacemaker
       module Config
         KEYSTONE_LOCATION_NAME = "l-keystone"
-        KEYSTONE_LOCATION = \
-        ::Pacemaker::Constraint::Location.new(KEYSTONE_LOCATION_NAME)
+        KEYSTONE_LOCATION =
+          ::Pacemaker::Constraint::Location.new(KEYSTONE_LOCATION_NAME)
         KEYSTONE_LOCATION.rsc   = "keystone"
         KEYSTONE_LOCATION.score = "-inf"
         KEYSTONE_LOCATION.node  = "node1"

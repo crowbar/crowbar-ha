@@ -4,8 +4,8 @@ class Chef
   module RSpec
     module Pacemaker
       module Config
-        RESOURCE_GROUP = \
-        ::Pacemaker::Resource::Group.new("group1")
+        RESOURCE_GROUP =
+          ::Pacemaker::Resource::Group.new("group1")
         RESOURCE_GROUP.members = ["resource1", "resource2"]
         RESOURCE_GROUP.meta = [
           ["is-managed", "true"]
