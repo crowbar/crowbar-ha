@@ -14,7 +14,7 @@ module Pacemaker
         @@subclasses[type_name] = self
       end
 
-      def get_definition(name)
+      def crm_configure_show(name)
         cmd = Mixlib::ShellOut.new("crm --display=plain configure show #{name}")
         cmd.environment["HOME"] = ENV.fetch("HOME", "/root")
         cmd.run_command
@@ -27,7 +27,7 @@ module Pacemaker
       end
 
       def exists?(name)
-        get_definition(name) ? true : false
+        crm_configure_show(name) ? true : false
       end
 
       def definition_type(definition)
@@ -38,7 +38,7 @@ module Pacemaker
       end
 
       def from_name(name)
-        definition = get_definition(name)
+        definition = crm_configure_show(name)
         return nil unless definition and ! definition.empty?
         from_definition(definition)
       end
@@ -105,7 +105,7 @@ module Pacemaker
     end
 
     def load_definition
-      @definition = self.class.get_definition(name)
+      @definition = self.class.crm_configure_show(name)
 
       if @definition and ! @definition.empty? and type != self.class.object_type
         raise CIBObject::TypeMismatch, \
