@@ -25,3 +25,4 @@ attribute :name,  kind_of: String, name_attribute: true
 attribute :rsc,   kind_of: String
 attribute :score, kind_of: String
 attribute :lnode, kind_of: String
+attribute :definition, kind_of: String
