@@ -21,14 +21,24 @@ shared_examples "a CIB object" do
   end
 
   it "should instantiate by parsing a definition" do
-    obj = Pacemaker::CIBObject.from_definition(fixture.definition_string)
+    obj = Pacemaker::CIBObject.from_definition(fixture.definition)
     expect_to_match_fixture(obj)
   end
 
-  it "should barf if the loaded definition's type is not right" do
+  it "should barf if the definition's type is not registered" do
     mock_existing_cib_object(fixture.name, "sometype #{fixture.name} blah blah")
-    expect { fixture.load_definition }.to \
-      raise_error(Pacemaker::CIBObject::TypeMismatch,
-                  "Expected #{object_type} type but loaded definition was type sometype")
+    expect { Pacemaker::CIBObject.from_name(fixture.name) }.to raise_error(
+      RuntimeError,
+      "No subclass of Pacemaker::CIBObject was registered with type 'sometype'"
+    )
+  end
+
+  it "should barf if the definition's type is not right" do
+    expect {
+      fixture.definition = "sometype #{fixture.name} blah blah"
+    }.to raise_error(
+      Pacemaker::CIBObject::TypeMismatch,
+      "Expected #{object_type} type but loaded definition was type sometype"
+    )
   end
 end

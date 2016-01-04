@@ -7,9 +7,9 @@ require_relative "../../../helpers/meta_examples"
 
 describe Pacemaker::Resource::Group do
   let(:fixture) { Chef::RSpec::Pacemaker::Config::RESOURCE_GROUP.dup }
-  let(:fixture_definition) {
+  let(:fixture_definition) do
     Chef::RSpec::Pacemaker::Config::RESOURCE_GROUP_DEFINITION
-  }
+  end
 
   def object_type
     "group"
@@ -27,17 +27,16 @@ describe Pacemaker::Resource::Group do
 
   it_should_behave_like "with meta attributes"
 
-  describe "#definition_string" do
+  describe "#definition" do
     it "should return the definition string" do
-      expect(fixture.definition_string).to eq(fixture_definition)
+      expect(fixture.definition).to eq(fixture_definition)
     end
 
     it "should return a short definition string" do
       group = pacemaker_object_class.new("foo")
       group.definition = \
         %!group foo member1 member2 meta target-role="Started"!
-      group.parse_definition
-      expect(group.definition_string).to eq(<<'EOF'.chomp)
+      expect(group.definition).to eq(<<'EOF'.chomp)
 group foo member1 member2 \
          meta target-role="Started"
 EOF
@@ -48,7 +47,6 @@ EOF
     before(:each) do
       @parsed = pacemaker_object_class.new(fixture.name)
       @parsed.definition = fixture_definition
-      @parsed.parse_definition
     end
 
     it "should parse the members" do

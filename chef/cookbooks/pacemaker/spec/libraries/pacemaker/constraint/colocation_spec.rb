@@ -6,9 +6,9 @@ require_relative "../../../helpers/cib_object"
 
 describe Pacemaker::Constraint::Colocation do
   let(:fixture) { Chef::RSpec::Pacemaker::Config::COLOCATION_CONSTRAINT.dup }
-  let(:fixture_definition) {
+  let(:fixture_definition) do
     Chef::RSpec::Pacemaker::Config::COLOCATION_CONSTRAINT_DEFINITION
-  }
+  end
 
   def object_type
     "colocation"
@@ -38,27 +38,28 @@ describe Pacemaker::Constraint::Colocation do
     it "should accept an String of resources" do
       @colocation.resources = @resource_string
       expect(@colocation.resources).to eq(@resource_string)
-      expect(@colocation.definition_string).to eq(@definition_string)
+      @colocation.attrs_authoritative
+      expect(@colocation.definition).to eq(@definition_string)
     end
 
     it "should accept an Array of resources" do
       @colocation.resources = @resource_array
       expect(@colocation.resources).to eq(@resource_string)
-      expect(@colocation.definition_string).to eq(@definition_string)
+      @colocation.attrs_authoritative
+      expect(@colocation.definition).to eq(@definition_string)
     end
   end
 
-  describe "#definition_string" do
+  describe "#definition" do
     it "should return the definition string" do
-      expect(fixture.definition_string).to eq(fixture_definition)
+      expect(fixture.definition).to eq(fixture_definition)
     end
 
     it "should return a short definition string" do
       colocation = pacemaker_object_class.new("foo")
       colocation.definition = \
         %!colocation colocation1 -inf: rsc1 rsc2!
-      colocation.parse_definition
-      expect(colocation.definition_string).to eq(<<'EOF'.chomp)
+      expect(colocation.definition).to eq(<<'EOF'.chomp)
 colocation colocation1 -inf: rsc1 rsc2
 EOF
     end
@@ -68,7 +69,6 @@ EOF
     before(:each) do
       @parsed = pacemaker_object_class.new(fixture.name)
       @parsed.definition = fixture_definition
-      @parsed.parse_definition
     end
 
     it "should parse the score" do

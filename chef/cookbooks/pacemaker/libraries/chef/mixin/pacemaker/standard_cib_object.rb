@@ -39,7 +39,6 @@ class Chef
 
         ::Chef::Log.debug "CIB object '#{name}' currently defined as:\n#{cib_object.definition}"
         @current_resource_definition = cib_object.definition
-        cib_object.parse_definition
 
         cib_object
       end
@@ -118,6 +117,22 @@ class Chef
 
         new_resource.updated_by_last_action(true)
         ::Chef::Log.info "Successfully configured #{created_cib_object}"
+      end
+
+      def standard_maybe_modify_resource(name)
+        Chef::Log.info "Checking existing #{@current_cib_object} for modifications"
+
+        desired = cib_object_class.from_chef_resource(new_resource)
+        if desired.definition != @current_cib_object.definition
+          Chef::Log.debug \
+            "changed from [#{@current_cib_object.definition}] " \
+            "to [#{desired.definition}]"
+          cmd = desired.reconfigure_command
+          execute cmd do
+            action :nothing
+          end.run_action(:run)
+          new_resource.updated_by_last_action(true)
+        end
       end
 
       def standard_delete_resource

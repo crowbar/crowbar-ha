@@ -21,24 +21,26 @@ class Pacemaker::Resource::Primitive < Pacemaker::Resource
   end
 
   def parse_definition
-    unless definition =~ /\A#{self.class.object_type} (\S+) (\S+)/
+    unless @definition =~ /\A#{self.class.object_type} (\S+) (\S+)/
       raise Pacemaker::CIBObject::DefinitionParseError, \
-            "Couldn't parse definition '#{definition}'"
+            "Couldn't parse definition '#{@definition}'"
     end
     self.name  = $1
     self.agent = $2
 
     %w(params meta).each do |data_type|
-      hash = self.class.extract_hash(definition, data_type)
+      hash = self.class.extract_hash(@definition, data_type)
       writer = (data_type + "=").to_sym
       send(writer, hash)
     end
 
     self.op = {}
     %w(start stop monitor).each do |op|
-      h = self.class.extract_hash(definition, "op #{op}")
+      h = self.class.extract_hash(@definition, "op #{op}")
       self.op[op] = h unless h.empty?
     end
+
+    attrs_authoritative
   end
 
   def params_string
@@ -49,7 +51,7 @@ class Pacemaker::Resource::Primitive < Pacemaker::Resource
     self.class.op_string(op)
   end
 
-  def definition_string
+  def definition_from_attributes
     str = "#{self.class.object_type} #{name} #{agent}"
     %w(params meta op).each do |data_type|
       unless send(data_type).empty?
@@ -61,7 +63,7 @@ class Pacemaker::Resource::Primitive < Pacemaker::Resource
   end
 
   def self.params_string(params)
-    return "" if ! params or params.empty?
+    return "" if !params || params.empty?
     "params " +
     params.sort.map do |key, value|
       safe = value.is_a?(String) ? value.gsub('"', '\\"') : value.to_s
@@ -70,7 +72,7 @@ class Pacemaker::Resource::Primitive < Pacemaker::Resource
   end
 
   def self.op_string(ops)
-    return "" if ! ops or ops.empty?
+    return "" if !ops || ops.empty?
     ops.sort.map do |op, attrs|
       attrs.empty? ? nil : "op #{op} " + \
       attrs.sort.map do |key, value|

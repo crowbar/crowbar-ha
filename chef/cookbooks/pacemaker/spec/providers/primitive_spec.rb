@@ -171,7 +171,7 @@ EOF
 
     it "should barf if the primitive is already defined with the wrong agent" do
       existing_agent = "ocf:openstack:something-else"
-      definition = fixture.definition_string.sub(fixture.agent, existing_agent)
+      definition = fixture.definition.sub(fixture.agent, existing_agent)
       mock_existing_cib_object(fixture.name, definition)
 
       expected_error = \

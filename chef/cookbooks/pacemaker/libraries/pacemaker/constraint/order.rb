@@ -13,17 +13,19 @@ class Pacemaker::Constraint::Order < Pacemaker::Constraint
     # FIXME: add support for symmetrical=<bool>
     # Currently we take the easy way out and don't bother parsing the ordering.
     # See the crm(8) man page for the official BNF grammar.
+    # It can be fixed in the same way location has been fixed.
     score_regexp = %r{\d+|[-+]?inf|Mandatory|Optional|Serialize}
-    unless definition =~ /^#{self.class.object_type} (\S+) (#{score_regexp}): (.+?)\s*$/
+    unless @definition =~ /^#{self.class.object_type} (\S+) (#{score_regexp}): (.+?)\s*$/
       raise Pacemaker::CIBObject::DefinitionParseError, \
             "Couldn't parse definition '#{definition}'"
     end
     self.name  = $1
     self.score = $2
     self.ordering = $3
+    attrs_authoritative
   end
 
-  def definition_string
+  def definition_from_attributes
     "#{self.class.object_type} #{name} #{score}: #{ordering}"
   end
 end

@@ -25,6 +25,7 @@ class Chef
           ["monitor", { "timeout" =>  "60", "interval" => "10s" }],
           ["start",   { "timeout" => "240", "interval" => "10s" }]
         ]
+        KEYSTONE_PRIMITIVE.attrs_authoritative
         KEYSTONE_PRIMITIVE_DEFINITION = <<'EOF'.chomp
 primitive keystone ocf:openstack:keystone \
          params os_auth_url="http://node1:5000/v2.0" os_password="ad\"min$pa&ss'wo%rd" os_tenant_name="openstack" os_username="admin" user="openstack-keystone" \

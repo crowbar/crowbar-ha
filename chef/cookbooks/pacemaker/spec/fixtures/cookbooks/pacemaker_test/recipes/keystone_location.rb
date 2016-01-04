@@ -6,7 +6,7 @@ pacemaker_location Chef::RSpec::Pacemaker::Config::KEYSTONE_LOCATION_NAME do
 
   rsc location.rsc
   score location.score
-  node location.node
+  lnode location.lnode
 
   action :nothing
 end
