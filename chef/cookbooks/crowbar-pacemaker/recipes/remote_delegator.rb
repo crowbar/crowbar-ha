@@ -40,5 +40,6 @@ remotes.each do |remote|
     op remote[:pacemaker][:remote][:op].to_hash
     params params_hash
     action [:create, :start]
+    only_if { CrowbarPacemakerHelper.is_cluster_founder?(node) }
   end
 end
