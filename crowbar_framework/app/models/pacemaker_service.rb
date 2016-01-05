@@ -527,19 +527,43 @@ class PacemakerService < ServiceObject
 
     elements = proposal["deployment"]["pacemaker"]["elements"]
     members = elements["pacemaker-cluster-member"] || []
+    remotes = elements["pacemaker-remote"] || []
 
     if elements.key?("hawk-server")
       elements["hawk-server"].each do |n|
         @logger.debug("checking #{n}")
-        unless members.include? n
-          node = NodeObject.find_node_by_name(n)
-          name = node.name
-          name = "#{node.alias} (#{name})" if node.alias
-          validation_error I18n.t(
-            "barclamp.#{bc_name}.validation.hawk_server",
-            name: name
-          )
-        end
+        next if members.include? n
+
+        node = NodeObject.find_node_by_name(n)
+        name = node.name
+        name = "#{node.alias} (#{name})" if node.alias
+        validation_error I18n.t(
+          "barclamp.#{bc_name}.validation.hawk_server",
+          name: name
+        )
+      end
+    end
+
+    unless remotes.empty?
+      if elements["pacemaker-remote-delegator"].empty?
+        validation_error I18n.t(
+          "barclamp.#{bc_name}.validation.pacemaker_remote_no_delegator"
+        )
+      end
+    end
+
+    if elements.key?("pacemaker-remote-delegator")
+      elements["pacemaker-remote-delegator"].each do |n|
+        @logger.debug("checking #{n}")
+        next if members.include? n
+
+        node = NodeObject.find_node_by_name(n)
+        name = node.name
+        name = "#{node.alias} (#{name})" if node.alias
+        validation_error I18n.t(
+          "barclamp.#{bc_name}.validation.pacemaker_remote_delegator",
+          name: name
+        )
       end
     end
 
