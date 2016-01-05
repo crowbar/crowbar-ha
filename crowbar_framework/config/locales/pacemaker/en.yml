@@ -115,6 +115,8 @@ en:
         libvirt: 'Node  %{member} does not seem to be running in libvirt.'
         stonith_mode: 'Unknown STONITH mode: %{stonith_mode}.'
         hawk_server: 'Node %{name} has the hawk-server role but not the pacemaker-cluster-member role.'
+        pacemaker_remote_no_delegator: 'At least one cluster member must have the pacemaker-remote-delegator role when there are nodes with the pacemaker-remote role.'
+        pacemaker_remote_delegator: 'Node %{name} has the pacemaker-remote-delegator role but not the pacemaker-cluster-member role.'
         smtp_server: 'Invalid SMTP server for mail notifications.'
         sender_address: 'Invalid sender address for mail notifications.'
         recipient_address: 'Invalid recipient address for mail notifications.'
