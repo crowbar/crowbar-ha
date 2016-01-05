@@ -33,6 +33,15 @@ module CrowbarPacemakerHelper
     end
   end
 
+  # Returns the number of corosync (or non-remote) nodes in the cluster.
+  def self.num_corosync_nodes(node)
+    if cluster_enabled?(node)
+      node[:pacemaker][:elements]["pacemaker-cluster-member"].length
+    else
+      0
+    end
+  end
+
   # Returns the name of the cluster containing the given node, or nil
   # if the node is not in a cluster.  The name is determined by the
   # name of the pacemaker proposal corresponding to that cluster
