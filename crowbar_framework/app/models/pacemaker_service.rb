@@ -635,15 +635,17 @@ class PacemakerService < ServiceObject
     proposals_raw.each do |p|
       next if p["id"] == proposal["id"]
 
-      (p["deployment"][@bc_name]["elements"]["pacemaker-cluster-member"] || []).each do |other_member|
-        if members.include?(other_member)
-          p_name = p["id"].gsub("#{@bc_name}-", "")
-          validation_error I18n.t(
-            "barclamp.#{bc_name}.validation.pacemaker_proposal",
-            other_members: other_members,
-            p_name: p_name
-          )
-        end
+      other_members = p["deployment"][@bc_name]["elements"]["pacemaker-cluster-member"] || []
+      other_remotes = p["deployment"][@bc_name]["elements"]["pacemaker-remote"] || []
+      (other_members + other_remotes).each do |other_member|
+        next unless members.include?(other_member) || remotes.include?(other_member)
+
+        p_name = p["id"].gsub("#{@bc_name}-", "")
+        validation_error I18n.t(
+          "barclamp.#{bc_name}.validation.pacemaker_proposal",
+          other_member: other_member,
+          p_name: p_name
+        )
       end
     end
 
