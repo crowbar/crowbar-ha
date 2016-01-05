@@ -45,7 +45,7 @@ class PacemakerService < ServiceObject
           }
         },
         "pacemaker-remote" => {
-          "unique" => false,
+          "unique" => true,
           "count" => -1,
           "platform" => {
             "suse" => "/.*/",
