@@ -24,6 +24,8 @@
 # N.B. it is not the same auth key which the corosync ring members use
 # to establish trust between each other!
 
+require "securerandom"
+
 authkey_file = node[:pacemaker][:authkey_file]
 
 directory File.dirname(authkey_file) do
@@ -34,13 +36,12 @@ directory File.dirname(authkey_file) do
 end
 
 # create the auth key
-execute "generate #{authkey_file}" do
-  command "dd if=/dev/urandom of=#{authkey_file} bs=4096 count=1"
-  creates authkey_file
+file authkey_file do
+  content SecureRandom.random_bytes(4096)
   user node[:pacemaker][:authkey_file_owner]
   group "root"
-  umask "0400"
-  action :run
+  mode "0400"
+  action :create_if_missing
 end
 
 # Read authkey (it's binary) into encoded format and save to Chef server
@@ -59,6 +60,6 @@ ruby_block "Store authkey to Chef server" do
   # we didn't run corosync-keygen)
   unless node[:pacemaker][:authkey].nil?
     action :nothing
-    subscribes :create, resources(execute: "generate #{authkey_file}"), :immediately
+    subscribes :create, resources(file: authkey_file), :immediately
   end
 end
