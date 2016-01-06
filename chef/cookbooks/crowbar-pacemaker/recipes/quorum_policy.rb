@@ -23,7 +23,7 @@
 # barclamp.
 # For details on the different policies, see
 # https://www.suse.com/documentation/sle_ha/book_sleha/data/sec_ha_configuration_basics_global.html
-cluster_members_nb = CrowbarPacemakerHelper.cluster_nodes(node).length
+cluster_members_nb = CrowbarPacemakerHelper.num_corosync_nodes(node)
 if cluster_members_nb <= 2
   node.default[:pacemaker][:crm][:no_quorum_policy] = "ignore"
 end
