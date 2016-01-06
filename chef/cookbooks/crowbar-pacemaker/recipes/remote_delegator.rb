@@ -32,6 +32,11 @@ query += " AND pacemaker_config_environment:#{node[:pacemaker][:config][:environ
 
 remotes = search(:node, query)
 remotes.each do |remote|
+  unless remote[:pacemaker][:remote_setup]
+    Chef::Log.info("Skipping creation of remote resource for #{remote[:hostname]} as pacemaker_remote has not been setup yet.")
+    next
+  end
+
   params_hash = remote[:pacemaker][:remote][:params].to_hash
   params_hash["server"] = remote[:fqdn]
 

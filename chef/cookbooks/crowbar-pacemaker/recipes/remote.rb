@@ -38,3 +38,10 @@ include_recipe "pacemaker::remote"
 node[:pacemaker][:platform][:resource_packages][:openstack].each do |pkg|
   package pkg
 end
+
+ruby_block "mark node as ready for pacemaker_remote" do
+  block do
+    node[:pacemaker][:remote_setup] = true
+    node.save
+  end
+end
