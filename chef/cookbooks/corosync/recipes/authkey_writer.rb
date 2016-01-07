@@ -17,6 +17,8 @@
 # limitations under the License.
 #
 
+require "base64"
+
 authkey      = node[:corosync][:authkey]
 authkey_file = node[:corosync][:authkey_file]
 

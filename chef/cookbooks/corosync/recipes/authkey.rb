@@ -17,15 +17,13 @@
 # limitations under the License.
 #
 
-require "base64"
-
 if Chef::Config[:solo]
   Chef::Application.fatal! "This recipe uses search. Chef Solo does not support search."
   return
 end
 
 cluster_name = node[:corosync][:cluster_name]
-unless cluster_name && !cluster_name.empty?
+if cluster_name.nil? || cluster_name.empty?
   Chef::Application.fatal! "Couldn't figure out corosync cluster name"
   return
 end

@@ -24,6 +24,8 @@
 # establish trust between Pacemaker remote nodes and the members of
 # the core corosync ring!
 
+require "base64"
+
 # Ensure that the RNG has access to a decent entropy pool,
 # so that corosync-keygen doesn't take too long.
 package "haveged" do
