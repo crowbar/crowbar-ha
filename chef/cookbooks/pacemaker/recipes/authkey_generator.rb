@@ -24,6 +24,7 @@
 # N.B. it is not the same auth key which the corosync ring members use
 # to establish trust between each other!
 
+require "base64"
 require "securerandom"
 
 authkey_file = node[:pacemaker][:authkey_file]

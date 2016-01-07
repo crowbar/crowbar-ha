@@ -17,6 +17,8 @@
 # limitations under the License.
 #
 
+require "base64"
+
 authkey      = node[:pacemaker][:authkey]
 authkey_file = node[:pacemaker][:authkey_file]
 

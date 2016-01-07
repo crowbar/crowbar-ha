@@ -24,8 +24,6 @@
 # achieves this by first running it via the pacemaker-cluster-member
 # role, and then later by the pacemaker-remote role.
 
-require "base64"
-
 if Chef::Config[:solo]
   Chef::Application.fatal! "This recipe uses search. Chef Solo does not support search."
   return
@@ -34,7 +32,7 @@ end
 # FIXME: deduplicate code with corosync::authkey recipe
 
 cluster_name = node[:corosync][:cluster_name]
-unless cluster_name && !cluster_name.empty?
+if cluster_name.nil? || cluster_name.empty?
   Chef::Application.fatal! "Couldn't figure out corosync cluster name"
   return
 end
