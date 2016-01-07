@@ -133,6 +133,37 @@ class PacemakerServiceObject < ServiceObject
     [elements, all_nodes, has_expanded]
   end
 
+  # !!! Horrible workaround until we fix crowbar orchestration !!!
+  # Because each chef-client runs executes everything in all cookbooks, and
+  # because the crm calls slow things down considerably, we have a drift issue
+  # where the founder (which does much more work since it's the only one doing
+  # the crm calls) goes much slower than the other nodes. This can impact
+  # things badly when it's so slow that it triggers the timeout in the sync
+  # marks.
+  # The workaround here is to reset the sync marks on the founder, so that all
+  # nodes wait on the sync marks and the drift is only happening between sync
+  # marks.
+  # The goal is to only do this when applying a proposal, so that other
+  # chef-client runs are not blocked waiting for sync marks.
+  def reset_sync_marks_on_clusters_founders(elements)
+    elements.each do |element|
+      next unless PacemakerServiceObject.is_cluster? element
+
+      cluster = cluster_name(element)
+      founder = NodeObject.find("pacemaker_founder:true AND pacemaker_config_environment:pacemaker-config-#{cluster}").first
+      next if founder.nil? || founder[:pacemaker][:sync_marks].nil? || founder[:pacemaker][:sync_marks][cluster].nil?
+
+      founder[:pacemaker][:sync_marks][cluster].keys.each do |k|
+        # this sync mark is special, only required for initial pacemaker
+        # setup and running in compile phase, so we don't want to reset it
+        next if k == "pacemaker_setup"
+        founder[:pacemaker][:sync_marks][cluster].delete(k)
+      end
+
+      founder.save
+    end
+  end
+
   # This allocates a virtual IP for the cluster in each network in networks
   # (which is a list)
   # Returns: two booleans:
