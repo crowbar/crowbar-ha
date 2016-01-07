@@ -19,6 +19,8 @@
 
 # We're in the pacemaker barclamp, so we're using the pacemaker namespace
 
+default[:pacemaker][:attributes] = {}
+
 default[:pacemaker][:platform][:resource_packages][:openstack] = %w(openstack-resource-agents)
 
 if node[:platform] == "suse" && node[:platform_version].to_f < 12.0
