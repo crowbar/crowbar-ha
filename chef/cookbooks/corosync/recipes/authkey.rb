@@ -25,7 +25,7 @@ if Chef::Config[:solo]
 end
 
 cluster_name = node[:corosync][:cluster_name]
-unless cluster_name and ! cluster_name.empty?
+unless cluster_name && !cluster_name.empty?
   Chef::Application.fatal! "Couldn't figure out corosync cluster name"
   return
 end
@@ -34,6 +34,7 @@ end
 query  = "chef_environment:#{node.chef_environment}"
 query += " AND corosync_cluster_name:#{cluster_name}"
 
+# FIXME: move this Crowbar-specific code into the crowbar-pacemaker cookbook
 is_crowbar = !(node[:crowbar].nil?)
 authkey_node = nil
 

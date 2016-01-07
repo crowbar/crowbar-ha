@@ -19,6 +19,8 @@
 
 # We're in the pacemaker barclamp, so we're using the pacemaker namespace
 
+default[:pacemaker][:attributes] = {}
+
 default[:pacemaker][:platform][:resource_packages][:openstack] = %w(openstack-resource-agents)
 
 if node[:platform] == "suse" && node[:platform_version].to_f < 12.0
@@ -31,3 +33,9 @@ else
 end
 default[:pacemaker][:haproxy][:op][:monitor][:interval] = "10s"
 default[:pacemaker][:haproxy][:clusters] = {}
+
+default[:pacemaker][:remote][:agent] = "ocf:pacemaker:remote"
+default[:pacemaker][:remote][:op][:monitor][:interval] = "20s"
+default[:pacemaker][:remote][:op][:start][:timeout] = "60s"
+default[:pacemaker][:remote][:op][:stop][:timeout] = "60s"
+default[:pacemaker][:remote][:params][:reconnect_interval] = "60s"
