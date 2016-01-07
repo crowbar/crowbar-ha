@@ -57,7 +57,7 @@ require "timeout"
 module CrowbarPacemakerSynchronization
 
   # See "Synchronization helpers" documentation
-  def self.wait_for_mark_from_founder(node, mark, revision, fatal = false, timeout = 300)
+  def self.wait_for_mark_from_founder(node, mark, revision, fatal = false, timeout = 180)
     return unless CrowbarPacemakerHelper.cluster_enabled?(node)
     return if CrowbarPacemakerHelper.is_cluster_founder?(node)
 
@@ -110,7 +110,7 @@ module CrowbarPacemakerSynchronization
   end
 
   # See "Synchronization helpers" documentation
-  def self.synchronize_on_mark(node, mark, revision, fatal = false, timeout = 300)
+  def self.synchronize_on_mark(node, mark, revision, fatal = false, timeout = 60)
     return unless CrowbarPacemakerHelper.cluster_enabled?(node)
 
     cluster_name = CrowbarPacemakerHelper.cluster_name(node)

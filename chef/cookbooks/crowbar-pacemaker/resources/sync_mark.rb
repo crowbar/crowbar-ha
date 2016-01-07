@@ -59,4 +59,4 @@ attribute :mark,      kind_of: String,  default: nil
 attribute :revision,  kind_of: Integer, default: nil
 
 attribute :fatal,     kind_of: [TrueClass, FalseClass], default: true
-attribute :timeout,   kind_of: Integer, default: 300
+attribute :timeout,   kind_of: Integer, default: 60
