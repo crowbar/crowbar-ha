@@ -13,7 +13,7 @@
 # limitations under the License.
 #
 
-default[:hawk][:platform][:packages] = %w(hawk hawk-templates xorg-x11-fonts)
+default[:hawk][:platform][:packages] = %w(hawk2 xorg-x11-fonts)
 
 # Currently hardcoded in /srv/www/hawk/config/lighttp.conf and
 # /srv/www/hawk/app/views/dashboard/index.html.erb but added
