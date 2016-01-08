@@ -51,14 +51,6 @@ class PacemakerService < ServiceObject
             "suse" => "/.*/",
             "opensuse" => "/.*/"
           }
-        },
-        "pacemaker-remote-delegator" => {
-          "unique" => false,
-          "count" => -1,
-          "platform" => {
-            "suse" => "/.*/",
-            "opensuse" => "/.*/"
-          }
         }
       }
     end
@@ -249,6 +241,33 @@ class PacemakerService < ServiceObject
       @logger.debug("[pacemaker] Calling apply_role_post_chef_call for #{service.bc_name}")
       service.apply_role_post_chef_call(cluster_role, cluster_role, all_nodes_for_cluster_role_expanded)
     end
+  end
+
+  # Override this so we can change element_order dynamically on apply:
+  #  - when there's no remote node, we don't want to run anything twice on
+  #    cluster members
+  #  - when there are remote nodes, we need to run the delegator code after
+  #    setting up the remote nodes, so we need to run chef on cluster members a
+  #    second time
+  def active_update(proposal, inst, in_queue)
+    deployment = proposal["deployment"]["pacemaker"]
+    remotes = deployment["elements"]["pacemaker-remote"] || []
+
+    if remotes.empty?
+      deployment["element_order"] = [
+        ["pacemaker-cluster-member", "hawk-server"],
+        ["pacemaker-remote"]
+      ]
+    else
+      deployment["element_order"] = [
+        ["pacemaker-cluster-member", "hawk-server"],
+        ["pacemaker-remote"],
+        ["pacemaker-cluster-member"]
+      ]
+    end
+
+    # no need to save proposal, it's just data that is passed to later methods
+    super
   end
 
   def apply_role_pre_chef_call(old_role, role, all_nodes)
@@ -539,29 +558,6 @@ class PacemakerService < ServiceObject
         name = "#{node.alias} (#{name})" if node.alias
         validation_error I18n.t(
           "barclamp.#{bc_name}.validation.hawk_server",
-          name: name
-        )
-      end
-    end
-
-    unless remotes.empty?
-      if elements["pacemaker-remote-delegator"].empty?
-        validation_error I18n.t(
-          "barclamp.#{bc_name}.validation.pacemaker_remote_no_delegator"
-        )
-      end
-    end
-
-    if elements.key?("pacemaker-remote-delegator")
-      elements["pacemaker-remote-delegator"].each do |n|
-        @logger.debug("checking #{n}")
-        next if members.include? n
-
-        node = NodeObject.find_node_by_name(n)
-        name = node.name
-        name = "#{node.alias} (#{name})" if node.alias
-        validation_error I18n.t(
-          "barclamp.#{bc_name}.validation.pacemaker_remote_delegator",
           name: name
         )
       end

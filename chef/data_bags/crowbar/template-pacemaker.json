@@ -57,14 +57,13 @@
       "element_states": {
         "pacemaker-cluster-member"    : [ "readying", "ready", "applying" ],
         "hawk-server"                 : [ "readying", "ready", "applying" ],
-        "pacemaker-remote"            : [ "readying", "ready", "applying" ],
-        "pacemaker-remote-delegator"  : [ "readying", "ready", "applying" ]
+        "pacemaker-remote"            : [ "readying", "ready", "applying" ]
       },
       "elements": {},
       "element_order": [
         [ "pacemaker-cluster-member", "hawk-server" ],
         [ "pacemaker-remote" ],
-        [ "pacemaker-remote-delegator" ]
+        [ "pacemaker-cluster-member" ]
       ],
       "config": {
         "environment": "pacemaker-base-config",
