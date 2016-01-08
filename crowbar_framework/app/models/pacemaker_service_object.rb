@@ -89,6 +89,16 @@ class PacemakerServiceObject < ServiceObject
       end
     end
 
+    # Get the founder of a cluster, based on the element
+    def cluster_founder(element)
+      if is_cluster?(element)
+        cluster = cluster_name(element)
+        NodeObject.find("pacemaker_founder:true AND pacemaker_config_environment:pacemaker-config-#{cluster}").first
+      else
+        nil
+      end
+    end
+
     # Returns: list of nodes in the cluster, or nil if the cluster doesn't exist
     def expand_nodes(cluster)
       clusters = available_clusters
@@ -165,8 +175,8 @@ class PacemakerServiceObject < ServiceObject
     elements.each do |element|
       next unless PacemakerServiceObject.is_cluster? element
 
+      founder = PacemakerServiceObject.cluster_founder(element)
       cluster = cluster_name(element)
-      founder = NodeObject.find("pacemaker_founder:true AND pacemaker_config_environment:pacemaker-config-#{cluster}").first
 
       PacemakerServiceObject.reset_sync_marks_on_cluster_founder(founder, cluster)
     end
