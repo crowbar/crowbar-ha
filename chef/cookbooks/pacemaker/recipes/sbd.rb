@@ -77,8 +77,10 @@ if node[:platform_family] == "suse"
     )
     # We want to allocate slots before restarting corosync
     notifies :run, "execute[Allocate SBD slot]", :immediately
-    notifies :restart, "service[#{node[:corosync][:platform][:service_name]}]", :immediately
-    # After restarting corosync, we need to wait for the cluster to be online again
-    notifies :create, "ruby_block[wait for cluster to be online]", :immediately
+    unless node[:pacemaker][:remote]
+      notifies :restart, "service[#{node[:corosync][:platform][:service_name]}]", :immediately
+      # After restarting corosync, we need to wait for the cluster to be online again
+      notifies :create, "ruby_block[wait for cluster to be online]", :immediately
+    end
   end
 end
