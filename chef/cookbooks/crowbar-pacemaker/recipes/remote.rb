@@ -24,6 +24,10 @@
 # and hence the authkey.
 node[:corosync][:cluster_name] = CrowbarPacemakerHelper.cluster_name(node)
 
+if node[:pacemaker][:stonith][:mode] == "sbd"
+  include_recipe "crowbar-pacemaker::sbd"
+end
+
 include_recipe "crowbar-pacemaker::pacemaker_authkey"
 include_recipe "pacemaker::remote"
 
