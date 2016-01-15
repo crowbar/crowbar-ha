@@ -60,6 +60,12 @@ execute "Check that SBD was initialized using '#{sbd_cmd} create'." do
   command "#{sbd_cmd} dump &> /dev/null"
 end
 
+service "sbd" do
+  action :enable
+  # with systemd (so no SLES11), sbd needs to be enabled
+  not_if { node[:platform] == "suse" && node[:platform_version].to_f < 12.0 }
+end
+
 if node[:platform_family] == "suse"
   # We will want to explicitly allocate a slot the first time we come here
   # (hence the use of a notification to trigger this execute).
