@@ -149,6 +149,26 @@ module CrowbarPacemakerHelper
     end
   end
 
+  # Performs a Chef search and returns an Array of Node objects for
+  # all remote nodes in the same cluster as the given node, or an empty array
+  # if the node isn't in a cluster.  Can optionally include remote nodes that
+  # will be part of the cluster but are not setup yet.
+  def self.remote_nodes(node, include_not_setup = false)
+    if cluster_enabled?(node)
+      remote_nodes = []
+      env = node[:pacemaker][:config][:environment]
+      Chef::Search::Query.new.search(
+        :node,
+        "roles:pacemaker-remote AND pacemaker_config_environment:#{env}"
+      ) do |o|
+        remote_nodes << o if include_not_setup || o[:pacemaker][:remote_setup]
+      end
+      remote_nodes
+    else
+      []
+    end
+  end
+
   # Returns the founder of the cluster the current node belongs to, or nil if
   # the current node is not part of a cluster
   def self.cluster_founder(node)
