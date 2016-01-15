@@ -49,7 +49,7 @@ else
 end
 
 default[:pacemaker][:founder] = false
-default[:pacemaker][:remote] = false
+default[:pacemaker][:is_remote] = false
 default[:pacemaker][:crm][:initial_config_file] = "/etc/corosync/crm-initial.conf"
 default[:pacemaker][:crm][:no_quorum_policy] = "ignore"
 default[:pacemaker][:crm][:op_default_timeout] = 60
