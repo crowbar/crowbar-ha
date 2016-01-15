@@ -25,13 +25,7 @@
 
 return unless CrowbarPacemakerHelper.is_cluster_founder?(node)
 
-query  = "chef_environment:#{node.chef_environment}"
-query += " AND roles:pacemaker-remote"
-query += " AND corosync_cluster_name:#{node[:corosync][:cluster_name]}"
-query += " AND pacemaker_config_environment:#{node[:pacemaker][:config][:environment]}"
-
-remotes = search(:node, query)
-remotes.each do |remote|
+CrowbarPacemakerHelper.remote_nodes(node, true).each do |remote|
   unless remote[:pacemaker][:remote_setup]
     Chef::Log.info("Skipping creation of remote resource for #{remote[:hostname]} as pacemaker_remote has not been setup yet.")
     next
