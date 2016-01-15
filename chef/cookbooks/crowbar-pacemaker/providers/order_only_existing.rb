@@ -38,7 +38,7 @@ action :create do
     # is:
     # - foo ( bar foobar ) xyz
     # - foo [ bar foobar ] xyz
-    # - foo [ bar foobar sequantial=true ] xyz
+    # - foo [ bar foobar sequential=true ] xyz
     # - foo [ bar foobar require-all=true ] xyz
     ordering_array = ordering.split(" ")
     existing_ordering_array = ordering_array.select do |r|
