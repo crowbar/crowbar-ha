@@ -60,7 +60,21 @@ execute "Check that SBD was initialized using '#{sbd_cmd} create'." do
   command "#{sbd_cmd} dump &> /dev/null"
 end
 
+if node[:pacemaker][:is_remote]
+  cookbook_file "sbd_remote.service" do
+    path "/etc/systemd/system/sbd_remote.service"
+    source "sbd_remote.service"
+  end
+
+  bash "reload systemd for sbd_remote.service" do
+    code "systemctl daemon-reload"
+    action :nothing
+    subscribes :run, "cookbook_file[sbd_remote.service]", :immediately
+  end
+end
+
 service "sbd" do
+  service_name "sbd_remote" if node[:pacemaker][:is_remote]
   action :enable
   # with systemd (so no SLES11), sbd needs to be enabled
   not_if { node[:platform] == "suse" && node[:platform_version].to_f < 12.0 }
@@ -87,7 +101,10 @@ if node[:platform_family] == "suse"
     )
     # We want to allocate slots before restarting corosync
     notifies :run, "execute[Allocate SBD slot]", :immediately
-    unless node[:pacemaker][:is_remote]
+    if node[:pacemaker][:is_remote]
+      notifies :restart, "service[pacemaker_remote]", :immediately
+      notifies :create, "ruby_block[wait for pacemaker_remote service to be reachable]", :immediately
+    else
       notifies :restart, "service[#{node[:corosync][:platform][:service_name]}]", :immediately
       # After restarting corosync, we need to wait for the cluster to be online again
       notifies :create, "ruby_block[wait for cluster to be online]", :immediately
