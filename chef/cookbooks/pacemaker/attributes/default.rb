@@ -77,9 +77,14 @@ default[:pacemaker][:stonith][:per_node][:agent] = ""
 # This can be "all" or "self":
 #   - if set to "all", then every node will configure the stonith resources for
 #     all nodes in the cluster
+#   - if set to "list", then every node will configure the stonith resource for
+#     the list of nodes in the [:list] attribute
 #   - if set to "self", then every node will configure the stonith resource for
 #     itself only
 default[:pacemaker][:stonith][:per_node][:mode] = "all"
+# This list is only used if [:mode] == "list"; the node will configure the
+# stonith resource for each node in the cluster that is also in the list.
+default[:pacemaker][:stonith][:per_node][:list] = []
 # This hash will contain parameters for each node. See documentation for
 # default[:pacemaker][:stonith][:shared][:params] about the format.
 # For instance:

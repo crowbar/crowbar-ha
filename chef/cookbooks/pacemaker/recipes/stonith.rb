@@ -81,6 +81,8 @@ when "per_node"
   node[:pacemaker][:stonith][:per_node][:nodes].keys.each do |node_name|
     if node[:pacemaker][:stonith][:per_node][:mode] == "self"
       next unless node_name == node[:hostname]
+    elsif node[:pacemaker][:stonith][:per_node][:mode] == "list"
+      next unless node[:pacemaker][:stonith][:per_node][:list].include? node_name
     end
 
     stonith_resource = "stonith-#{node_name}"
