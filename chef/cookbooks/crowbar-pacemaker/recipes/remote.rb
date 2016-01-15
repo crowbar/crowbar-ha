@@ -19,6 +19,7 @@
 #
 
 # The parent recipe to be run on all remote nodes.
+node.set[:pacemaker][:remote] = true
 
 # Figure out which cluster we're tied to, so that we can find the founder
 # and hence the authkey.
