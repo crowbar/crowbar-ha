@@ -1,3 +1,52 @@
+## Type: string
+## Default: ""
+#
+# SBD_DEVICE specifies the devices to use for exchanging sbd messages
+# and to monitor. If specifying more than one path, use ";" as
+# separator.
+#
 SBD_DEVICE="<%= @sbd_devices.join("; ") %>"
+
+## Type: yesno
+## Default: yes
+#
+# Whether to enable the pacemaker integration.
+#
+SBD_PACEMAKER=yes
+
+## Type: list(always,clean)
+## Default: always
+#
+# Specify the start mode for sbd. Setting this to "clean" will only
+# allow sbd to start if it was not previously fenced. See the -S option
+# in the man page.
+#
+SBD_STARTMODE=
+
+## Type: yesno
+## Default: no
+#
+# Whether to delay after starting sbd on boot for "msgwait" seconds.
+# This may be necessary if your cluster nodes reboot so fast that the
+# other nodes are still waiting in the fence acknowledgement phase.
+# This is an occasional issue with virtual machines.
+#
+# This option may be ignored at a later point, once pacemaker handles
+# this case better.
+#
+SBD_DELAY_START=
+
+## Type: yesno
+## Default: yes
+#
+# Whether to use a watchdog.
+#
+SBD_WATCHDOG=yes
+
+## Type: string
+## Default: ""
+#
+# Additional options for starting sbd
+#
 # The next line enables the watchdog support, and makes SBD checks Pacemaker quorum and node health:
 SBD_OPTS="-W -P"
