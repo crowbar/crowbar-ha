@@ -21,7 +21,19 @@
 # attributes, so every node can configure its per_node STONITH resource. This
 # will always work fine: as all nodes need to be up for the proposal to be
 # applied, all nodes will be able to configure their own STONITH resource.
-node[:pacemaker][:stonith][:per_node][:mode] = "self"
+#
+# The only exception is the remote nodes, which can't setup resources. So we
+# kindly ask the founder node to deal with configuring their STONITH resources.
+if CrowbarPacemakerHelper.is_cluster_founder?(node)
+  node_list = [node[:hostname]]
+  remotes = CrowbarPacemakerHelper.remote_nodes(node).map { |n| n[:hostname] }
+  node_list.concat(remotes)
+
+  node[:pacemaker][:stonith][:per_node][:mode] = "list"
+  node[:pacemaker][:stonith][:per_node][:list] = node_list
+else
+  node[:pacemaker][:stonith][:per_node][:mode] = "self"
+end
 
 case node[:pacemaker][:stonith][:mode]
 when "sbd"
@@ -41,7 +53,10 @@ when "shared"
     raise message
   end
 
-  member_names = CrowbarPacemakerHelper.cluster_nodes(node).map { |n| n.name }
+  all_nodes = CrowbarPacemakerHelper.cluster_nodes(node) + \
+    CrowbarPacemakerHelper.remote_nodes(node)
+
+  member_names = all_nodes.map { |n| n.name }
   params["hostlist"] = member_names.join(" ")
 
   node.default[:pacemaker][:stonith][:shared][:params] = params
@@ -67,7 +82,10 @@ when "ipmi_barclamp"
   node.default[:pacemaker][:stonith][:per_node][:agent] = "external/ipmi"
   node.default[:pacemaker][:stonith][:per_node][:nodes] = {}
 
-  CrowbarPacemakerHelper.cluster_nodes(node).each do |cluster_node|
+  all_nodes = CrowbarPacemakerHelper.cluster_nodes(node) + \
+    CrowbarPacemakerHelper.remote_nodes(node)
+
+  all_nodes.each do |cluster_node|
     unless cluster_node.key?("ipmi") && cluster_node[:ipmi][:bmc_enable]
       message = "Node #{cluster_node[:hostname]} has no IPMI configuration from IPMI barclamp; another STONITH method must be used."
       Chef::Log.fatal(message)
@@ -93,7 +111,10 @@ when "libvirt"
   hypervisor_ip = node[:pacemaker][:stonith][:libvirt][:hypervisor_ip]
   hypervisor_uri = "qemu+tcp://#{hypervisor_ip}/system"
 
-  CrowbarPacemakerHelper.cluster_nodes(node).each do |cluster_node|
+  all_nodes = CrowbarPacemakerHelper.cluster_nodes(node) + \
+    CrowbarPacemakerHelper.remote_nodes(node)
+
+  all_nodes.each do |cluster_node|
     manufacturer = cluster_node[:dmi][:system][:manufacturer] rescue "unknown"
     unless %w(Bochs QEMU).include? manufacturer
       message = "Node #{cluster_node[:hostname]} does not seem to be running in libvirt."
