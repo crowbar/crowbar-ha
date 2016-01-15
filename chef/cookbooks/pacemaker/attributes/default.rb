@@ -42,6 +42,7 @@ else
   #
 
   default[:pacemaker][:platform][:packages] = nil
+  default[:pacemaker][:platform][:remote_packages] = nil
 end
 
 default[:pacemaker][:founder] = false
