@@ -19,6 +19,8 @@ when "suse"
     %w(pacemaker crmsh fence-agents)
   default[:pacemaker][:platform][:remote_packages] =
     %w(pacemaker-remote fence-agents)
+  default[:pacemaker][:platform][:sbd_packages] =
+    %w(sbd)
 else
 
   #
@@ -43,6 +45,7 @@ else
 
   default[:pacemaker][:platform][:packages] = nil
   default[:pacemaker][:platform][:remote_packages] = nil
+  default[:pacemaker][:platform][:sbd_packages] = nil
 end
 
 default[:pacemaker][:founder] = false

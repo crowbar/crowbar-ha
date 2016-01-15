@@ -20,6 +20,10 @@
 
 require "shellwords"
 
+node[:pacemaker][:platform][:sbd_packages].each do |pkg|
+  package pkg
+end
+
 sbd_devices = nil
 sbd_devices ||= (node[:pacemaker][:stonith][:sbd][:nodes][node[:fqdn]][:devices] rescue nil)
 sbd_devices ||= (node[:pacemaker][:stonith][:sbd][:nodes][node[:hostname]][:devices] rescue nil)
