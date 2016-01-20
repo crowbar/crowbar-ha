@@ -28,13 +28,6 @@ class PacemakerServiceObject < ServiceObject
   #
 
   class << self
-    # This is the key that allows to find out that an element item is a
-    # pacemaker cluster: if the element name is $cluster_key:$foo, then it's
-    # one. Otherwise, it's not.
-    def cluster_key
-      "cluster"
-    end
-
     # Note that we cannot cache the list of clusters here as we're in a
     # eigenclass, and so the cache will be longer term than a single request
     # (hence we won't notice new clusters). It's therefore up to the callers to
@@ -50,26 +43,32 @@ class PacemakerServiceObject < ServiceObject
       clusters
     end
 
-    # Returns: name of the barclamp and of the proposal for this cluster
-    def cluster_get_barclamp_and_proposal(element)
-      if is_cluster?(element)
-        ["pacemaker", cluster_name(element)]
-      else
-        [nil, nil]
-      end
+    # Returns: List of available clusters excluding remotes
+    def available_clusters_excluding_remotes
+      # TODO(must): Fetch only clusters excluding remotes
+      {
+        "cluster:services" => available_clusters["cluster:services"]
+      }
+    end
+
+    # Returns: List of available clusters including remotes
+    def available_clusters_including_remotes
+      # TODO(must): Fetch only clusters including remotes
+      {
+        "remotes:test_1" => available_clusters["cluster:test_1"],
+        "remotes:test_2" => available_clusters["cluster:test_2"]
+      }
+    end
+
+    # This is the key that allows to find out that an element item is a
+    # pacemaker cluster excluding remote nodes: if the element name is
+    # $cluster_key:$foo, then it's one. Otherwise, it's not.
+    def cluster_key
+      "cluster"
     end
 
     def is_cluster?(element)
       element.start_with? "#{cluster_key}:"
-    end
-
-    # Returns: name of the cluster, or nil if it's not a cluster
-    def cluster_name(element)
-      if is_cluster? element
-        element.gsub("#{cluster_key}:", "")
-      else
-        nil
-      end
     end
 
     def cluster_vhostname_from_name(name)
@@ -81,8 +80,55 @@ class PacemakerServiceObject < ServiceObject
       "cluster-#{name.gsub("_", "-")}.#{ChefObject.cloud_domain}"
     end
 
+    # This is the key that allows to find out that an element item is a
+    # pacemaker cluster including remote nodes: if the element name is
+    # $remotes_key:$foo, then it's one. Otherwise, it's not.
+    def remotes_key
+      "remotes"
+    end
+
+    def is_remotes?(element)
+      element.start_with? "#{remotes_key}:"
+    end
+
+    def remotes_vhostname_from_name(name)
+      # We know that the proposal name cannot contain a dash, and we know that
+      # a hostname cannot contain an underscore, so we're lucky and we can
+      # substitute one with the other.
+      # Similar code is in the cookbook:
+      # CrowbarPacemakerHelper.cluster_vhostname
+      "remotes-#{name.gsub("_", "-")}.#{ChefObject.cloud_domain}"
+    end
+
+    # Returns: name of the barclamp and of the proposal for this cluster
+    def cluster_get_barclamp_and_proposal(element)
+      case
+      when is_remotes?(element)
+        ["pacemaker", cluster_name(element)]
+      when is_cluster?(element)
+        ["pacemaker", cluster_name(element)]
+      else
+        [nil, nil]
+      end
+    end
+
+    # Returns: name of the cluster, or nil if it's not a cluster
+    def cluster_name(element)
+      case
+      when is_remotes?(element)
+        element.gsub("#{remotes_key}:", "")
+      when is_cluster?(element)
+        element.gsub("#{cluster_key}:", "")
+      else
+        nil
+      end
+    end
+
     def cluster_vhostname_from_element(element)
-      if is_cluster? element
+      case
+      when is_remotes?(element)
+        remotes_vhostname_from_name(cluster_name(element))
+      when is_cluster?(element)
         cluster_vhostname_from_name(cluster_name(element))
       else
         nil
@@ -142,7 +188,7 @@ class PacemakerServiceObject < ServiceObject
   #     taken). This information can be used to know when a DNS sync is
   #     required or not.
   def allocate_virtual_ips_for_cluster_in_networks(cluster, networks)
-    if networks.nil? || networks.empty? || !PacemakerServiceObject.is_cluster?(cluster)
+    if networks.nil? || networks.empty? || !PacemakerServiceObject.is_cluster?(cluster) || !PacemakerServiceObject.is_remotes?(cluster)
       [false, false]
     else
       nodes = PacemakerServiceObject.expand_nodes(cluster)
@@ -172,7 +218,7 @@ class PacemakerServiceObject < ServiceObject
     new_allocation = false
 
     elements.each do |element|
-      if PacemakerServiceObject.is_cluster? element
+      if PacemakerServiceObject.is_cluster?(element) || PacemakerServiceObject.is_remotes?(element)
         ok, new = allocate_virtual_ips_for_cluster_in_networks(element, networks)
         new_allocation ||= new
       end
@@ -208,7 +254,7 @@ class PacemakerServiceObject < ServiceObject
     dirty = false
 
     elements.each do |element|
-      next unless PacemakerServiceObject.is_cluster? element
+      next unless PacemakerServiceObject.is_cluster?(element) && PacemakerServiceObject.is_remotes?(element)
 
       cluster = cluster_name(element)
 
