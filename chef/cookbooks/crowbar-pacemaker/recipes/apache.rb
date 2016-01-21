@@ -66,6 +66,11 @@ pacemaker_clone clone_name do
 end
 transaction_objects << "pacemaker_clone[#{clone_name}]"
 
+if node[:pacemaker][:apache2][:for_openstack]
+  location_name = openstack_pacemaker_controller_only_location_for clone_name
+  transaction_objects << "pacemaker_location[#{location_name}]"
+end
+
 pacemaker_transaction "apache service" do
   cib_objects transaction_objects
   # note that this will also automatically start the resources

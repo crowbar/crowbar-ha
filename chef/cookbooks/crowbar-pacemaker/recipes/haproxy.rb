@@ -91,6 +91,11 @@ if node[:pacemaker][:haproxy][:clusters].key?(cluster_name) && node[:pacemaker][
   end
   transaction_objects << "pacemaker_group[#{group_name}]"
 
+  if node[:pacemaker][:haproxy][:for_openstack]
+    location_name = openstack_pacemaker_controller_only_location_for group_name
+    transaction_objects << "pacemaker_location[#{location_name}]"
+  end
+
   pacemaker_transaction "haproxy service" do
     cib_objects transaction_objects
     # note that this will also automatically start the resources

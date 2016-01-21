@@ -10,3 +10,5 @@ depends "drbd"
 depends "haproxy"
 depends "lvm"
 depends "pacemaker"
+
+recommends "crowbar-openstack"
