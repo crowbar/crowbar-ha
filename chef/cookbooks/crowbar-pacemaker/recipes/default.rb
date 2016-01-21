@@ -95,8 +95,8 @@ if node[:pacemaker][:drbd][:enabled]
 end
 
 node[:pacemaker][:attributes].each do |attr, value|
-  execute "set pacemaker attribute \"#{attr}\" to \"#{value}\"" do
-    command "crm node attribute #{node[:hostname]} set \"#{attr}\" \"#{value}\""
+  execute %(set pacemaker attribute "#{attr}" to "#{value}") do
+    command %(crm node attribute #{node[:hostname]} set "#{attr}" "#{value}")
     # The cluster only does a transition if the attribute value changes,
     # so checking the value before setting would only slow things down
     # for no benefit.
