@@ -295,6 +295,8 @@ class PacemakerService < ServiceObject
           member_node.save
         end
       end
+
+      PacemakerServiceObject.reset_sync_marks_on_cluster_founder(founder, role.inst)
     end
 
     # set corosync attributes based on what we got in the proposal

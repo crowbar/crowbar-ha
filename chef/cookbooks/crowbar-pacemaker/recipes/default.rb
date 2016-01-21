@@ -59,9 +59,14 @@ end
 include_recipe "crowbar-pacemaker::stonith"
 
 # We let the founder go first, so it can generate the authkey and some other
-# initial pacemaker configuration bits; we do it in the first phase of the chef
-# run because the non-founder nodes will look in the compile phase for the
-# attribute
+# initial pacemaker configuration bits; we do it in the compile phase of the
+# chef run because the non-founder nodes will look during the compile phase for
+# the attribute, while the attribute is set during the convergence phase of the
+# founder node.
+# Note that resetting this sync mark should be avoided after the initial setup
+# is done: since wait is done during compile phase and create is done during
+# convergence phase, it can create a drift between the founder node and the
+# non-founder nodes.
 crowbar_pacemaker_sync_mark "wait-pacemaker_setup" do
   revision node[:pacemaker]["crowbar-revision"]
   # we use a longer timeout because the wait / create are in two different
@@ -72,8 +77,10 @@ end.run_action(:guess)
 
 include_recipe "pacemaker::default"
 
-# This is not done in the compile phase, because saving the authkey attribute
-# is done in a ruby_block
+# This part of the synchronization is *not* done in the compile phase, because
+# saving the corosync authkey attribute is done in convergence phase for
+# founder (but reading the attribute is done in compile phase for non-founder
+# nodes) -- see the corosync::authkey_generator recipe.
 crowbar_pacemaker_sync_mark "create-pacemaker_setup" do
   revision node[:pacemaker]["crowbar-revision"]
 end
