@@ -60,12 +60,19 @@ def create_resource(name)
 end
 
 def maybe_modify_resource(name)
+  deprecate_target_role
+
   Chef::Log.info "Checking existing #{@current_cib_object} for modifications"
 
-  desired_clone = cib_object_class.from_chef_resource(new_resource)
-  if desired_clone.definition_string != @current_cib_object.definition_string
-    Chef::Log.debug "changed from [#{@current_cib_object.definition_string}] to [#{desired_clone.definition_string}]"
-    cmd = desired_clone.reconfigure_command
+  desired_ms = cib_object_class.from_chef_resource(new_resource)
+
+  # See comment in primitive provider as to why we do this
+  new_resource.meta.delete("target-role")
+  desired_ms.meta.delete("target-role")
+
+  if desired_ms.definition_string != @current_cib_object.definition_string
+    Chef::Log.debug "changed from [#{@current_cib_object.definition_string}] to [#{desired_ms.definition_string}]"
+    cmd = desired_ms.reconfigure_command
     execute cmd do
       action :nothing
     end.run_action(:run)
