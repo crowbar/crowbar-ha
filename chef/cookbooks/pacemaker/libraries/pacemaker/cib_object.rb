@@ -20,7 +20,27 @@ module Pacemaker
         cmd.run_command
         begin
           cmd.error!
-          cmd.stdout
+
+          lines_for_def = []
+          cmd.stdout.lines.each do |line|
+            if lines_for_def.empty?
+              # look for the beginning of the resource definition
+              next unless line =~ /\A(\w+)\s#{name}\s/
+            else
+              # stop parsing if we reach the end of our definition
+              break if line !~ /\A\s/
+            end
+            lines_for_def.push(line)
+          end
+
+          if lines_for_def.empty?
+            # in case our attempt to only extract the definition we're
+            # interested in failed, play it safe and return the output
+            ::Chef::Log.warn "Failed to extract definition for #{name} from:\n#{cmd.stdout}"
+            cmd.stdout
+          else
+            lines_for_def.join("")
+          end
         rescue
           nil
         end
