@@ -17,6 +17,14 @@
 # limitations under the License.
 #
 
+def pacemaker_node_name(n)
+  if n[:pacemaker][:is_remote]
+    "remote-#{n[:hostname]}"
+  else
+    n[:hostname]
+  end
+end
+
 # We know that all nodes in the cluster will run the cookbook with the same
 # attributes, so every node can configure its per_node STONITH resource. This
 # will always work fine: as all nodes need to be up for the proposal to be
@@ -25,8 +33,8 @@
 # The only exception is the remote nodes, which can't setup resources. So we
 # kindly ask the founder node to deal with configuring their STONITH resources.
 if CrowbarPacemakerHelper.is_cluster_founder?(node)
-  node_list = [node[:hostname]]
-  remotes = CrowbarPacemakerHelper.remote_nodes(node).map { |n| n[:hostname] }
+  node_list = [pacemaker_node_name(node)]
+  remotes = CrowbarPacemakerHelper.remote_nodes(node).map { |n| pacemaker_node_name(n) }
   node_list.concat(remotes)
 
   node[:pacemaker][:stonith][:per_node][:mode] = "list"
@@ -56,21 +64,28 @@ when "shared"
   all_nodes = CrowbarPacemakerHelper.cluster_nodes(node) + \
     CrowbarPacemakerHelper.remote_nodes(node)
 
-  member_names = all_nodes.map { |n| n.name }
+  member_names = all.map { |n| pacemaker_node_name(n) }
   params["hostlist"] = member_names.join(" ")
 
   node.default[:pacemaker][:stonith][:shared][:params] = params
 
-# Crowbar is using FQDN, but crm seems to only know about the hostname without
-# the domain, so we need to translate this here
+# Crowbar is using FQDN, but pacemaker seems to only know about the hostname
+# without the domain (and hostnames for remote nodes are not real "hostnames",
+# but primitive names), so we need to translate this here
 when "per_node"
   nodes = node.default[:pacemaker][:stonith][:per_node][:nodes]
   new_nodes = {}
   domain = node[:domain]
 
+  all_nodes = CrowbarPacemakerHelper.cluster_nodes(node) + \
+    CrowbarPacemakerHelper.remote_nodes(node)
+
   nodes.keys.each do |fqdn|
-    hostname = fqdn.chomp(".#{domain}")
-    new_nodes[hostname] = nodes[fqdn].to_hash
+    cluster_node = all_nodes.find { |n| fqdn == n[:fqdn] }
+    next if cluster_node.nil?
+
+    stonith_node_name = pacemaker_node_name(cluster_node)
+    new_nodes[stonith_node_name] = nodes[fqdn].to_hash
   end
 
   node.default[:pacemaker][:stonith][:per_node][:nodes] = new_nodes
@@ -92,14 +107,16 @@ when "ipmi_barclamp"
       raise message
     end
 
+    stonith_node_name = pacemaker_node_name(cluster_node)
+
     params = {}
-    params["hostname"] = cluster_node[:hostname]
+    params["hostname"] = stonith_node_name
     params["ipaddr"] = cluster_node[:crowbar][:network][:bmc][:address]
     params["userid"] = cluster_node[:ipmi][:bmc_user]
     params["passwd"] = cluster_node[:ipmi][:bmc_password]
 
-    node.default[:pacemaker][:stonith][:per_node][:nodes][cluster_node[:hostname]] ||= {}
-    node.default[:pacemaker][:stonith][:per_node][:nodes][cluster_node[:hostname]][:params] = params
+    node.default[:pacemaker][:stonith][:per_node][:nodes][stonith_node_name] ||= {}
+    node.default[:pacemaker][:stonith][:per_node][:nodes][stonith_node_name][:params] = params
   end
 
 # Similarly with the libvirt stonith mode from the barclamp.
@@ -126,12 +143,14 @@ when "libvirt"
     # turns out that libvirt puts the domain UUID in DMI
     domain_id = cluster_node[:dmi][:system][:uuid]
 
+    stonith_node_name = pacemaker_node_name(cluster_node)
+
     params = {}
-    params["hostlist"] = "#{cluster_node[:hostname]}:#{domain_id}"
+    params["hostlist"] = "#{stonith_node_name}:#{domain_id}"
     params["hypervisor_uri"] = hypervisor_uri
 
-    node.default[:pacemaker][:stonith][:per_node][:nodes][cluster_node[:hostname]] ||= {}
-    node.default[:pacemaker][:stonith][:per_node][:nodes][cluster_node[:hostname]][:params] = params
+    node.default[:pacemaker][:stonith][:per_node][:nodes][stonith_node_name] ||= {}
+    node.default[:pacemaker][:stonith][:per_node][:nodes][stonith_node_name][:params] = params
   end
 
   # The agent requires virsh
