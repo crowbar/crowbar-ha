@@ -120,9 +120,21 @@ class Chef
       end
 
       def standard_maybe_modify_resource(name)
+        deprecate_target_role
+
         Chef::Log.info "Checking existing #{@current_cib_object} for modifications"
 
         desired = cib_object_class.from_chef_resource(new_resource)
+
+        if new_resource.respond_to? :meta
+          # Ignore target-role for runnable resources which have meta
+          # attributes (this excludes constraints).
+          #
+          # See comment in primitive provider as to why we do this.
+          new_resource.meta.delete("target-role")
+          desired.meta.delete("target-role")
+        end
+
         if desired.definition != @current_cib_object.definition
           Chef::Log.debug \
             "changed from [#{@current_cib_object.definition}] " \
