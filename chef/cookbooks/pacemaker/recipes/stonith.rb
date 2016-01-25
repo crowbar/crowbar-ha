@@ -148,17 +148,28 @@ when "per_node"
       primitive_params["hostname"] = node_name
     end
 
+    transaction_objects = []
+
     pacemaker_primitive stonith_resource do
       agent "stonith:#{agent}"
       params primitive_params
-      action [:create, :start]
+      action :update
     end
+    transaction_objects << "pacemaker_primitive[#{stonith_resource}]"
 
-    pacemaker_location "l-#{stonith_resource}" do
+    location_constraint = "l-#{stonith_resource}"
+    pacemaker_location location_constraint do
       rsc stonith_resource
       score "-inf"
       node node_name
-      action :create
+      action :update
+    end
+    transaction_objects << "pacemaker_location[#{location_constraint}]"
+
+    pacemaker_transaction "stonith for #{node_name}" do
+      cib_objects transaction_objects
+      # note that this will also automatically start the resources
+      action :commit_new
     end
   end
 

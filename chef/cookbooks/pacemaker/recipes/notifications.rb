@@ -41,26 +41,41 @@ if node[:pacemaker][:notifications][:smtp][:enabled]
     options += " -P #{prefix}"
   end
 
+  transaction_objects = []
+
   pacemaker_primitive smtp_resource do
     agent node[:pacemaker][:notifications][:agent]
     params ({ "extra_options" => options })
-    action :create
+    action :update
+    only_if { CrowbarPacemakerHelper.is_cluster_founder?(node) }
   end
+  transaction_objects << "pacemaker_primitive[#{smtp_resource}]"
 
   pacemaker_clone clone_smtp_resource do
     rsc smtp_resource
-    action [:create, :start]
+    action :update
+    only_if { CrowbarPacemakerHelper.is_cluster_founder?(node) }
+  end
+  transaction_objects << "pacemaker_clone[#{clone_smtp_resource}]"
+
+  pacemaker_transaction "smtp notifications" do
+    cib_objects transaction_objects
+    # note that this will also automatically start the resources
+    action :commit_new
+    only_if { CrowbarPacemakerHelper.is_cluster_founder?(node) }
   end
 else
   pacemaker_clone clone_smtp_resource do
     rsc smtp_resource
     action [:stop, :delete]
     only_if "crm configure show #{clone_smtp_resource}"
+    only_if { CrowbarPacemakerHelper.is_cluster_founder?(node) }
   end
 
   pacemaker_primitive smtp_resource do
     agent node[:pacemaker][:notifications][:agent]
     action [:stop, :delete]
     only_if "crm configure show #{smtp_resource}"
+    only_if { CrowbarPacemakerHelper.is_cluster_founder?(node) }
   end
 end
