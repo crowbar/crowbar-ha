@@ -88,6 +88,16 @@ class PacemakerServiceObject < ServiceObject
       element.start_with? "#{remotes_key}:"
     end
 
+    def remotes_remote_nodes_count(element)
+      if is_remotes?(element)
+        role = RoleObject.find_role_by_name("pacemaker-config-#{cluster_name(element)}")
+        elements = role.override_attributes["pacemaker"]["elements"]
+        elements["pacemaker-remote"].nil? ? 0 : elements["pacemaker-remote"].length
+      else
+        0
+      end
+    end
+
     # Returns: name of the barclamp and of the proposal for this cluster
     def cluster_get_barclamp_and_proposal(element)
       case
