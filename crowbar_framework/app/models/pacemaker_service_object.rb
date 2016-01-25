@@ -43,14 +43,6 @@ class PacemakerServiceObject < ServiceObject
       clusters
     end
 
-    # Returns: List of available clusters excluding remotes
-    def available_clusters_excluding_remotes
-      # TODO(must): Fetch only clusters excluding remotes
-      {
-        "cluster:services" => available_clusters["cluster:services"]
-      }
-    end
-
     # Returns: List of available clusters including remotes
     def available_clusters_including_remotes
       # TODO(must): Fetch only clusters including remotes
