@@ -141,6 +141,22 @@ class PacemakerServiceObject < ServiceObject
         cluster_nodes || []
       end
     end
+
+    # Returns: list of remote nodes in the cluster, or nil if the cluster doesn't exist
+    def expand_remote_nodes(cluster)
+      remotes = available_clusters_including_remotes
+      if remotes[cluster].nil?
+        nil
+      else
+        pacemaker_proposal = remotes[cluster]
+        remote_nodes = pacemaker_proposal.override_attributes["pacemaker"]["elements"]["pacemaker-remote"]
+        remote_nodes || []
+      end
+    end
+  end
+
+  def expand_remote_nodes(cluster)
+    PacemakerServiceObject.expand_remote_nodes(cluster)
   end
 
   #
