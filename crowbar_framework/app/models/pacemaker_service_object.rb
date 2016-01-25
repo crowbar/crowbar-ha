@@ -45,11 +45,16 @@ class PacemakerServiceObject < ServiceObject
 
     # Returns: List of available clusters including remotes
     def available_clusters_including_remotes
-      # TODO(must): Fetch only clusters including remotes
-      {
-        "remotes:test_1" => available_clusters["cluster:test_1"],
-        "remotes:test_2" => available_clusters["cluster:test_2"]
-      }
+      remotes = {}
+      # we only care about the deployed clusters, not about existing
+      # proposals
+      RoleObject.find_roles_by_name("pacemaker-config-*").select do |role|
+        elements = role.override_attributes["pacemaker"]["elements"]
+        elements["pacemaker-remote"] && !elements["pacemaker-remote"].empty?
+      end.each do |role|
+        remotes["#{remotes_key}:#{role.inst}"] = role
+      end
+      remotes
     end
 
     # This is the key that allows to find out that an element item is a
