@@ -91,15 +91,6 @@ class PacemakerServiceObject < ServiceObject
       element.start_with? "#{remotes_key}:"
     end
 
-    def remotes_vhostname_from_name(name)
-      # We know that the proposal name cannot contain a dash, and we know that
-      # a hostname cannot contain an underscore, so we're lucky and we can
-      # substitute one with the other.
-      # Similar code is in the cookbook:
-      # CrowbarPacemakerHelper.cluster_vhostname
-      "remotes-#{name.gsub("_", "-")}.#{ChefObject.cloud_domain}"
-    end
-
     # Returns: name of the barclamp and of the proposal for this cluster
     def cluster_get_barclamp_and_proposal(element)
       case
@@ -125,10 +116,7 @@ class PacemakerServiceObject < ServiceObject
     end
 
     def cluster_vhostname_from_element(element)
-      case
-      when is_remotes?(element)
-        remotes_vhostname_from_name(cluster_name(element))
-      when is_cluster?(element)
+      if is_cluster?(element)
         cluster_vhostname_from_name(cluster_name(element))
       else
         nil
@@ -188,7 +176,7 @@ class PacemakerServiceObject < ServiceObject
   #     taken). This information can be used to know when a DNS sync is
   #     required or not.
   def allocate_virtual_ips_for_cluster_in_networks(cluster, networks)
-    if networks.nil? || networks.empty? || !PacemakerServiceObject.is_cluster?(cluster) || !PacemakerServiceObject.is_remotes?(cluster)
+    if networks.nil? || networks.empty? || !PacemakerServiceObject.is_cluster?(cluster)
       [false, false]
     else
       nodes = PacemakerServiceObject.expand_nodes(cluster)
@@ -218,7 +206,7 @@ class PacemakerServiceObject < ServiceObject
     new_allocation = false
 
     elements.each do |element|
-      if PacemakerServiceObject.is_cluster?(element) || PacemakerServiceObject.is_remotes?(element)
+      if PacemakerServiceObject.is_cluster?(element)
         ok, new = allocate_virtual_ips_for_cluster_in_networks(element, networks)
         new_allocation ||= new
       end
@@ -254,7 +242,7 @@ class PacemakerServiceObject < ServiceObject
     dirty = false
 
     elements.each do |element|
-      next unless PacemakerServiceObject.is_cluster?(element) && PacemakerServiceObject.is_remotes?(element)
+      next unless PacemakerServiceObject.is_cluster?(element)
 
       cluster = cluster_name(element)
 
