@@ -85,9 +85,12 @@ if node[:platform_family] == "suse"
   # (hence the use of a notification to trigger this execute).
   # According to the man page, it should not be required, but apparently,
   # I've hit bugs where I had to do that. So better be safe.
+  slot_name = node[:pacemaker][:stonith][:sbd][:nodes][node[:fqdn]][:slot_name] rescue nil
+  slot_name ||= node[:pacemaker][:stonith][:sbd][:nodes][node[:hostname]][:slot_name] rescue nil
+  slot_name ||= node[:hostname]
   execute "Allocate SBD slot" do
-    command "#{sbd_cmd} allocate #{node[:hostname]}"
-    not_if "#{sbd_cmd} list | grep -q \" #{node[:hostname]} \""
+    command "#{sbd_cmd} allocate #{slot_name}"
+    not_if "#{sbd_cmd} list | grep -q \" #{slot_name} \""
     action :nothing
   end
 
@@ -97,7 +100,8 @@ if node[:platform_family] == "suse"
     group "root"
     mode 0644
     variables(
-      sbd_devices: sbd_devices
+      sbd_devices: sbd_devices,
+      node_name: slot_name
     )
     # We want to allocate slots before restarting corosync
     notifies :run, "execute[Allocate SBD slot]", :immediately

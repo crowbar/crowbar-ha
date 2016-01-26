@@ -57,9 +57,12 @@ default[:pacemaker][:crm][:op_default_timeout] = 60
 # Values can be "disabled", "manual", "sbd", "shared", "per_node"
 default[:pacemaker][:stonith][:mode] = "disabled"
 
-# This hash will contain devices for each node.
+# This hash will contain devices for each node, as well as the node name to use
+# when allocating a slot.
 # For instance:
 #  default[:pacemaker][:stonith][:sbd][:nodes][$node][:devices] = ['/dev/disk/by-id/foo-part1', '/dev/disk/by-id/bar-part1']
+#  default[:pacemaker][:stonith][:sbd][:nodes][$node][:slot_name] = $node
+#
 default[:pacemaker][:stonith][:sbd][:nodes] = {}
 
 # kernel module to use for watchdog
