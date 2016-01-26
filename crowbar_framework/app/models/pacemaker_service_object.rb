@@ -43,21 +43,18 @@ class PacemakerServiceObject < ServiceObject
       clusters
     end
 
-    # Returns: List of available clusters excluding remotes
-    def available_clusters_excluding_remotes
-      # TODO(must): Fetch only clusters excluding remotes
-      {
-        "cluster:services" => available_clusters["cluster:services"]
-      }
-    end
-
     # Returns: List of available clusters including remotes
     def available_clusters_including_remotes
-      # TODO(must): Fetch only clusters including remotes
-      {
-        "remotes:test_1" => available_clusters["cluster:test_1"],
-        "remotes:test_2" => available_clusters["cluster:test_2"]
-      }
+      remotes = {}
+      # we only care about the deployed clusters, not about existing
+      # proposals
+      RoleObject.find_roles_by_name("pacemaker-config-*").select do |role|
+        elements = role.override_attributes["pacemaker"]["elements"]
+        elements["pacemaker-remote"] && !elements["pacemaker-remote"].empty?
+      end.each do |role|
+        remotes["#{remotes_key}:#{role.inst}"] = role
+      end
+      remotes
     end
 
     # This is the key that allows to find out that an element item is a
@@ -91,13 +88,14 @@ class PacemakerServiceObject < ServiceObject
       element.start_with? "#{remotes_key}:"
     end
 
-    def remotes_vhostname_from_name(name)
-      # We know that the proposal name cannot contain a dash, and we know that
-      # a hostname cannot contain an underscore, so we're lucky and we can
-      # substitute one with the other.
-      # Similar code is in the cookbook:
-      # CrowbarPacemakerHelper.cluster_vhostname
-      "remotes-#{name.gsub("_", "-")}.#{ChefObject.cloud_domain}"
+    def remotes_remote_nodes_count(element)
+      if is_remotes?(element)
+        role = RoleObject.find_role_by_name("pacemaker-config-#{cluster_name(element)}")
+        elements = role.override_attributes["pacemaker"]["elements"]
+        elements["pacemaker-remote"].nil? ? 0 : elements["pacemaker-remote"].length
+      else
+        0
+      end
     end
 
     # Returns: name of the barclamp and of the proposal for this cluster
@@ -125,10 +123,7 @@ class PacemakerServiceObject < ServiceObject
     end
 
     def cluster_vhostname_from_element(element)
-      case
-      when is_remotes?(element)
-        remotes_vhostname_from_name(cluster_name(element))
-      when is_cluster?(element)
+      if is_cluster?(element)
         cluster_vhostname_from_name(cluster_name(element))
       else
         nil
@@ -146,6 +141,22 @@ class PacemakerServiceObject < ServiceObject
         cluster_nodes || []
       end
     end
+
+    # Returns: list of remote nodes in the cluster, or nil if the cluster doesn't exist
+    def expand_remote_nodes(cluster)
+      remotes = available_clusters_including_remotes
+      if remotes[cluster].nil?
+        nil
+      else
+        pacemaker_proposal = remotes[cluster]
+        remote_nodes = pacemaker_proposal.override_attributes["pacemaker"]["elements"]["pacemaker-remote"]
+        remote_nodes || []
+      end
+    end
+  end
+
+  def expand_remote_nodes(cluster)
+    PacemakerServiceObject.expand_remote_nodes(cluster)
   end
 
   #
@@ -188,7 +199,7 @@ class PacemakerServiceObject < ServiceObject
   #     taken). This information can be used to know when a DNS sync is
   #     required or not.
   def allocate_virtual_ips_for_cluster_in_networks(cluster, networks)
-    if networks.nil? || networks.empty? || !PacemakerServiceObject.is_cluster?(cluster) || !PacemakerServiceObject.is_remotes?(cluster)
+    if networks.nil? || networks.empty? || !PacemakerServiceObject.is_cluster?(cluster)
       [false, false]
     else
       nodes = PacemakerServiceObject.expand_nodes(cluster)
@@ -218,7 +229,7 @@ class PacemakerServiceObject < ServiceObject
     new_allocation = false
 
     elements.each do |element|
-      if PacemakerServiceObject.is_cluster?(element) || PacemakerServiceObject.is_remotes?(element)
+      if PacemakerServiceObject.is_cluster?(element)
         ok, new = allocate_virtual_ips_for_cluster_in_networks(element, networks)
         new_allocation ||= new
       end
@@ -254,7 +265,7 @@ class PacemakerServiceObject < ServiceObject
     dirty = false
 
     elements.each do |element|
-      next unless PacemakerServiceObject.is_cluster?(element) && PacemakerServiceObject.is_remotes?(element)
+      next unless PacemakerServiceObject.is_cluster?(element)
 
       cluster = cluster_name(element)
 
