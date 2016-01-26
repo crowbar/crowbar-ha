@@ -60,15 +60,5 @@ def create_resource(name)
 end
 
 def maybe_modify_resource(name)
-  Chef::Log.info "Checking existing #{@current_cib_object} for modifications"
-
-  desired_order = cib_object_class.from_chef_resource(new_resource)
-  if desired_order.definition_string != @current_cib_object.definition_string
-    Chef::Log.debug "changed from [#{@current_cib_object.definition_string}] to [#{desired_order.definition_string}]"
-    cmd = desired_order.reconfigure_command
-    execute cmd do
-      action :nothing
-    end.run_action(:run)
-    new_resource.updated_by_last_action(true)
-  end
+  standard_maybe_modify_resource(name)
 end

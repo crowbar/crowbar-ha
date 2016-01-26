@@ -88,7 +88,7 @@ shared_examples "a runnable resource" do |fixture|
     end
 
     it "should start a stopped resource" do
-      config = fixture.definition_string.sub("Started", "Stopped")
+      config = fixture.definition.sub("Started", "Stopped")
       mock_existing_cib_object(fixture.name, config)
       expect_running(false)
 
@@ -107,7 +107,7 @@ shared_examples "a runnable resource" do |fixture|
                           "Cannot stop non-existent #{fixture}"
 
     it "should do nothing to a stopped resource" do
-      config = fixture.definition_string.sub("Started", "Stopped")
+      config = fixture.definition.sub("Started", "Stopped")
       mock_existing_cib_object(fixture.name, config)
       expect_running(false)
 

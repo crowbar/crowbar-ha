@@ -3,7 +3,7 @@
 # More info at https://github.com/guard/guard#readme
 
 guard_opts = {
-  cmd: "bundle exec rspec --fail-fast -fd",
+  cmd: "bundle exec rspec --fail-fast",
   all_on_start:   true,
   all_after_pass: true,
   failed_mode: :focus

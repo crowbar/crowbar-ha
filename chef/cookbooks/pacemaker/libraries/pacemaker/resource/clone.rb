@@ -14,7 +14,7 @@ class Pacemaker::Resource::Clone < Pacemaker::Resource
     %w(rsc meta)
   end
 
-  def definition_string
+  def definition_from_attributes
     str = "#{self.class.object_type} #{name} #{rsc}"
     unless meta.empty?
       str << continuation_line(meta_string)
@@ -23,12 +23,13 @@ class Pacemaker::Resource::Clone < Pacemaker::Resource
   end
 
   def parse_definition
-    unless definition =~ /^#{self.class.object_type} (\S+) (\S+)/
+    unless @definition =~ /^#{self.class.object_type} (\S+) (\S+)/
       raise Pacemaker::CIBObject::DefinitionParseError, \
-            "Couldn't parse definition '#{definition}'"
+            "Couldn't parse definition '#{@definition}'"
     end
     self.name = $1
     self.rsc  = $2
-    self.meta = self.class.extract_hash(definition, "meta")
+    self.meta = self.class.extract_hash(@definition, "meta")
+    attrs_authoritative
   end
 end

@@ -13,6 +13,7 @@ class Chef
           ["clone-max",       "2"],
           ["clone-node-max",  "1"]
         ]
+        KEYSTONE_CLONE.attrs_authoritative
         KEYSTONE_CLONE_DEFINITION = <<'EOF'.chomp
 clone cl-keystone keystone \
          meta clone-max="2" clone-node-max="1" globally-unique="true"

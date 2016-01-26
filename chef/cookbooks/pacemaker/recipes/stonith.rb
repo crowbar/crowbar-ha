@@ -161,7 +161,7 @@ when "per_node"
     pacemaker_location location_constraint do
       rsc stonith_resource
       score "-inf"
-      node node_name
+      lnode node_name
       action :update
     end
     transaction_objects << "pacemaker_location[#{location_constraint}]"

@@ -13,9 +13,11 @@ module Chef::RSpec
         expect(::Mixlib::ShellOut).
           to receive(:new).with(opts[:command]).and_return(double)
         if ENV["DEBUG_MIXLIB_SHELLOUT"]
-          puts "expecting [#{opts[:command]}]"
-          puts "to yield [#{opts[:stdout]}, #{opts[:stderr]}, #{opts[:exitstatus]}]"
-          puts "double #{double.object_id}"
+          puts "expecting [#{opts[:command]}] to yield:"
+          puts "  stdout: [#{opts[:stdout]}]"
+          puts "  stderr: [#{opts[:stderr]}]"
+          puts "  exit code: [#{opts[:exitstatus]}]"
+          puts "double object id: #{double.object_id}"
         end
       end
 

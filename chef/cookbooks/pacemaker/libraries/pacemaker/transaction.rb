@@ -12,7 +12,7 @@ module Pacemaker
     end
 
     def definition
-      cib_objects.map { |obj| obj.definition_string + "\n" }.join ""
+      cib_objects.map { |obj| obj.definition + "\n" }.join ""
     end
   end
 end

@@ -6,9 +6,9 @@ require_relative "../../../helpers/cib_object"
 
 describe Pacemaker::Constraint::Order do
   let(:fixture) { Chef::RSpec::Pacemaker::Config::ORDER_CONSTRAINT.dup }
-  let(:fixture_definition) {
+  let(:fixture_definition) do
     Chef::RSpec::Pacemaker::Config::ORDER_CONSTRAINT_DEFINITION
-  }
+  end
 
   def object_type
     "order"
@@ -24,17 +24,16 @@ describe Pacemaker::Constraint::Order do
 
   it_should_behave_like "a CIB object"
 
-  describe "#definition_string" do
+  describe "#definition" do
     it "should return the definition string" do
-      expect(fixture.definition_string).to eq(fixture_definition)
+      expect(fixture.definition).to eq(fixture_definition)
     end
 
     it "should return a short definition string" do
       order = pacemaker_object_class.new("foo")
       order.definition = \
         %!order order1 Mandatory: rsc1 rsc2!
-      order.parse_definition
-      expect(order.definition_string).to eq(<<'EOF'.chomp)
+      expect(order.definition).to eq(<<'EOF'.chomp)
 order order1 Mandatory: rsc1 rsc2
 EOF
     end
@@ -44,7 +43,6 @@ EOF
     before(:each) do
       @parsed = pacemaker_object_class.new(fixture.name)
       @parsed.definition = fixture_definition
-      @parsed.parse_definition
     end
 
     it "should parse the score" do
