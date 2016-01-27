@@ -1,8 +1,8 @@
 #
-# Cookbook Name:: corosync
+# Cookbook Name:: pacemaker
 # Recipe:: authkey_writer
 #
-# Copyright 2012, Rackspace US, Inc.
+# Copyright 2015, SUSE
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -19,15 +19,23 @@
 
 require "base64"
 
-authkey      = node[:corosync][:authkey]
-authkey_file = node[:corosync][:authkey_file]
+authkey      = node[:pacemaker][:authkey]
+authkey_file = node[:pacemaker][:authkey_file]
+
+directory File.dirname(authkey_file) do
+  owner "root"
+  group "root"
+  mode "0755"
+  action :create
+end
 
 # decode so we can write out to file below
-corosync_authkey = Base64.decode64(authkey)
+pacemaker_authkey = Base64.decode64(authkey)
 
 file authkey_file do
-  content corosync_authkey
-  owner "root"
+  content pacemaker_authkey
+  owner node[:pacemaker][:authkey_file_owner]
+  group "root"
   mode "0400"
   action :create
 end

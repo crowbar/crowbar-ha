@@ -43,6 +43,14 @@ class PacemakerService < ServiceObject
             "suse" => "/.*/",
             "opensuse" => "/.*/"
           }
+        },
+        "pacemaker-remote" => {
+          "unique" => true,
+          "count" => -1,
+          "platform" => {
+            "suse" => "/.*/",
+            "opensuse" => "/.*/"
+          }
         }
       }
     end
@@ -233,6 +241,33 @@ class PacemakerService < ServiceObject
       @logger.debug("[pacemaker] Calling apply_role_post_chef_call for #{service.bc_name}")
       service.apply_role_post_chef_call(cluster_role, cluster_role, all_nodes_for_cluster_role_expanded)
     end
+  end
+
+  # Override this so we can change element_order dynamically on apply:
+  #  - when there's no remote node, we don't want to run anything twice on
+  #    cluster members
+  #  - when there are remote nodes, we need to run the delegator code after
+  #    setting up the remote nodes, so we need to run chef on cluster members a
+  #    second time
+  def active_update(proposal, inst, in_queue)
+    deployment = proposal["deployment"]["pacemaker"]
+    remotes = deployment["elements"]["pacemaker-remote"] || []
+
+    if remotes.empty?
+      deployment["element_order"] = [
+        ["pacemaker-cluster-member", "hawk-server"],
+        ["pacemaker-remote"]
+      ]
+    else
+      deployment["element_order"] = [
+        ["pacemaker-cluster-member", "hawk-server"],
+        ["pacemaker-remote"],
+        ["pacemaker-cluster-member"]
+      ]
+    end
+
+    # no need to save proposal, it's just data that is passed to later methods
+    super
   end
 
   def apply_role_pre_chef_call(old_role, role, all_nodes)
@@ -511,19 +546,20 @@ class PacemakerService < ServiceObject
 
     elements = proposal["deployment"]["pacemaker"]["elements"]
     members = elements["pacemaker-cluster-member"] || []
+    remotes = elements["pacemaker-remote"] || []
 
     if elements.key?("hawk-server")
       elements["hawk-server"].each do |n|
         @logger.debug("checking #{n}")
-        unless members.include? n
-          node = NodeObject.find_node_by_name(n)
-          name = node.name
-          name = "#{node.alias} (#{name})" if node.alias
-          validation_error I18n.t(
-            "barclamp.#{bc_name}.validation.hawk_server",
-            name: name
-          )
-        end
+        next if members.include? n
+
+        node = NodeObject.find_node_by_name(n)
+        name = node.name
+        name = "#{node.alias} (#{name})" if node.alias
+        validation_error I18n.t(
+          "barclamp.#{bc_name}.validation.hawk_server",
+          name: name
+        )
       end
     end
 
@@ -597,15 +633,17 @@ class PacemakerService < ServiceObject
     proposals_raw.each do |p|
       next if p["id"] == proposal["id"]
 
-      (p["deployment"][@bc_name]["elements"]["pacemaker-cluster-member"] || []).each do |other_member|
-        if members.include?(other_member)
-          p_name = p["id"].gsub("#{@bc_name}-", "")
-          validation_error I18n.t(
-            "barclamp.#{bc_name}.validation.pacemaker_proposal",
-            other_members: other_members,
-            p_name: p_name
-          )
-        end
+      other_members = p["deployment"][@bc_name]["elements"]["pacemaker-cluster-member"] || []
+      other_remotes = p["deployment"][@bc_name]["elements"]["pacemaker-remote"] || []
+      (other_members + other_remotes).each do |other_member|
+        next unless members.include?(other_member) || remotes.include?(other_member)
+
+        p_name = p["id"].gsub("#{@bc_name}-", "")
+        validation_error I18n.t(
+          "barclamp.#{bc_name}.validation.pacemaker_proposal",
+          other_member: other_member,
+          p_name: p_name
+        )
       end
     end
 
