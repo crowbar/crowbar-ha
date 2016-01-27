@@ -100,10 +100,7 @@ class PacemakerServiceObject < ServiceObject
 
     # Returns: name of the barclamp and of the proposal for this cluster
     def cluster_get_barclamp_and_proposal(element)
-      case
-      when is_remotes?(element)
-        ["pacemaker", cluster_name(element)]
-      when is_cluster?(element)
+      if is_cluster?(element) || is_remotes?(element)
         ["pacemaker", cluster_name(element)]
       else
         [nil, nil]
