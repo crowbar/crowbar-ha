@@ -28,13 +28,6 @@ class PacemakerServiceObject < ServiceObject
   #
 
   class << self
-    # This is the key that allows to find out that an element item is a
-    # pacemaker cluster: if the element name is $cluster_key:$foo, then it's
-    # one. Otherwise, it's not.
-    def cluster_key
-      "cluster"
-    end
-
     # Note that we cannot cache the list of clusters here as we're in a
     # eigenclass, and so the cache will be longer term than a single request
     # (hence we won't notice new clusters). It's therefore up to the callers to
@@ -50,26 +43,29 @@ class PacemakerServiceObject < ServiceObject
       clusters
     end
 
-    # Returns: name of the barclamp and of the proposal for this cluster
-    def cluster_get_barclamp_and_proposal(element)
-      if is_cluster?(element)
-        ["pacemaker", cluster_name(element)]
-      else
-        [nil, nil]
+    # Returns: List of available clusters including remotes
+    def available_remotes
+      remotes = {}
+      # we only care about the deployed clusters, not about existing
+      # proposals
+      RoleObject.find_roles_by_name("pacemaker-config-*").select do |role|
+        elements = role.override_attributes["pacemaker"]["elements"]
+        elements["pacemaker-remote"] && !elements["pacemaker-remote"].empty?
+      end.each do |role|
+        remotes["#{remotes_key}:#{role.inst}"] = role
       end
+      remotes
+    end
+
+    # This is the key that allows to find out that an element item is a
+    # pacemaker cluster excluding remote nodes: if the element name is
+    # $cluster_key:$foo, then it's one. Otherwise, it's not.
+    def cluster_key
+      "cluster"
     end
 
     def is_cluster?(element)
       element.start_with? "#{cluster_key}:"
-    end
-
-    # Returns: name of the cluster, or nil if it's not a cluster
-    def cluster_name(element)
-      if is_cluster? element
-        element.gsub("#{cluster_key}:", "")
-      else
-        nil
-      end
     end
 
     def cluster_vhostname_from_name(name)
@@ -81,8 +77,50 @@ class PacemakerServiceObject < ServiceObject
       "cluster-#{name.gsub("_", "-")}.#{ChefObject.cloud_domain}"
     end
 
+    # This is the key that allows to find out that an element item is a
+    # pacemaker cluster including remote nodes: if the element name is
+    # $remotes_key:$foo, then it's one. Otherwise, it's not.
+    def remotes_key
+      "remotes"
+    end
+
+    def is_remotes?(element)
+      element.start_with? "#{remotes_key}:"
+    end
+
+    def remotes_remote_nodes_count(element)
+      if is_remotes?(element)
+        role = RoleObject.find_role_by_name("pacemaker-config-#{cluster_name(element)}")
+        elements = role.override_attributes["pacemaker"]["elements"]
+        elements["pacemaker-remote"].nil? ? 0 : elements["pacemaker-remote"].length
+      else
+        0
+      end
+    end
+
+    # Returns: name of the barclamp and of the proposal for this cluster
+    def cluster_get_barclamp_and_proposal(element)
+      if is_cluster?(element) || is_remotes?(element)
+        ["pacemaker", cluster_name(element)]
+      else
+        [nil, nil]
+      end
+    end
+
+    # Returns: name of the cluster, or nil if it's not a cluster
+    def cluster_name(element)
+      case
+      when is_remotes?(element)
+        element.gsub("#{remotes_key}:", "")
+      when is_cluster?(element)
+        element.gsub("#{cluster_key}:", "")
+      else
+        nil
+      end
+    end
+
     def cluster_vhostname_from_element(element)
-      if is_cluster? element
+      if is_cluster?(element)
         cluster_vhostname_from_name(cluster_name(element))
       else
         nil
@@ -110,6 +148,22 @@ class PacemakerServiceObject < ServiceObject
         cluster_nodes || []
       end
     end
+
+    # Returns: list of remote nodes in the cluster, or nil if the cluster doesn't exist
+    def expand_remote_nodes(cluster)
+      remotes = available_remotes
+      if remotes[cluster].nil?
+        nil
+      else
+        pacemaker_proposal = remotes[cluster]
+        remote_nodes = pacemaker_proposal.override_attributes["pacemaker"]["elements"]["pacemaker-remote"]
+        remote_nodes || []
+      end
+    end
+  end
+
+  def expand_remote_nodes(cluster)
+    PacemakerServiceObject.expand_remote_nodes(cluster)
   end
 
   #
@@ -233,7 +287,7 @@ class PacemakerServiceObject < ServiceObject
     new_allocation = false
 
     elements.each do |element|
-      if PacemakerServiceObject.is_cluster? element
+      if PacemakerServiceObject.is_cluster?(element)
         ok, new = allocate_virtual_ips_for_cluster_in_networks(element, networks)
         new_allocation ||= new
       end
@@ -269,7 +323,7 @@ class PacemakerServiceObject < ServiceObject
     dirty = false
 
     elements.each do |element|
-      next unless PacemakerServiceObject.is_cluster? element
+      next unless PacemakerServiceObject.is_cluster?(element)
 
       cluster = cluster_name(element)
 
