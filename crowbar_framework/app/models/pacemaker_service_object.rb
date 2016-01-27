@@ -44,7 +44,7 @@ class PacemakerServiceObject < ServiceObject
     end
 
     # Returns: List of available clusters including remotes
-    def available_clusters_including_remotes
+    def available_remotes
       remotes = {}
       # we only care about the deployed clusters, not about existing
       # proposals
@@ -100,10 +100,7 @@ class PacemakerServiceObject < ServiceObject
 
     # Returns: name of the barclamp and of the proposal for this cluster
     def cluster_get_barclamp_and_proposal(element)
-      case
-      when is_remotes?(element)
-        ["pacemaker", cluster_name(element)]
-      when is_cluster?(element)
+      if is_cluster?(element) || is_remotes?(element)
         ["pacemaker", cluster_name(element)]
       else
         [nil, nil]
@@ -144,7 +141,7 @@ class PacemakerServiceObject < ServiceObject
 
     # Returns: list of remote nodes in the cluster, or nil if the cluster doesn't exist
     def expand_remote_nodes(cluster)
-      remotes = available_clusters_including_remotes
+      remotes = available_remotes
       if remotes[cluster].nil?
         nil
       else
