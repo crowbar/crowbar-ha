@@ -8,5 +8,6 @@ version "0.1"
 
 depends "drbd"
 depends "haproxy"
+depends "hawk"
 depends "lvm"
 depends "pacemaker"
