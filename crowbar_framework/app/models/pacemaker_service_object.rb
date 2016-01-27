@@ -57,6 +57,14 @@ class PacemakerServiceObject < ServiceObject
       remotes
     end
 
+    # Returns: the element name for the cluster that is the match of the
+    # remotes element
+    def cluster_from_remotes(element)
+      return nil unless is_remotes?(element)
+
+      "#{cluster_key}:#{cluster_name(element)}"
+    end
+
     # This is the key that allows to find out that an element item is a
     # pacemaker cluster excluding remote nodes: if the element name is
     # $cluster_key:$foo, then it's one. Otherwise, it's not.
