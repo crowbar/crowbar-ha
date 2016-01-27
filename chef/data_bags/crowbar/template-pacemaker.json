@@ -16,6 +16,7 @@
       "stonith": {
         "mode": "per_node",
         "sbd": {
+          "watchdog_module" : "",
           "nodes": {}
         },
         "shared": {

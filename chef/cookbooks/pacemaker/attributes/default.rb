@@ -57,6 +57,9 @@ default[:pacemaker][:stonith][:mode] = "disabled"
 #  default[:pacemaker][:stonith][:sbd][:nodes][$node][:devices] = ['/dev/disk/by-id/foo-part1', '/dev/disk/by-id/bar-part1']
 default[:pacemaker][:stonith][:sbd][:nodes] = {}
 
+# kernel module to use for watchdog
+default[:pacemaker][:stonith][:sbd][:watchdog_module] = ""
+
 default[:pacemaker][:stonith][:shared][:agent] = ""
 # This can be either a string (containing a list of parameters) or a hash.
 # For instance:

@@ -39,6 +39,7 @@
                   "type": "map",
                   "required": true,
                   "mapping": {
+                    "watchdog_module": { "type": "str", "required": true },
                     "nodes": {
                       "type": "map",
                       "required": true,

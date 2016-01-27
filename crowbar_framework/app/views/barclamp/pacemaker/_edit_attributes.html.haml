@@ -18,6 +18,11 @@
       #stonith_sbd_container{ "data-nodes" => node_aliases.to_json }
         .alert.alert-info
           = t(".stonith.sbd.info_html")
+
+        = string_field %w(stonith sbd watchdog_module)
+        %span.help-block
+         = t('.stonith.sbd.watchdog_module_hint')
+
         %table.table.table-middle
           %thead
             %tr
