@@ -26,29 +26,23 @@ module CrowbarPacemakerHelper
   end
 
   def self.is_cluster_founder?(node)
-    if cluster_enabled?(node)
-      node[:pacemaker][:founder]
-    else
-      false
-    end
+    return false unless cluster_enabled?(node)
+
+    node[:pacemaker][:founder]
   end
 
   # Returns the number of corosync (or non-remote) nodes in the cluster.
   def self.num_corosync_nodes(node)
-    if cluster_enabled?(node)
-      node[:pacemaker][:elements]["pacemaker-cluster-member"].length
-    else
-      0
-    end
+    return 0 unless cluster_enabled?(node)
+
+    node[:pacemaker][:elements]["pacemaker-cluster-member"].length
   end
 
   # Returns the number of remote nodes in the cluster.
   def self.num_remote_nodes(node)
-    if cluster_enabled?(node)
-      node[:pacemaker][:elements]["pacemaker-remote"].length
-    else
-      0
-    end
+    return 0 unless cluster_enabled?(node)
+
+    node[:pacemaker][:elements]["pacemaker-remote"].length
   end
 
   # Returns the name of the cluster containing the given node, or nil
@@ -60,11 +54,9 @@ module CrowbarPacemakerHelper
   # This call signature only makes sense because it is not possible
   # for a node to be in multiple clusters.
   def self.cluster_name(node)
-    if cluster_enabled?(node)
-      node[:pacemaker][:config][:environment].gsub("pacemaker-config-", "")
-    else
-      nil
-    end
+    return nil unless cluster_enabled?(node)
+
+    node[:pacemaker][:config][:environment].gsub("pacemaker-config-", "")
   end
 
   # Floating virtual IPs are used for the haproxy frontend endpoints,
@@ -72,16 +64,14 @@ module CrowbarPacemakerHelper
   # constructs the non-qualified host prefix part of the virtual
   # hostname.
   def self.cluster_vhostname(node)
-    if cluster_enabled?(node)
-      # We know that the proposal name cannot contain a dash, and we know that
-      # a hostname cannot contain an underscore, so we're lucky and we can
-      # substitute one with the other
-      # Similar code is in the barclamp side:
-      # allocate_virtual_ips_for_cluster_in_networks
-      "cluster-#{cluster_name(node)}".gsub("_", "-")
-    else
-      nil
-    end
+    return nil unless cluster_enabled?(node)
+
+    # We know that the proposal name cannot contain a dash, and we know that
+    # a hostname cannot contain an underscore, so we're lucky and we can
+    # substitute one with the other
+    # Similar code is in the barclamp side:
+    # allocate_virtual_ips_for_cluster_in_networks
+    "cluster-#{cluster_name(node)}".gsub("_", "-")
   end
 
   # The virtual admin name for the cluster is a name picked by the operator as
@@ -90,15 +80,13 @@ module CrowbarPacemakerHelper
   # This returns nil if there is no defined virtual admin name or if node is
   # not member of a cluster.
   def self.cluster_haproxy_vadmin_name(node)
-    if cluster_enabled?(node)
-      vadmin_name = node[:pacemaker][:haproxy][:admin_name]
-      if vadmin_name.nil? || vadmin_name.empty?
-        nil
-      else
-        vadmin_name
-      end
-    else
+    return nil unless cluster_enabled?(node)
+
+    vadmin_name = node[:pacemaker][:haproxy][:admin_name]
+    if vadmin_name.nil? || vadmin_name.empty?
       nil
+    else
+      vadmin_name
     end
   end
 
@@ -108,15 +96,13 @@ module CrowbarPacemakerHelper
   # This returns nil if there is no defined virtual public name or if node is
   # not member of a cluster.
   def self.cluster_haproxy_vpublic_name(node)
-    if cluster_enabled?(node)
-      vpublic_name = node[:pacemaker][:haproxy][:public_name]
-      if vpublic_name.nil? || vpublic_name.empty?
-        nil
-      else
-        vpublic_name
-      end
-    else
+    return nil unless cluster_enabled?(node)
+
+    vpublic_name = node[:pacemaker][:haproxy][:public_name]
+    if vpublic_name.nil? || vpublic_name.empty?
       nil
+    else
+      vpublic_name
     end
   end
 
@@ -127,26 +113,24 @@ module CrowbarPacemakerHelper
   # This call signature only makes sense because it is not possible
   # for a node to be in multiple clusters.
   def self.cluster_nodes(node, role = nil)
-    if cluster_enabled?(node)
-      role ||= "pacemaker-cluster-member"
-      server_nodes = []
-      env = node[:pacemaker][:config][:environment]
-      # Sometimes, chef-server is a little bit outdated and doesn't have the
-      # latest information, including the fact that the current node is
-      # actually part of the cluster; we also want to make sure that we include
-      # the latest bits with latest attributes for this node, so we always
-      # manually add it, instead of relying on the search for this one.
-      Chef::Search::Query.new.search(
-        :node,
-        "roles:#{role} AND pacemaker_config_environment:#{env}"
-      ) do |o|
-        server_nodes << o if o.name != node.name
-      end
-      server_nodes << node if (role.nil? || role == "*" || node.roles.include?(role))
-      server_nodes
-    else
-      []
+    return [] unless cluster_enabled?(node)
+
+    role ||= "pacemaker-cluster-member"
+    server_nodes = []
+    env = node[:pacemaker][:config][:environment]
+    # Sometimes, chef-server is a little bit outdated and doesn't have the
+    # latest information, including the fact that the current node is
+    # actually part of the cluster; we also want to make sure that we include
+    # the latest bits with latest attributes for this node, so we always
+    # manually add it, instead of relying on the search for this one.
+    Chef::Search::Query.new.search(
+      :node,
+      "roles:#{role} AND pacemaker_config_environment:#{env}"
+    ) do |o|
+      server_nodes << o if o.name != node.name
     end
+    server_nodes << node if (role.nil? || role == "*" || node.roles.include?(role))
+    server_nodes
   end
 
   # Performs a Chef search and returns an Array of Node objects for
@@ -154,39 +138,35 @@ module CrowbarPacemakerHelper
   # if the node isn't in a cluster.  Can optionally include remote nodes that
   # will be part of the cluster but are not setup yet.
   def self.remote_nodes(node, include_not_setup = false)
-    if cluster_enabled?(node)
-      remote_nodes = []
-      env = node[:pacemaker][:config][:environment]
-      Chef::Search::Query.new.search(
-        :node,
-        "roles:pacemaker-remote AND pacemaker_config_environment:#{env}"
-      ) do |o|
-        remote_nodes << o if include_not_setup || o[:pacemaker][:remote_setup]
-      end
-      remote_nodes
-    else
-      []
+    return [] unless cluster_enabled?(node)
+
+    remote_nodes = []
+    env = node[:pacemaker][:config][:environment]
+    Chef::Search::Query.new.search(
+      :node,
+      "roles:pacemaker-remote AND pacemaker_config_environment:#{env}"
+    ) do |o|
+      remote_nodes << o if include_not_setup || o[:pacemaker][:remote_setup]
     end
+    remote_nodes
   end
 
   # Returns the founder of the cluster the current node belongs to, or nil if
   # the current node is not part of a cluster
   def self.cluster_founder(node)
-    if cluster_enabled?(node)
-      if is_cluster_founder? node
-        node
-      else
-        founders = []
-        Chef::Search::Query.new.search(:node, "pacemaker_founder:true AND pacemaker_config_environment:#{node[:pacemaker][:config][:environment]}") do |o|
-          founders << o if o.name != node.name
-        end
-        founders << node if (node[:pacemaker][:founder] rescue false) == true
-        raise "No cluster founders found!" if founders.empty?
-        raise "Multiple cluster founders found!" if founders.length > 1
-        founders.first
-      end
+    return nil unless cluster_enabled?(node)
+
+    if is_cluster_founder? node
+      node
     else
-      nil
+      founders = []
+      Chef::Search::Query.new.search(:node, "pacemaker_founder:true AND pacemaker_config_environment:#{node[:pacemaker][:config][:environment]}") do |o|
+        founders << o if o.name != node.name
+      end
+      founders << node if (node[:pacemaker][:founder] rescue false) == true
+      raise "No cluster founders found!" if founders.empty?
+      raise "Multiple cluster founders found!" if founders.length > 1
+      founders.first
     end
   end
 
