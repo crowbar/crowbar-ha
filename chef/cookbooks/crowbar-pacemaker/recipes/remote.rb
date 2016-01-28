@@ -19,10 +19,21 @@
 #
 
 # The parent recipe to be run on all remote nodes.
+node.set[:pacemaker][:is_remote] = true
 
 # Figure out which cluster we're tied to, so that we can find the founder
 # and hence the authkey.
 node[:corosync][:cluster_name] = CrowbarPacemakerHelper.cluster_name(node)
+
+if node[:pacemaker][:stonith][:mode] == "sbd"
+  include_recipe "crowbar-pacemaker::sbd"
+
+  stonith_node_name = "remote-#{node[:hostname]}"
+  if node[:pacemaker][:stonith][:sbd][:nodes][node[:fqdn]][:slot_name] != stonith_node_name
+    node[:pacemaker][:stonith][:sbd][:nodes][node[:fqdn]][:slot_name] = stonith_node_name
+    node.save
+  end
+end
 
 include_recipe "crowbar-pacemaker::pacemaker_authkey"
 include_recipe "pacemaker::remote"

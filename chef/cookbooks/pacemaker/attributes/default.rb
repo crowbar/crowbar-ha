@@ -19,6 +19,8 @@ when "suse"
     %w(pacemaker crmsh fence-agents)
   default[:pacemaker][:platform][:remote_packages] =
     %w(pacemaker-remote fence-agents)
+  default[:pacemaker][:platform][:sbd_packages] =
+    %w(sbd)
 else
 
   #
@@ -42,9 +44,12 @@ else
   #
 
   default[:pacemaker][:platform][:packages] = nil
+  default[:pacemaker][:platform][:remote_packages] = nil
+  default[:pacemaker][:platform][:sbd_packages] = nil
 end
 
 default[:pacemaker][:founder] = false
+default[:pacemaker][:is_remote] = false
 default[:pacemaker][:crm][:initial_config_file] = "/etc/corosync/crm-initial.conf"
 default[:pacemaker][:crm][:no_quorum_policy] = "ignore"
 default[:pacemaker][:crm][:op_default_timeout] = 60
@@ -52,9 +57,12 @@ default[:pacemaker][:crm][:op_default_timeout] = 60
 # Values can be "disabled", "manual", "sbd", "shared", "per_node"
 default[:pacemaker][:stonith][:mode] = "disabled"
 
-# This hash will contain devices for each node.
+# This hash will contain devices for each node, as well as the node name to use
+# when allocating a slot.
 # For instance:
 #  default[:pacemaker][:stonith][:sbd][:nodes][$node][:devices] = ['/dev/disk/by-id/foo-part1', '/dev/disk/by-id/bar-part1']
+#  default[:pacemaker][:stonith][:sbd][:nodes][$node][:slot_name] = $node
+#
 default[:pacemaker][:stonith][:sbd][:nodes] = {}
 
 # kernel module to use for watchdog
@@ -72,9 +80,14 @@ default[:pacemaker][:stonith][:per_node][:agent] = ""
 # This can be "all" or "self":
 #   - if set to "all", then every node will configure the stonith resources for
 #     all nodes in the cluster
+#   - if set to "list", then every node will configure the stonith resource for
+#     the list of nodes in the [:list] attribute
 #   - if set to "self", then every node will configure the stonith resource for
 #     itself only
 default[:pacemaker][:stonith][:per_node][:mode] = "all"
+# This list is only used if [:mode] == "list"; the node will configure the
+# stonith resource for each node in the cluster that is also in the list.
+default[:pacemaker][:stonith][:per_node][:list] = []
 # This hash will contain parameters for each node. See documentation for
 # default[:pacemaker][:stonith][:shared][:params] about the format.
 # For instance:

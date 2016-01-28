@@ -611,7 +611,7 @@ class PacemakerService < ServiceObject
     end
 
     stonith_attributes = proposal["attributes"][@bc_name]["stonith"]
-    validate_proposal_stonith stonith_attributes, members
+    validate_proposal_stonith stonith_attributes, members + remotes
 
     # Let's not pretend we'll get clusters with nodes on different distros work
     target_platforms = members.map do |member|

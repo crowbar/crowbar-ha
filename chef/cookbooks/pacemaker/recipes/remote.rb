@@ -64,3 +64,7 @@ ruby_block "wait for pacemaker_remote service to be reachable" do
     end
   end # block
 end # ruby_block
+
+if node[:pacemaker][:stonith][:mode] == "sbd"
+  include_recipe "pacemaker::sbd"
+end

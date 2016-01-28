@@ -33,7 +33,7 @@
         storage: '#proposal_attributes',
         deployment_storage: '#proposal_deployment',
         path: 'stonith/per_node/nodes',
-        watchedRoles: ['pacemaker-cluster-member']
+        watchedRoles: ['pacemaker-cluster-member', 'pacemaker-remote']
       },
       options
     );
