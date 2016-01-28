@@ -97,22 +97,18 @@ class PacemakerServiceObject < ServiceObject
     end
 
     def remotes_remote_nodes_count(element)
-      if is_remotes?(element)
-        role = RoleObject.find_role_by_name("pacemaker-config-#{cluster_name(element)}")
-        elements = role.override_attributes["pacemaker"]["elements"]
-        elements["pacemaker-remote"].nil? ? 0 : elements["pacemaker-remote"].length
-      else
-        0
-      end
+      return 0 unless is_remotes?(element)
+
+      role = RoleObject.find_role_by_name("pacemaker-config-#{cluster_name(element)}")
+      elements = role.override_attributes["pacemaker"]["elements"]
+      elements["pacemaker-remote"].nil? ? 0 : elements["pacemaker-remote"].length
     end
 
     # Returns: name of the barclamp and of the proposal for this cluster
     def cluster_get_barclamp_and_proposal(element)
-      if is_cluster?(element) || is_remotes?(element)
-        ["pacemaker", cluster_name(element)]
-      else
-        [nil, nil]
-      end
+      return [nil, nil] unless is_cluster?(element) || is_remotes?(element)
+
+      ["pacemaker", cluster_name(element)]
     end
 
     # Returns: name of the cluster, or nil if it's not a cluster
@@ -128,45 +124,35 @@ class PacemakerServiceObject < ServiceObject
     end
 
     def cluster_vhostname_from_element(element)
-      if is_cluster?(element)
-        cluster_vhostname_from_name(cluster_name(element))
-      else
-        nil
-      end
+      return nil unless is_cluster?(element)
+
+      cluster_vhostname_from_name(cluster_name(element))
     end
 
     # Get the founder of a cluster, based on the element
     def cluster_founder(element)
-      if is_cluster?(element)
-        cluster = cluster_name(element)
-        NodeObject.find("pacemaker_founder:true AND pacemaker_config_environment:pacemaker-config-#{cluster}").first
-      else
-        nil
-      end
+      return nil unless is_cluster?(element)
+
+      cluster = cluster_name(element)
+      NodeObject.find("pacemaker_founder:true AND pacemaker_config_environment:pacemaker-config-#{cluster}").first
     end
 
     # Returns: list of nodes in the cluster, or nil if the cluster doesn't exist
     def expand_nodes(cluster)
-      clusters = available_clusters
-      if clusters[cluster].nil?
-        nil
-      else
-        pacemaker_proposal = clusters[cluster]
-        cluster_nodes = pacemaker_proposal.override_attributes["pacemaker"]["elements"]["pacemaker-cluster-member"]
-        cluster_nodes || []
-      end
+      pacemaker_proposal = available_clusters[cluster]
+      return nil if pacemaker_proposal.nil?
+
+      cluster_nodes = pacemaker_proposal.override_attributes["pacemaker"]["elements"]["pacemaker-cluster-member"]
+      cluster_nodes || []
     end
 
     # Returns: list of remote nodes in the cluster, or nil if the cluster doesn't exist
     def expand_remote_nodes(cluster)
-      remotes = available_remotes
-      if remotes[cluster].nil?
-        nil
-      else
-        pacemaker_proposal = remotes[cluster]
-        remote_nodes = pacemaker_proposal.override_attributes["pacemaker"]["elements"]["pacemaker-remote"]
-        remote_nodes || []
-      end
+      pacemaker_proposal = available_remotes[cluster]
+      return nil if pacemaker_proposal.nil?
+
+      remote_nodes = pacemaker_proposal.override_attributes["pacemaker"]["elements"]["pacemaker-remote"]
+      remote_nodes || []
     end
   end
 
