@@ -37,19 +37,12 @@ describe "Chef::Provider::PacemakerClone" do
     end
 
     it "should not commit anything for pre-existing objects" do
-      stub_shellouts(
-        existing_cib_object_double(
-          Chef::RSpec::Pacemaker::Config::KEYSTONE_PRIMITIVE_NAME,
-          Chef::RSpec::Pacemaker::Config::KEYSTONE_PRIMITIVE_DEFINITION
-        ),
-        existing_cib_object_double(
-          Chef::RSpec::Pacemaker::Config::KEYSTONE_CLONE_NAME,
-          Chef::RSpec::Pacemaker::Config::KEYSTONE_CLONE_DEFINITION
-        ),
-        existing_cib_object_double(
-          Chef::RSpec::Pacemaker::Config::KEYSTONE_LOCATION_NAME,
+      mock_existing_cib_objects(
+        [
+          Chef::RSpec::Pacemaker::Config::KEYSTONE_PRIMITIVE_DEFINITION,
+          Chef::RSpec::Pacemaker::Config::KEYSTONE_CLONE_DEFINITION,
           Chef::RSpec::Pacemaker::Config::KEYSTONE_LOCATION_DEFINITION
-        )
+        ]
       )
 
       converge
@@ -59,12 +52,7 @@ describe "Chef::Provider::PacemakerClone" do
     end
 
     it "should commit all new objects in one go" do
-      mock_nonexistent_cib_object \
-        Chef::RSpec::Pacemaker::Config::KEYSTONE_PRIMITIVE_NAME
-      mock_nonexistent_cib_object \
-        Chef::RSpec::Pacemaker::Config::KEYSTONE_CLONE_NAME
-      mock_nonexistent_cib_object \
-        Chef::RSpec::Pacemaker::Config::KEYSTONE_LOCATION_NAME
+      mock_nonexistent_cib_objects
 
       converge
 
@@ -81,18 +69,12 @@ describe "Chef::Provider::PacemakerClone" do
     end
 
     it "should commit only the missing objects in one go" do
-      stub_shellouts(
-        existing_cib_object_double(
-          Chef::RSpec::Pacemaker::Config::KEYSTONE_PRIMITIVE_NAME,
-          Chef::RSpec::Pacemaker::Config::KEYSTONE_PRIMITIVE_DEFINITION
-        ),
-        nonexistent_cib_object_double(
-          Chef::RSpec::Pacemaker::Config::KEYSTONE_CLONE_NAME,
-        ),
-        nonexistent_cib_object_double(
-          Chef::RSpec::Pacemaker::Config::KEYSTONE_LOCATION_NAME,
-        )
+      mock_existing_cib_objects(
+        [
+          Chef::RSpec::Pacemaker::Config::KEYSTONE_PRIMITIVE_DEFINITION,
+        ]
       )
+
       converge
 
       expect(@chef_run).to \
