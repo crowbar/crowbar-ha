@@ -63,7 +63,7 @@ describe Pacemaker::Resource::Primitive do
           "baz" => "qux"
         }
       }
-      expect(fixture.op_string).to eq(%'op monitor baz="qux" foo="bar"')
+      expect(fixture.op_string).to eq(%'op monitor baz="qux" foo="bar" interval="0"')
     end
   end
 
