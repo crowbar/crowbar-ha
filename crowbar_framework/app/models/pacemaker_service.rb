@@ -193,7 +193,7 @@ class PacemakerService < ServiceObject
     required_pre_chef_calls
   end
 
-  def apply_cluster_roles_to_new_nodes(role, member_nodes)
+  def apply_cluster_roles_to_new_nodes(role, member_nodes, remote_nodes)
     ### Beware of possible confusion between different level of "roles"!
     # - we have barclamp roles that are related to a barclamp (as in "knife role
     #   list | grep config" or RoleObject.proposal?); the cluster_role variable
@@ -210,6 +210,12 @@ class PacemakerService < ServiceObject
     required_pre_chef_calls.concat(
       apply_cluster_roles_to_new_nodes_for(
         "#{PacemakerServiceObject.cluster_key}:#{role.inst}", member_nodes, all_roles
+      )
+    )
+
+    required_pre_chef_calls.concat(
+      apply_cluster_roles_to_new_nodes_for(
+        "#{PacemakerServiceObject.remotes_key}:#{role.inst}", remote_nodes, all_roles
       )
     )
 
@@ -288,13 +294,13 @@ class PacemakerService < ServiceObject
   def apply_role_pre_chef_call(old_role, role, all_nodes)
     @logger.debug("Pacemaker apply_role_pre_chef_call: entering #{all_nodes.inspect}")
 
-    # elect a founder
     members = role.override_attributes[@bc_name]["elements"]["pacemaker-cluster-member"] || []
-    member_nodes = []
+    member_nodes = members.map { |n| NodeObject.find_node_by_name n }
+    remotes = role.override_attributes[@bc_name]["elements"]["pacemaker-remote"] || []
+    remote_nodes = remotes.map { |n| NodeObject.find_node_by_name n }
 
+    # elect a founder
     unless members.empty?
-      member_nodes = members.map { |n| NodeObject.find_node_by_name n }
-
       founder = nil
 
       # try to re-use founder that was part of old role, or if missing, another
@@ -380,7 +386,7 @@ class PacemakerService < ServiceObject
 
     role.save
 
-    apply_cluster_roles_to_new_nodes(role, member_nodes)
+    apply_cluster_roles_to_new_nodes(role, member_nodes, remote_nodes)
 
     @logger.debug("Pacemaker apply_role_pre_chef_call: leaving")
   end
