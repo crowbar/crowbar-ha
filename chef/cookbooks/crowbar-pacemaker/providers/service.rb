@@ -220,26 +220,23 @@ end
 def set_maintenance_mode
   if maintenance_mode_set_via_this_chef_run?
     Chef::Log.info("chef-client run pid #$$ already placed this node in Pacemaker maintenance mode")
+  elsif maintenance_mode?
+    Chef::Log.info("Something else already placed this node in Pacemaker maintenance mode")
   else
-    if maintenance_mode?
-      Chef::Log.info("Something else already placed this node in Pacemaker maintenance mode")
-    else
-      execute "crm --wait node maintenance" do
-        action :nothing
-      end.run_action(:run)
-      set_maintenance_mode_via_this_chef_run
-    end
+    execute "crm --wait node maintenance" do
+      action :nothing
+    end.run_action(:run)
+    set_maintenance_mode_via_this_chef_run
   end
 end
 
 def service_is_running?(name, use_crm_resource)
   if use_crm_resource
-    %x{crm_resource --force-check --resource #{name}}
-    $?.success?
+    `crm_resource --force-check --resource #{name}`
   else
-    %x{service #{name} status}
-    $?.success?
+    `service #{name} status`
   end
+  $?.success?
 end
 
 def proxy_action(resource, service_action)
