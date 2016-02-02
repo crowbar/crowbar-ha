@@ -164,6 +164,11 @@ end
 # cluster by using --force-stop / --force-start, which has the benefit of not
 # respecting constraints, or starting the resource elsewhere (so there's no
 # side-effect due to the restart).
+#
+#
+# We also support a "no_crm_maintenance_mode" flag that tells us to not move
+# the node to maintenance mode. It seems maintenance mode does not work for
+# remote nodes, so it is a workaround for them.
 
 include CrowbarPacemaker::MaintenanceModeHelpers
 
@@ -172,9 +177,10 @@ action :restart do
   service_name = new_resource.service_name
   this_node = node.hostname
   use_crm_resource = new_resource.supports[:restart_crm_resource]
+  no_maintenance_mode = new_resource.supports[:no_crm_maintenance_mode]
 
   if service_is_running?(service_name, use_crm_resource)
-    set_maintenance_mode
+    set_maintenance_mode unless no_maintenance_mode
 
     if use_crm_resource
       bash "crm_resource --force-stop / --force-start  --resource #{service_name}" do
