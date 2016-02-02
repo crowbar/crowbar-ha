@@ -115,6 +115,8 @@ class PacemakerService < ServiceObject
   end
 
   def apply_cluster_roles_to_new_nodes_for(cluster_element, relevant_nodes, all_roles)
+    return [] if relevant_nodes.empty?
+
     ### Beware of possible confusion between different level of "roles"!
     # See comment in apply_cluster_roles_to_new_nodes
     required_barclamp_roles = []
