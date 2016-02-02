@@ -129,10 +129,11 @@ class PacemakerService < ServiceObject
     # Inside each barclamp role, identify which role is required
     for cluster_role in cluster_roles do
       service = ServiceObject.get_service(cluster_role.barclamp).new(Rails.logger)
-      runlist_priority_map = cluster_role.override_attributes["element_run_list_order"] || {}
-      role_map = cluster_role.override_attributes["element_states"] || {}
 
       deployment = cluster_role.override_attributes[cluster_role.barclamp]
+      runlist_priority_map = deployment["element_run_list_order"] || {}
+      role_map = deployment["element_states"] || {}
+
       save_it = false
 
       cluster_role.elements.each do |role_name, node_names|
