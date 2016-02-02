@@ -198,7 +198,13 @@ end
 action :reload do
   service_name = new_resource.service_name
   use_crm_resource = new_resource.supports[:restart_crm_resource]
-  if service_is_running?(service_name, use_crm_resource)
+
+  if use_crm_resource
+    Chef::Log.info("Ignoring reload action for #{service_name} service since not compatible with 'restart_crm_resource' flag")
+    return
+  end
+
+  if service_is_running?(service_name, false)
     proxy_action(new_resource, :reload)
   else
     Chef::Log.info("Ignoring reload action for #{service_name} service since not running on this node (#{node.hostname})")
