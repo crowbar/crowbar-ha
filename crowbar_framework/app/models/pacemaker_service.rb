@@ -176,16 +176,16 @@ class PacemakerService < ServiceObject
 
       required_barclamp_roles.each do |required_barclamp_role|
         name = required_barclamp_role[:name]
-        unless node.role? name
-          priority = required_barclamp_role[:priority]
-          element_states = required_barclamp_role[:element_states]
+        next if node.role? name
 
-          @logger.debug("[pacemaker] AR: Adding role #{name} to #{node.name} with priority #{priority}")
-          node.add_to_run_list(name, priority, element_states)
-          save_it = true
+        priority = required_barclamp_role[:priority]
+        element_states = required_barclamp_role[:element_states]
 
-          required_pre_chef_calls << { service: required_barclamp_role[:service], barclamp_role: required_barclamp_role[:barclamp_role] }
-        end
+        @logger.debug("[pacemaker] AR: Adding role #{name} to #{node.name} with priority #{priority}")
+        node.add_to_run_list(name, priority, element_states)
+        save_it = true
+
+        required_pre_chef_calls << { service: required_barclamp_role[:service], barclamp_role: required_barclamp_role[:barclamp_role] }
       end
 
       node.save if save_it
