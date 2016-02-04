@@ -57,7 +57,7 @@ loaded = \
 if loaded
   Chef::Log.debug("Pacemaker maintenance handlers already installed")
 else
-  Chef::Log.info("Pacemaker maintenance handlers not installed; " +
+  Chef::Log.info("Pacemaker maintenance handlers not installed; " \
                  "scheduling Chef config reload")
   ruby_block "reload_chef_client_config" do
     block { Chef::Config.from_file("/etc/chef/client.rb") }

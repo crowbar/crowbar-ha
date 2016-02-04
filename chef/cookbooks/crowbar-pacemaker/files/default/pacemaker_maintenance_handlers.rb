@@ -19,23 +19,25 @@ class Chef
 
     class StartHandler < Handler
       def report
-        # This is informational only, and gives us a fraction more
-        # information in /var/log/chef/client.log and in the default
-        # attributes (until next run) for debugging purposes.
-        # However, it will only take effect after the handler has been
-        # installed in /etc/chef/client.rb *and* chef-client daemon
-        # has subsequently been restarted; the
-        # reload_chef_client_config hack doesn't work with
-        # start_handlers since it reloads the config too late, after
-        # the start handlers have already been triggered.
-        start_mode = record_maintenance_mode_before_this_chef_run
-        Chef::Log.info("Pacemaker maintenance mode currently %s" %
-                       [start_mode ? "on" : "off"])
-
-        if maintenance_mode_set_via_this_chef_run?
-          # Sanity check: this should never happen because we're using
-          # default attributes which get wiped for each chef-client run.
-          raise "BUG: Pacemaker maintenance mode was already set at the start of this run! (pid #$$)"
+        # Check we're not in maintenance mode.  This could happen for two
+        # reasons:
+        #
+        #   1. A previous chef-client run failed, so we shouldn't
+        #      risk compounding problems by trying again until the
+        #      root cause is addressed.
+        #
+        #   2. Someone/something other than Chef set the node into
+        #      maintenance mode.  That should be rare, but when it
+        #      happens, we shouldn't interfere.
+        #
+        # So in both cases, we should abort the run immediately with a
+        # helpful message.
+        if maintenance_mode?
+          raise \
+            "Pacemaker maintenance mode was already set on " \
+            "#{node.hostname}; aborting! Please diagnose why this was the " \
+            "case, fix the root cause, and then unset maintenance mode via " \
+            "HAWK or by running 'crm node ready' on the node."
         end
       end
     end
@@ -51,8 +53,8 @@ class Chef
             Chef::Log.info("Taking node out of Pacemaker maintenance mode")
             system("crm --wait node ready")
           else
-            # This shouldn't happen, and suggests that one of the recipes
-            # is interfering in a way it shouldn't.
+            # This shouldn't happen, and suggests that something is
+            # interfering in a way it shouldn't.
             raise "Something took node out of maintenance mode during run!"
           end
         else
