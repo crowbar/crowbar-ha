@@ -6,9 +6,9 @@ module Pacemaker
   class Transaction
     attr_reader :name, :cib_objects
 
-    def initialize(name:, cib_objects:)
-      @name = name
-      @cib_objects = cib_objects
+    def initialize(options = {})
+      @name = options.fetch(:name, "")
+      @cib_objects = options.fetch(:cib_objects, [])
     end
 
     def definition
