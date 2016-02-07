@@ -20,7 +20,7 @@ module CrowbarPacemaker
   module MaintenanceModeHelpers
     def maintenance_mode?
       # See https://bugzilla.suse.com/show_bug.cgi?id=870696
-      !! (%x(crm_attribute -G -N #{node.hostname} -n maintenance -d off -q) =~ /^on$/)
+      !! (`crm_attribute -G -N #{node.hostname} -n maintenance -d off -q` =~ /^on$/)
     end
 
     def record_maintenance_mode_before_this_chef_run
