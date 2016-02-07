@@ -130,7 +130,7 @@ module CrowbarPacemakerHelper
       server_nodes << o if o.name != node.name
     end
     server_nodes << node if (role.nil? || role == "*" || node.roles.include?(role))
-    server_nodes
+    server_nodes.sort_by! { |n| n[:hostname] }
   end
 
   # Performs a Chef search and returns an Array of Node objects for
@@ -148,7 +148,7 @@ module CrowbarPacemakerHelper
     ) do |o|
       remote_nodes << o if include_not_setup || o[:pacemaker][:remote_setup]
     end
-    remote_nodes
+    remote_nodes.sort_by! { |n| n[:hostname] }
   end
 
   # Returns the founder of the cluster the current node belongs to, or nil if
