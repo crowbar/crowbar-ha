@@ -19,8 +19,13 @@ module CrowbarPacemaker
   # Chef::Provider::PacemakerService LWRP.
   module MaintenanceModeHelpers
     def maintenance_mode?
+      pacemaker_node = if !node[:pacemaker].nil? && node[:pacemaker][:is_remote]
+        "remote-#{node.hostname}"
+      else
+        node.hostname
+      end
       # See https://bugzilla.suse.com/show_bug.cgi?id=870696
-      !! (`crm_attribute -G -N #{node.hostname} -n maintenance -d off -q` =~ /^on$/)
+      !! (`crm_attribute -G -N #{pacemaker_node} -n maintenance -d off -q` =~ /^on$/)
     end
 
     def record_maintenance_mode_before_this_chef_run
