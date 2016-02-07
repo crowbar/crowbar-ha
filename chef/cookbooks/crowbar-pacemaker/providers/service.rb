@@ -178,15 +178,16 @@ action :restart do
   this_node = node.hostname
   use_crm_resource = new_resource.supports[:restart_crm_resource]
   no_maintenance_mode = new_resource.supports[:no_crm_maintenance_mode]
+  pacemaker_resource = new_resource.supports[:pacemaker_resource_name] || service_name
 
-  if service_is_running?(service_name, use_crm_resource)
+  if service_is_running?(service_name, use_crm_resource, pacemaker_resource)
     set_maintenance_mode unless no_maintenance_mode
 
     if use_crm_resource
-      bash "crm_resource --force-stop / --force-start  --resource #{service_name}" do
+      bash "crm_resource --force-stop / --force-start  --resource #{pacemaker_resource}" do
         code <<-EOH
-          crm_resource --force-stop --resource #{service_name} && \
-          crm_resource --force-start --resource #{service_name}
+          crm_resource --force-stop --resource #{pacemaker_resource} && \
+          crm_resource --force-start --resource #{pacemaker_resource}
           EOH
         action :nothing
       end.run_action(:run)
@@ -210,7 +211,7 @@ action :reload do
     return
   end
 
-  if service_is_running?(service_name, false)
+  if service_is_running?(service_name, false, service_name)
     proxy_action(new_resource, :reload)
   else
     Chef::Log.info("Ignoring reload action for #{service_name} service since not running on this node (#{node.hostname})")
@@ -230,9 +231,9 @@ def set_maintenance_mode
   end
 end
 
-def service_is_running?(name, use_crm_resource)
+def service_is_running?(name, use_crm_resource, pacemaker_resource)
   if use_crm_resource
-    `crm_resource --force-check --resource #{name}`
+    `crm_resource --force-check --resource #{pacemaker_resource}`
   else
     `service #{name} status`
   end
