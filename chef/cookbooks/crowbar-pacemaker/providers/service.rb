@@ -155,6 +155,20 @@ end
 #      is more commonly a good thing than a bad one to leave it in
 #      maintenance mode, since manual clean-up would typically be
 #      required at that point.
+#
+#
+# In addition to the above, we support a "restart_crm_resource" flag that tells
+# us to use crm_resource for restarting the service. This is useful for
+# resources that are defined with an OCF agent: in that case, we can't proxy
+# the restart action to a LSB init script or systemd. Note that we bypass the
+# cluster by using --force-stop / --force-start, which has the benefit of not
+# respecting constraints, or starting the resource elsewhere (so there's no
+# side-effect due to the restart).
+#
+#
+# We also support a "no_crm_maintenance_mode" flag that tells us to not move
+# the node to maintenance mode. It seems maintenance mode does not work for
+# remote nodes, so it is a workaround for them.
 
 include CrowbarPacemaker::MaintenanceModeHelpers
 
@@ -162,22 +176,24 @@ action :restart do
   resource = new_resource.name
   service_name = new_resource.service_name
   this_node = node.hostname
+  use_crm_resource = new_resource.supports[:restart_crm_resource]
+  no_maintenance_mode = new_resource.supports[:no_crm_maintenance_mode]
+  pacemaker_resource = new_resource.supports[:pacemaker_resource_name] || service_name
 
-  if service_is_running?(service_name)
-    if maintenance_mode_set_via_this_chef_run?
-      Chef::Log.info("chef-client run pid #$$ already placed this node in Pacemaker maintenance mode")
+  if service_is_running?(service_name, use_crm_resource, pacemaker_resource)
+    set_maintenance_mode unless no_maintenance_mode
+
+    if use_crm_resource
+      bash "crm_resource --force-stop / --force-start  --resource #{pacemaker_resource}" do
+        code <<-EOH
+          crm_resource --force-stop --resource #{pacemaker_resource} && \
+          crm_resource --force-start --resource #{pacemaker_resource}
+          EOH
+        action :nothing
+      end.run_action(:run)
     else
-      if maintenance_mode?
-        Chef::Log.info("Something else already placed this node in Pacemaker maintenance mode")
-      else
-        execute "crm --wait node maintenance" do
-          action :nothing
-        end.run_action(:run)
-        set_maintenance_mode_via_this_chef_run
-      end
+      proxy_action(new_resource, :restart)
     end
-
-    proxy_action(new_resource, :restart)
   else
     Chef::Log.info("Ignoring restart action for #{resource} service since not running on this node (#{this_node})")
   end
@@ -188,15 +204,39 @@ end
 # do directly via the service with no risk of confusing Pacemaker.
 action :reload do
   service_name = new_resource.service_name
-  if service_is_running?(service_name)
+  use_crm_resource = new_resource.supports[:restart_crm_resource]
+
+  if use_crm_resource
+    Chef::Log.info("Ignoring reload action for #{service_name} service since not compatible with 'restart_crm_resource' flag")
+    return
+  end
+
+  if service_is_running?(service_name, false, service_name)
     proxy_action(new_resource, :reload)
   else
     Chef::Log.info("Ignoring reload action for #{service_name} service since not running on this node (#{node.hostname})")
   end
 end
 
-def service_is_running?(name)
-  %x{service #{name} status}
+def set_maintenance_mode
+  if maintenance_mode_set_via_this_chef_run?
+    Chef::Log.info("chef-client run pid #$$ already placed this node in Pacemaker maintenance mode")
+  elsif maintenance_mode?
+    Chef::Log.info("Something else already placed this node in Pacemaker maintenance mode")
+  else
+    execute "crm --wait node maintenance" do
+      action :nothing
+    end.run_action(:run)
+    set_maintenance_mode_via_this_chef_run
+  end
+end
+
+def service_is_running?(name, use_crm_resource, pacemaker_resource)
+  if use_crm_resource
+    `crm_resource --force-check --resource #{pacemaker_resource}`
+  else
+    `service #{name} status`
+  end
   $?.success?
 end
 
