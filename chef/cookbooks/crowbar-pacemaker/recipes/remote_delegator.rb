@@ -38,7 +38,16 @@ CrowbarPacemakerHelper.remote_nodes(node, true).each do |remote|
     agent remote[:pacemaker][:remote][:agent]
     op remote[:pacemaker][:remote][:op].to_hash
     params params_hash
-    action [:create, :start]
+    action :update
+    only_if { CrowbarPacemakerHelper.is_cluster_founder?(node) }
+  end
+
+  # We use a transaction to avoid creating with target-role=stopped, which
+  # results in fencing (pacemaker ensures that the remote node is stopped); and
+  # fencing on the primitive creation is quite bad.
+  pacemaker_transaction "remote-#{remote[:hostname]}" do
+    cib_objects ["pacemaker_primitive[remote-#{remote[:hostname]}]"]
+    action :commit_new
     only_if { CrowbarPacemakerHelper.is_cluster_founder?(node) }
   end
 
