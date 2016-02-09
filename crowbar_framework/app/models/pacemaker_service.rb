@@ -114,22 +114,16 @@ class PacemakerService < ServiceObject
     all_nodes_for_cluster_role_expanded
   end
 
-  def apply_cluster_roles_to_new_nodes(role, member_nodes)
-    ### Beware of possible confusion between different level of "roles"!
-    # - we have barclamp roles that are related to a barclamp (as in "knife role
-    #   list | grep config" or RoleObject.proposal?); the cluster_role variable
-    #   is always such a role
-    # - we have roles inside each barclamp roles (as in "the role I assign to
-    #   nodes, like provisioner-server")
+  def apply_cluster_roles_to_new_nodes_for(cluster_element, relevant_nodes, all_roles)
+    return [] if relevant_nodes.empty?
 
-    # Make sure that all nodes in the cluster have all the roles assigned to
-    # this cluster.
+    ### Beware of possible confusion between different level of "roles"!
+    # See comment in apply_cluster_roles_to_new_nodes
     required_barclamp_roles = []
     required_pre_chef_calls = []
-    cluster_element = "#{PacemakerServiceObject.cluster_key}:#{role.inst}"
 
     # Find all barclamp roles where this cluster is used
-    cluster_roles = RoleObject.all.select do |role_object|
+    cluster_roles = all_roles.select do |role_object|
       role_object.proposal? && \
       all_nodes_used_by_barclamp(role_object).include?(cluster_element)
     end
@@ -137,10 +131,11 @@ class PacemakerService < ServiceObject
     # Inside each barclamp role, identify which role is required
     for cluster_role in cluster_roles do
       service = ServiceObject.get_service(cluster_role.barclamp).new(Rails.logger)
-      runlist_priority_map = cluster_role.override_attributes["element_run_list_order"] || {}
-      role_map = cluster_role.override_attributes["element_states"] || {}
 
       deployment = cluster_role.override_attributes[cluster_role.barclamp]
+      runlist_priority_map = deployment["element_run_list_order"] || {}
+      role_map = deployment["element_states"] || {}
+
       save_it = false
 
       cluster_role.elements.each do |role_name, node_names|
@@ -178,25 +173,54 @@ class PacemakerService < ServiceObject
     end
 
     # Ensure that all nodes in the cluster have all required roles
-    member_nodes.each do |member_node|
+    relevant_nodes.each do |node|
       save_it = false
 
       required_barclamp_roles.each do |required_barclamp_role|
         name = required_barclamp_role[:name]
-        unless member_node.role? name
-          priority = required_barclamp_role[:priority]
-          element_states = required_barclamp_role[:element_states]
+        next if node.role? name
 
-          @logger.debug("[pacemaker] AR: Adding role #{name} to #{member_node.name} with priority #{priority}")
-          member_node.add_to_run_list(name, priority, element_states)
-          save_it = true
+        priority = required_barclamp_role[:priority]
+        element_states = required_barclamp_role[:element_states]
 
-          required_pre_chef_calls << { service: required_barclamp_role[:service], barclamp_role: required_barclamp_role[:barclamp_role] }
-        end
+        @logger.debug("[pacemaker] AR: Adding role #{name} to #{node.name} with priority #{priority}")
+        node.add_to_run_list(name, priority, element_states)
+        save_it = true
+
+        required_pre_chef_calls << { service: required_barclamp_role[:service], barclamp_role: required_barclamp_role[:barclamp_role] }
       end
 
-      member_node.save if save_it
+      node.save if save_it
     end
+
+    required_pre_chef_calls
+  end
+
+  def apply_cluster_roles_to_new_nodes(role, member_nodes, remote_nodes)
+    ### Beware of possible confusion between different level of "roles"!
+    # - we have barclamp roles that are related to a barclamp (as in "knife role
+    #   list | grep config" or RoleObject.proposal?); the cluster_role variable
+    #   is always such a role
+    # - we have roles inside each barclamp roles (as in "the role I assign to
+    #   nodes, like provisioner-server")
+
+    # Make sure that all nodes in the cluster have all the roles assigned to
+    # this cluster.
+
+    required_pre_chef_calls = []
+    all_roles = RoleObject.all
+
+    required_pre_chef_calls.concat(
+      apply_cluster_roles_to_new_nodes_for(
+        "#{PacemakerServiceObject.cluster_key}:#{role.inst}", member_nodes, all_roles
+      )
+    )
+
+    required_pre_chef_calls.concat(
+      apply_cluster_roles_to_new_nodes_for(
+        "#{PacemakerServiceObject.remotes_key}:#{role.inst}", remote_nodes, all_roles
+      )
+    )
 
     # Avoid doing this query multiple times
     node_object_all = NodeObject.all
@@ -273,13 +297,13 @@ class PacemakerService < ServiceObject
   def apply_role_pre_chef_call(old_role, role, all_nodes)
     @logger.debug("Pacemaker apply_role_pre_chef_call: entering #{all_nodes.inspect}")
 
-    # elect a founder
     members = role.override_attributes[@bc_name]["elements"]["pacemaker-cluster-member"] || []
-    member_nodes = []
+    member_nodes = members.map { |n| NodeObject.find_node_by_name n }
+    remotes = role.override_attributes[@bc_name]["elements"]["pacemaker-remote"] || []
+    remote_nodes = remotes.map { |n| NodeObject.find_node_by_name n }
 
+    # elect a founder
     unless members.empty?
-      member_nodes = members.map { |n| NodeObject.find_node_by_name n }
-
       founder = nil
 
       # try to re-use founder that was part of old role, or if missing, another
@@ -365,7 +389,7 @@ class PacemakerService < ServiceObject
 
     role.save
 
-    apply_cluster_roles_to_new_nodes(role, member_nodes)
+    apply_cluster_roles_to_new_nodes(role, member_nodes, remote_nodes)
 
     @logger.debug("Pacemaker apply_role_pre_chef_call: leaving")
   end
