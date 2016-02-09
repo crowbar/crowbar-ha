@@ -27,9 +27,27 @@ action :commit_new do
     run_context.resource_collection.lookup(chef_resource_name)
   end
 
+  cmd = Mixlib::ShellOut.new("crm --display=plain configure show")
+  cmd.environment["HOME"] = ENV.fetch("HOME", "/root")
+  cmd.run_command
+
+  existing_objects = begin
+    cmd.error!
+    # Only keep object names from the output; so remove continuation lines and
+    # do some regexp magic.
+    # Also deal with definitions like fencing_topology which have no name (the
+    # regexp won't match, so we'll be good).
+    cmd.stdout.lines.select { |l| l[0] !~ /\s/ }.map do |l|
+      l.chomp.chomp("\\").gsub(/\A\S+ (\S+).*/, "\\1")
+    end
+  rescue StandardError => e
+    Chef::Log.warn("Unable to get current list of CIB objects: #{e}")
+    []
+  end
+
   # The transaction should only create CIB objects which don't already exist.
   chef_resources_to_create = chef_resources.reject do |chef_resource|
-    ::Pacemaker::CIBObject.exists?(chef_resource.name)
+    existing_objects.include? chef_resource.name
   end
 
   next if chef_resources_to_create.empty?

@@ -6,6 +6,10 @@ class Chef
       module Mocks
         include Chef::RSpec::Mixlib::ShellOut
 
+        def show_all_command
+          "crm --display=plain configure show"
+        end
+
         def show_cib_object_command(name)
           "crm --display=plain configure show #{name}"
         end
@@ -18,6 +22,20 @@ class Chef
         # definition if we wanted to test modification of an existing
         # one.  If the test needs subsequent doubles to return different
         # values then stdout_strings can have more than one element.
+
+        def existing_cib_objects_opts(definitions)
+          {
+            command: show_all_command,
+            stdout: definitions.join("\n")
+          }
+        end
+
+        def nonexistent_cib_objects_opts
+          {
+            command: show_all_command,
+            stdout: ""
+          }
+        end
 
         # Return a Mixlib::ShellOut double which mimics failed
         # execution of a command, raising an exception when #error! is
@@ -45,6 +63,14 @@ class Chef
 
         def nonexistent_cib_object_double(name)
           shellout_double(nonexistent_cib_object_opts(name))
+        end
+
+        def mock_existing_cib_objects(definitions)
+          stub_shellout(existing_cib_objects_opts(definitions))
+        end
+
+        def mock_nonexistent_cib_objects
+          stub_shellout(nonexistent_cib_objects_opts)
         end
 
         def mock_existing_cib_object(name, definition)
