@@ -135,10 +135,14 @@ class Chef
           desired.meta.delete("target-role")
         end
 
-        if desired.definition != @current_cib_object.definition
+        # compare one-line definitions
+        current_definition = @current_cib_object.definition.strip.gsub(/\s*\\\n\s*/, " ")
+        desired_definition = desired.definition.strip.gsub(/\s*\\\n\s*/, " ")
+
+        if desired_definition != current_definition
           Chef::Log.debug \
-            "changed from [#{@current_cib_object.definition}] " \
-            "to [#{desired.definition}]"
+            "changed from [#{current_definition}] " \
+            "to [#{desired_definition}]"
           cmd = desired.reconfigure_command
           execute cmd do
             action :nothing
