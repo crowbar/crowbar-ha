@@ -54,6 +54,9 @@ default[:pacemaker][:crm][:initial_config_file] = "/etc/corosync/crm-initial.con
 default[:pacemaker][:crm][:no_quorum_policy] = "ignore"
 default[:pacemaker][:crm][:op_default_timeout] = 60
 
+# acceptable CIB syntax version; if lower is detected, we must force its upgrade
+default[:pacemaker][:cib_syntax_version] = "2.4"
+
 # Values can be "disabled", "manual", "sbd", "shared", "per_node"
 default[:pacemaker][:stonith][:mode] = "disabled"
 
