@@ -95,7 +95,7 @@
     $(document).on('nodeListNodeUnallocated', this.root, function(evt, data) {
       if (self._ignore_event(evt, data)) { return; }
 
-      $(this).find('[data-id="{0}"]'.format(data.id)).remove();
+      self.root.find('[data-id="{0}"]'.format(data.id)).remove();
       self.removeJson(data.id, null, "map");
     });
   };
