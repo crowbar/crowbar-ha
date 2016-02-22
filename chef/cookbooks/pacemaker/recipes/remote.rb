@@ -56,7 +56,7 @@ ruby_block "wait for pacemaker_remote service to be reachable" do
       # but this would require building a template for
       # /etc/sysconfig/pacemaker on remote nodes, so it's not worth
       # the effort until we really need it.
-      cmd = "netcat -t localhost 3121 </dev/null"
+      cmd = "lsof -i tcp:3121 >/dev/null"
       until ::Kernel.system(cmd)
         Chef::Log.debug("pacemaker_remote not reachable yet")
         sleep(5)
