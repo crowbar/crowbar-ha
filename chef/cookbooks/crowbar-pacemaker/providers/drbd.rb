@@ -44,7 +44,13 @@ action :create do
     dirty ||= true if resource["master"] != is_master
 
     if dirty && resource["configured"]
-      raise "Configuration for DRBD resource #{name} has changed. If this is really wanted, please manually set node['drbd']['rsc']['#{name}']['configured'] to false with knife; the content of the DRBD resource will be lost!"
+      fmt = "%s / %s / %s"
+      old = fmt % [resource["fstype"], resource["remote_host"], resource["master"]]
+      new = fmt % [fstype, remote_host, is_master]
+      raise "Configuration for DRBD resource #{name} has changed from " \
+            "#{old} to #{new}. If this is really wanted, please manually " \
+            "set node['drbd']['rsc']['#{name}']['configured'] to false with " \
+            "knife; the content of the DRBD resource will be lost!"
     end
 
     node["drbd"]["rsc"][name]["lvm_size"] = lvm_size
