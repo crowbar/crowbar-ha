@@ -38,6 +38,18 @@ action :create do
   if node["drbd"]["rsc"].key?(name)
     resource = node["drbd"]["rsc"][name]
 
+    if remote_host.nil?
+      if resource["configured"] && !resource["remote_host"].nil?
+        Chef::Log.warn "Couldn't find remote host for #{node[:fqdn]}; " \
+          "has node been removed from the cluster? " \
+          "Keeping previous value of " + \
+          resource["remote_host"]
+        remote_host = resource["remote_host"]
+      else
+        raise "Couldn't find remote host for #{node[:fqdn]}"
+      end
+    end
+
     dirty = false
     dirty ||= true if resource["fstype"] != fstype
     dirty ||= true if resource["remote_host"] != remote_host
