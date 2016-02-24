@@ -67,11 +67,13 @@ default[:pacemaker][:stonith][:mode] = "disabled"
 #  default[:pacemaker][:stonith][:sbd][:nodes][$node][:slot_name] = $node
 #
 default[:pacemaker][:stonith][:sbd][:nodes] = {}
+default[:pacemaker][:stonith][:sbd][:agent] = "stonith:external/sbd"
 
 # kernel module to use for watchdog
 default[:pacemaker][:stonith][:sbd][:watchdog_module] = ""
 
 default[:pacemaker][:stonith][:shared][:agent] = ""
+default[:pacemaker][:stonith][:shared][:op][:monitor][:interval] = "2h"
 # This can be either a string (containing a list of parameters) or a hash.
 # For instance:
 #   default[:pacemaker][:stonith][:shared][:params] = 'hostname="foo" password="bar"'
@@ -80,6 +82,7 @@ default[:pacemaker][:stonith][:shared][:agent] = ""
 default[:pacemaker][:stonith][:shared][:params] = {}
 
 default[:pacemaker][:stonith][:per_node][:agent] = ""
+default[:pacemaker][:stonith][:per_node][:op][:monitor][:interval] = "2h"
 # This can be "all" or "self":
 #   - if set to "all", then every node will configure the stonith resources for
 #     all nodes in the cluster
