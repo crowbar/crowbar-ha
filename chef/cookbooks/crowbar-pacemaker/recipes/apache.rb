@@ -47,6 +47,18 @@ if agent_name == "ocf:heartbeat:apache"
   end
 end
 
+# Wait for all nodes to reach this point so we know that all nodes will have
+# all the required packages installed before we create the pacemaker
+# resources
+crowbar_pacemaker_sync_mark "sync-apache_before_ha" do
+  revision node[:pacemaker]["crowbar-revision"]
+end
+
+# Avoid races when creating pacemaker resources
+crowbar_pacemaker_sync_mark "wait-apache_ha_resources" do
+  revision node[:pacemaker]["crowbar-revision"]
+end
+
 transaction_objects = []
 
 pacemaker_primitive service_name do
@@ -77,6 +89,10 @@ pacemaker_transaction "apache service" do
   # note that this will also automatically start the resources
   action :commit_new
   only_if { CrowbarPacemakerHelper.is_cluster_founder?(node) }
+end
+
+crowbar_pacemaker_sync_mark "create-apache_ha_resources" do
+  revision node[:pacemaker]["crowbar-revision"]
 end
 
 # Override service provider for apache2 resource defined in apache2 cookbook
