@@ -38,13 +38,31 @@ action :create do
   if node["drbd"]["rsc"].key?(name)
     resource = node["drbd"]["rsc"][name]
 
+    if remote_host.nil?
+      if resource["configured"] && !resource["remote_host"].nil?
+        Chef::Log.warn "Couldn't find remote host for #{node[:fqdn]}; " \
+          "has node been removed from the cluster? " \
+          "Keeping previous value of " + \
+          resource["remote_host"]
+        remote_host = resource["remote_host"]
+      else
+        raise "Couldn't find remote host for #{node[:fqdn]}"
+      end
+    end
+
     dirty = false
     dirty ||= true if resource["fstype"] != fstype
     dirty ||= true if resource["remote_host"] != remote_host
     dirty ||= true if resource["master"] != is_master
 
     if dirty && resource["configured"]
-      raise "Configuration for DRBD resource #{name} has changed. If this is really wanted, please manually set node['drbd']['rsc']['#{name}']['configured'] to false with knife; the content of the DRBD resource will be lost!"
+      fmt = "%s / %s / %s"
+      old = fmt % [resource["fstype"], resource["remote_host"], resource["master"]]
+      new = fmt % [fstype, remote_host, is_master]
+      raise "Configuration for DRBD resource #{name} has changed from " \
+            "#{old} to #{new}. If this is really wanted, please manually " \
+            "set node['drbd']['rsc']['#{name}']['configured'] to false with " \
+            "knife; the content of the DRBD resource will be lost!"
     end
 
     node["drbd"]["rsc"][name]["lvm_size"] = lvm_size
