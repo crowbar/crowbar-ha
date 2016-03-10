@@ -18,6 +18,7 @@
 source "https://rubygems.org"
 
 gem "sprockets-standalone", "~> 1.2.1"
+gem "rake", "~> 10.3.2"
 
 group :development do
   gem "closure-compiler", "~> 1.1.10"
