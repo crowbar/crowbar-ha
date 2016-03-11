@@ -106,7 +106,7 @@ unless ENV["PACKAGING"] && ENV["PACKAGING"] == "yes"
     system <<-'EOF'
       for f in `find -name vendor -prune -o -name \*.rb -print`; do
         echo -n "Syntaxcheck $f: "
-        ruby -c $f || exit $?
+        ruby -wc $f || exit $?
       done
     EOF
     exit $?.exitstatus
