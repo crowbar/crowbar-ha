@@ -1,6 +1,7 @@
 property $id="cib-bootstrap-options" \
         stonith-enabled="<%= @stonith_enabled %>" \
         no-quorum-policy="<%= @no_quorum_policy %>" \
+        start-failure-is-fatal=false \
         placement-strategy="balanced"
 op_defaults $id="op-options" \
         timeout="<%= @op_default_timeout %>" \
