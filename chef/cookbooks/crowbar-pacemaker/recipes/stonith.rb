@@ -64,7 +64,7 @@ when "shared"
   all_nodes = CrowbarPacemakerHelper.cluster_nodes(node) + \
     CrowbarPacemakerHelper.remote_nodes(node)
 
-  member_names = all.map { |n| pacemaker_node_name(n) }
+  member_names = all_nodes.map { |n| pacemaker_node_name(n) }
   params["hostlist"] = member_names.join(" ")
 
   node.default[:pacemaker][:stonith][:shared][:params] = params
