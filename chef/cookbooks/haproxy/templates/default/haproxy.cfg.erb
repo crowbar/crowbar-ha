@@ -17,7 +17,8 @@ defaults
 	option  dontlognull
 	option  redispatch
 	retries 3
-	timeout http-request 5s
+	timeout http-request 10s
+	timeout http-keep-alive 10s
 	timeout queue 1m
 	timeout connect 5s
 	timeout client 3h
