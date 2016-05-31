@@ -14,5 +14,4 @@
 # limitations under the License.
 #
 
-include_recipe "crowbar-pacemaker::default"
-include_recipe "crowbar-pacemaker::remote_delegator"
+include_recipe "crowbar-pacemaker::remote"
