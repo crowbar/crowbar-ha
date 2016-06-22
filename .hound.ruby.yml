@@ -21,6 +21,9 @@ Style/AlignHash:
 Style/Documentation:
   Enabled: false
 
+Style/SymbolArray:
+  EnforcedStyle: brackets
+
 Lint/UnusedMethodArgument:
   Enabled: false
 
