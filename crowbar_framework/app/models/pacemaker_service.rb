@@ -359,10 +359,10 @@ class PacemakerService < ServiceObject
     end
 
     # set corosync attributes based on what we got in the proposal
-    admin_net = Chef::DataBag.load("crowbar/admin_network") rescue nil
+    admin_net = founder.get_network_by_type("admin")
 
     role.default_attributes["corosync"] ||= {}
-    role.default_attributes["corosync"]["bind_addr"] = admin_net["network"]["subnet"]
+    role.default_attributes["corosync"]["bind_addr"] = admin_net["subnet"]
 
     role.default_attributes["corosync"]["mcast_addr"] = role.default_attributes["pacemaker"]["corosync"]["mcast_addr"]
     role.default_attributes["corosync"]["mcast_port"] = role.default_attributes["pacemaker"]["corosync"]["mcast_port"]
