@@ -108,10 +108,11 @@ when "ipmi_barclamp"
     end
 
     stonith_node_name = pacemaker_node_name(cluster_node)
+    bmc_net = Barclamp::Inventory.get_network_by_type(cluster_node, "bmc")
 
     params = {}
     params["hostname"] = stonith_node_name
-    params["ipaddr"] = cluster_node[:crowbar][:network][:bmc][:address]
+    params["ipaddr"] = bmc_net.address
     params["userid"] = cluster_node[:ipmi][:bmc_user]
     params["passwd"] = cluster_node[:ipmi][:bmc_password]
 
