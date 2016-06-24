@@ -14,5 +14,7 @@
 # limitations under the License.
 #
 
-include_recipe "crowbar-pacemaker::default"
-include_recipe "crowbar-pacemaker::remote_delegator"
+if CrowbarRoleRecipe.node_state_valid_for_role?(node, "pacemaker", "pacemaker-cluster-member")
+  include_recipe "crowbar-pacemaker::default"
+  include_recipe "crowbar-pacemaker::remote_delegator"
+end

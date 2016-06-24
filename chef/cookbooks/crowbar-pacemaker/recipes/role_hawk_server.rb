@@ -14,4 +14,6 @@
 # limitations under the License.
 #
 
-include_recipe "hawk::server"
+if CrowbarRoleRecipe.node_state_valid_for_role?(node, "pacemaker", "hawk-server")
+  include_recipe "hawk::server"
+end
