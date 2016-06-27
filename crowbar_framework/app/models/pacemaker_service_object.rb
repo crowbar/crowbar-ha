@@ -154,6 +154,19 @@ class PacemakerServiceObject < ServiceObject
       remote_nodes = pacemaker_proposal.override_attributes["pacemaker"]["elements"]["pacemaker-remote"]
       remote_nodes || []
     end
+
+    # Convert vhostname to the VIP that is assigned to it in network.
+    # Note that vhostname is a FQDN, as returned by
+    # cluster_vhostname_from_element.
+    # This returns nil if the network is not admin or public.
+    def vhostname_to_vip(vhostname, net)
+      # only support this for admin & public; it's not needed elsewhere, and
+      # saves us some checks
+      return nil unless ["admin", "public"].include? net
+
+      net_db = Chef::DataBagItem.load("crowbar", "#{net}_network").raw_data
+      net_db["allocated_by_name"][vhostname]["address"]
+    end
   end
 
   def expand_remote_nodes(cluster)
