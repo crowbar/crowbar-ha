@@ -1,0 +1,5 @@
+[Service]
+ExecStartPre=/usr/bin/test ! -e <%= @block_corosync_file %>
+ExecStartPost=/usr/bin/touch <%= @block_corosync_file %>
+# This doesn't override the service, but append a new command to run
+ExecStop=/usr/bin/rm -f <%= @block_corosync_file %>

@@ -80,22 +80,45 @@ user node[:corosync][:user] do
   password node[:corosync][:password]
 end
 
-# If this file exists, then we will require that corosync is either manually
-# started or that the file gets removed to have chef-client start corosync.
+# If this file exists, then we will require that corosync that the file gets
+# removed to have corosync startable.
 #
-# If the node goes down properly, then the corosync-shutdown service
-# that we install will remove the file, which will allow the chef-client to
-# start corosync on next boot.
+# If the node goes down properly, then the corosync wrapper/override that we
+# install will remove the file, which will allow the wrapper/override to start
+# corosync on next boot.
 #
 # If the node goes down without the proper shutdown process (it has been
 # fenced, or it lost power, or it crashed, or...), then the file will exist
 # and corosync will not start on next boot, requiring manual intervention.
 block_corosync_file = "/var/spool/corosync/block_automatic_start"
-corosync_shutdown = "#{node[:corosync][:platform][:service_name]}-shutdown-cleaner"
+
+sysvinit_corosync_wrapper = "#{node[:corosync][:platform][:service_name]}-wrapper"
+systemd_corosync_override_dir = "/etc/systemd/system/#{node[:corosync][:platform][:service_name]}.service.d"
+
+# migration from Crowbar 3.0; can be removed in 5.0
+old_corosync_shutdown = "#{node[:corosync][:platform][:service_name]}-shutdown-cleaner"
+if File.exist?("/etc/init.d/#{old_corosync_shutdown}") ||
+    File.exist?("/etc/systemd/system/#{old_corosync_shutdown}.service")
+  service old_corosync_shutdown do
+    # There's no need to stop anything here.
+    action [:disable]
+  end
+  file "/etc/init.d/#{old_corosync_shutdown}" do
+    action :delete
+  end
+  file "/etc/systemd/system/#{old_corosync_shutdown}.service" do
+    action :delete
+  end
+  # no need to do systemctl daemon-reload, code below will make it happen
+  # since the new override file shouldn't exist yet
+end
 
 use_systemd = (node[:platform] != "suse" || node[:platform_version].to_f >= 12.0)
+enable_or_disable = :enable
 
 if node[:corosync][:require_clean_for_autostart]
+  already_running = system("crm status &> /dev/null")
+
   # We want to fail (so we do not start corosync) if these two conditions are
   # both met:
   #  a) the blocking file exists
@@ -106,7 +129,7 @@ if node[:corosync][:require_clean_for_autostart]
   # If b) is not true, then corosync is already running, which either means
   # that we went through a) in an earlier chef run, or that the user manually
   # started the service (and acknowledged the issues with improper shutdown).
-  if ::File.exists?(block_corosync_file) && !system("crm status &> /dev/null")
+  if ::File.exist?(block_corosync_file) && !already_running
     raise "Not starting #{node[:corosync][:platform][:service_name]} automatically as " \
           "it seems the node was not properly shut down. Please manually start the " \
           "#{node[:corosync][:platform][:service_name]} service, or remove " \
@@ -114,9 +137,8 @@ if node[:corosync][:require_clean_for_autostart]
   end
 
   if !use_systemd
-    # this service will remove the blocking file on proper shutdown
-    template "/etc/init.d/#{corosync_shutdown}" do
-      source "corosync-shutdown.init.erb"
+    template "/etc/init.d/#{sysvinit_corosync_wrapper}" do
+      source "corosync-wrapper.init.erb"
       owner "root"
       group "root"
       mode 0755
@@ -127,63 +149,66 @@ if node[:corosync][:require_clean_for_autostart]
     end
 
     # Make sure that any dependency change is taken into account
-    bash "insserv #{corosync_shutdown} service" do
-      code "insserv #{corosync_shutdown}"
+    bash "insserv #{sysvinit_corosync_wrapper} service" do
+      code "insserv #{sysvinit_corosync_wrapper}"
       action :nothing
-      subscribes :run, resources(template: "/etc/init.d/#{corosync_shutdown}"), :delayed
+      subscribes :run, resources(template: "/etc/init.d/#{sysvinit_corosync_wrapper}"), :delayed
     end
+
+    service sysvinit_corosync_wrapper do
+      action [:enable, :start]
+    end
+
+    # we make sure that corosync is not enabled to start on boot
+    enable_or_disable = :disable
   else
-    template "/etc/systemd/system/#{corosync_shutdown}.service" do
-      source "corosync-shutdown-cleaner.service.erb"
+    directory systemd_corosync_override_dir do
+      owner "root"
+      group "root"
+      mode "0755"
+      action :create
+    end
+
+    template "#{systemd_corosync_override_dir}/crowbar.conf" do
+      source "corosync.service.override.erb"
       owner "root"
       group "root"
       mode "0644"
       variables(
-        service_name: node[:corosync][:platform][:service_name],
         block_corosync_file: block_corosync_file
       )
     end
 
-    bash "reload systemd after #{corosync_shutdown} update" do
+    bash "reload systemd after #{systemd_corosync_override_dir}/crowbar.conf update" do
       code "systemctl daemon-reload"
       action :nothing
-      subscribes :run, resources(template: "/etc/systemd/system/#{corosync_shutdown}.service"), :immediately
+      subscribes :run, resources(template: "#{systemd_corosync_override_dir}/crowbar.conf"), :immediately
     end
   end
-
-  service corosync_shutdown do
-    action [:enable, :start]
-  end
-
-  # we make sure that corosync is not enabled to start on boot
-  enable_or_disable = :disable
 else
-  # we don't need corosync-shutdown anymore
-  service corosync_shutdown do
-    action :disable
-  end
-
   if !use_systemd
-    file "/etc/init.d/#{corosync_shutdown}" do
+    # we don't need the wrapper anymore
+    service sysvinit_corosync_wrapper do
+      action :disable
+    end
+    file "/etc/init.d/#{sysvinit_corosync_wrapper}" do
       action :delete
     end
   else
-    file "/etc/systemd/system/#{corosync_shutdown}.service" do
+    file "#{systemd_corosync_override_dir}/crowbar.conf" do
       action :delete
     end
 
-    bash "reload systemd after #{corosync_shutdown} removal" do
+    bash "reload systemd after #{systemd_corosync_override_dir}/crowbar.conf removal" do
       code "systemctl daemon-reload"
       action :nothing
-      subscribes :run, resources(file: "/etc/systemd/system/#{corosync_shutdown}.service"), :immediately
+      subscribes :run, resources(file: "#{systemd_corosync_override_dir}/crowbar.conf"), :immediately
     end
   end
 
   file block_corosync_file do
     action :delete
   end
-
-  enable_or_disable = :enable
 end
 
 service node[:corosync][:platform][:service_name] do
@@ -203,10 +228,15 @@ if node[:corosync][:require_clean_for_autostart]
     action :create
   end
 
-  file block_corosync_file do
-    owner "root"
-    group "root"
-    mode "0644"
-    action :create
+  # for systemd: the overridden will create the block file; the only case we
+  # need to deal with if we enable this feature after corosync is already
+  # started
+  if !use_systemd || already_running
+    file block_corosync_file do
+      owner "root"
+      group "root"
+      mode "0644"
+      action :create
+    end
   end
 end
