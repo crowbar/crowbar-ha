@@ -17,7 +17,7 @@
 
 # This is largely copied/inspired from https://github.com/hw-cookbooks/haproxy
 
-actions :create
+actions :create, :delete
 default_action :create
 
 attribute :name,    kind_of: String,  name_attribute: true
