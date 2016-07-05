@@ -14,4 +14,6 @@
 # limitations under the License.
 #
 
-include_recipe "crowbar-pacemaker::remote"
+if CrowbarRoleRecipe.node_state_valid_for_role?(node, "pacemaker", "pacemaker-remote")
+  include_recipe "crowbar-pacemaker::remote"
+end

@@ -11,5 +11,6 @@ depends "haproxy"
 depends "hawk"
 depends "lvm"
 depends "pacemaker"
+depends "utils"
 
 recommends "crowbar-openstack"
