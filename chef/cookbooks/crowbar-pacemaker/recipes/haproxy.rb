@@ -51,14 +51,7 @@ if node[:pacemaker][:haproxy][:clusters].key?(cluster_name) && node[:pacemaker][
 
   # Create VIP for HAProxy
   node[:pacemaker][:haproxy][:clusters][cluster_name][:networks].each do |network, enabled|
-    net_db = data_bag_item("crowbar", "#{network}_network")
-    raise "#{network}_network data bag missing?!" unless net_db
-    fqdn = "#{cluster_vhostname}.#{node[:domain]}"
-    unless net_db["allocated_by_name"][fqdn]
-      raise "Missing allocation for #{fqdn} in #{network} network"
-    end
-    ip_addr = net_db["allocated_by_name"][fqdn]["address"]
-
+    ip_addr = CrowbarPacemakerHelper.cluster_vip(node, network)
     vip_primitive = "vip-#{network}-#{cluster_vhostname}"
     pacemaker_primitive vip_primitive do
       agent "ocf:heartbeat:IPaddr2"
