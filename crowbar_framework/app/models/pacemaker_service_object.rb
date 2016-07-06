@@ -82,7 +82,7 @@ class PacemakerServiceObject < ServiceObject
       # substitute one with the other.
       # Similar code is in the cookbook:
       # CrowbarPacemakerHelper.cluster_vhostname
-      "cluster-#{name.gsub("_", "-")}.#{ChefObject.cloud_domain}"
+      "cluster-#{name.tr("_", "-")}.#{Crowbar::Settings.domain}"
     end
 
     # This is the key that allows to find out that an element item is a
