@@ -273,7 +273,7 @@ class PacemakerService < ServiceObject
   #  - when there are remote nodes, we need to run the delegator code after
   #    setting up the remote nodes, so we need to run chef on cluster members a
   #    second time
-  def active_update(proposal, inst, in_queue)
+  def active_update(proposal, inst, in_queue, bootstrap = false)
     deployment = proposal["deployment"]["pacemaker"]
     remotes = deployment["elements"]["pacemaker-remote"] || []
 
