@@ -140,10 +140,11 @@ class PacemakerService < ServiceObject
       cluster_role.elements.each do |role_name, node_names|
         next unless node_names.include?(cluster_element)
 
+        priority = runlist_priority_map[role_name] || service.chef_order
         required_barclamp_roles << { service: service,
                                      barclamp_role: cluster_role,
                                      name: role_name,
-                                     priority: runlist_priority_map[role_name] || service.chef_order }
+                                     priority: priority }
 
         # Update elements_expanded attribute
         expanded_nodes, failures = expand_nodes_for_all(node_names)
@@ -161,10 +162,11 @@ class PacemakerService < ServiceObject
       end
 
       # Also add the config role for the barclamp
+      priority = runlist_priority_map[cluster_role.name] || service.chef_order
       required_barclamp_roles << { service: service,
                                    barclamp_role: cluster_role,
                                    name: cluster_role.name,
-                                   priority: runlist_priority_map[cluster_role.name] || service.chef_order }
+                                   priority: priority }
 
       cluster_role.save if save_it
     end
