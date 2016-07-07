@@ -80,8 +80,8 @@ user node[:corosync][:user] do
   password node[:corosync][:password]
 end
 
-# If this file exists, then we will require that corosync that the file gets
-# removed to have corosync startable.
+# If this file exists, then we will require that the file gets removed to have
+# corosync startable.
 #
 # If the node goes down properly, then the corosync wrapper/override that we
 # install will remove the file, which will allow the wrapper/override to start
