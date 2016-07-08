@@ -134,18 +134,17 @@ class PacemakerService < ServiceObject
 
       deployment = cluster_role.override_attributes[cluster_role.barclamp]
       runlist_priority_map = deployment["element_run_list_order"] || {}
-      role_map = deployment["element_states"] || {}
 
       save_it = false
 
       cluster_role.elements.each do |role_name, node_names|
         next unless node_names.include?(cluster_element)
 
+        priority = runlist_priority_map[role_name] || service.chef_order
         required_barclamp_roles << { service: service,
                                      barclamp_role: cluster_role,
                                      name: role_name,
-                                     priority: runlist_priority_map[role_name] || service.chef_order,
-                                     element_states: role_map[role_name] }
+                                     priority: priority }
 
         # Update elements_expanded attribute
         expanded_nodes, failures = expand_nodes_for_all(node_names)
@@ -163,11 +162,11 @@ class PacemakerService < ServiceObject
       end
 
       # Also add the config role for the barclamp
+      priority = runlist_priority_map[cluster_role.name] || service.chef_order
       required_barclamp_roles << { service: service,
                                    barclamp_role: cluster_role,
                                    name: cluster_role.name,
-                                   priority: runlist_priority_map[cluster_role.name] || service.chef_order,
-                                   element_states: role_map[cluster_role.name] }
+                                   priority: priority }
 
       cluster_role.save if save_it
     end
@@ -181,10 +180,9 @@ class PacemakerService < ServiceObject
         next if node.role? name
 
         priority = required_barclamp_role[:priority]
-        element_states = required_barclamp_role[:element_states]
 
         @logger.debug("[pacemaker] AR: Adding role #{name} to #{node.name} with priority #{priority}")
-        node.add_to_run_list(name, priority, element_states)
+        node.add_to_run_list(name, priority)
         save_it = true
 
         required_pre_chef_calls << { service: required_barclamp_role[:service], barclamp_role: required_barclamp_role[:barclamp_role] }
