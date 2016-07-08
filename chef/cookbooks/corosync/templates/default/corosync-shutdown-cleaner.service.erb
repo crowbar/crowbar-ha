@@ -1,5 +1,6 @@
 [Unit]
 Description=Clean file blocking <%= @service_name %> start after fencing
+Requires=<%= @service_name %>.service
 Before=<%= @service_name %>.service
 
 [Service]

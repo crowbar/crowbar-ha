@@ -144,6 +144,16 @@ if node[:corosync][:require_clean_for_autostart]
       )
     end
 
+    template "/etc/systemd/system/#{node[:corosync][:platform][:service_name]}.service" do
+      source "corosync.service.erb"
+      owner "root"
+      group "root"
+      mode "0644"
+      variables(
+        service_name: corosync_shutdown
+      )
+    end
+
     bash "reload systemd after #{corosync_shutdown} update" do
       code "systemctl daemon-reload"
       action :nothing
