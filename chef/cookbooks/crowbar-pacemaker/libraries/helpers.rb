@@ -106,6 +106,22 @@ module CrowbarPacemakerHelper
     end
   end
 
+  # Returns the VIP matching a specific virtual hostname used by a cluster.
+  # Note that vhostname is not a FQDN, but a short hostname.
+  # This returns nil if the network is not admin or public, or if node is not
+  # member of a cluster.
+  def self.cluster_vip(node, net, vhostname = nil)
+    return nil unless cluster_enabled?(node)
+    # only support this for admin & public; it's not needed elsewhere, and
+    # saves us some checks
+    return nil unless ["admin", "public"].include? net
+
+    vhostname = cluster_vhostname(node) if vhostname.nil?
+
+    net_db = Chef::DataBagItem.load("crowbar", "#{net}_network").raw_data
+    net_db["allocated_by_name"]["#{vhostname}.#{node[:domain]}"]["address"]
+  end
+
   # Performs a Chef search and returns an Array of Node objects for
   # all nodes in the same cluster as the given node, or an empty array
   # if the node isn't in a cluster.  Can optionally filter by role.
