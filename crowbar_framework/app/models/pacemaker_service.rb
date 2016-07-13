@@ -32,7 +32,7 @@ class PacemakerService < ServiceObject
           "unique" => false,
           "count" => 32,
           "platform" => {
-            "suse" => "/.*/",
+            "suse" => "12.2"
             "opensuse" => "/.*/"
           }
         },
@@ -40,7 +40,7 @@ class PacemakerService < ServiceObject
           "unique" => false,
           "count" => -1,
           "platform" => {
-            "suse" => "/.*/",
+            "suse" => "12.2"
             "opensuse" => "/.*/"
           }
         },
@@ -48,7 +48,7 @@ class PacemakerService < ServiceObject
           "unique" => true,
           "count" => -1,
           "platform" => {
-            "suse" => "/.*/",
+            "suse" => "12.2"
             "opensuse" => "/.*/"
           }
         }
