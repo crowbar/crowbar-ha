@@ -37,7 +37,8 @@ listen  admin-stats <%= node[:haproxy][:stats][:enabled] ? node[:haproxy][:stats
 <% node[:haproxy][:sections].keys.sort.each do |type| -%>
   <% node[:haproxy][:sections][type].keys.sort.each do |name| -%>
     <% content = node[:haproxy][:sections][type][name] -%>
-<%= type %> <%= name %> <%= content[:address] %>:<%= content[:port] %>
+<%= type %> <%= name %>
+    bind <%= content[:address] %>:<%= content[:port] %>
     <% if content[:use_ssl] -%>
        mode tcp
        balance source
