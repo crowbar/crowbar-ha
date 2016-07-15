@@ -31,7 +31,7 @@ action :create do
   raise "Remote node #{remote_host} not found!" if remote_nodes.empty?
   remote = remote_nodes.first
 
-  template "/etc/drbd.d/#{name}.res" do
+  t = template "/etc/drbd.d/#{name}.res" do
     cookbook "drbd"
     source "resource.erb"
     variables(
@@ -47,15 +47,13 @@ action :create do
     owner "root"
     group "root"
     action :nothing
-  end.run_action(:create)
+  end
+  t.run_action(:create)
 
   # first pass only, initialize drbd
   # for disks re-usage from old resources we will run with force option
   p = execute "drbdadm -- --force create-md #{name}" do
-    only_if do
-      overview = DrbdOverview.get(name)
-      !overview.nil? && overview["state"] == "Unconfigured"
-    end
+    only_if { t.updated_by_last_action? }
     action :nothing
   end
   p.run_action(:run)
