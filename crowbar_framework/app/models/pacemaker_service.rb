@@ -485,7 +485,7 @@ class PacemakerService < ServiceObject
           )
         end
       end
-      validation_error validation_error I18n.t(
+      validation_error I18n.t(
         "barclamp.#{@bc_name}.validation.same_number_of_devices"
       ) if sbd_devices_mismatch
     when "shared"
@@ -645,7 +645,7 @@ class PacemakerService < ServiceObject
       end
     end
     unless target_platforms.uniq.length <= 1
-      validation_error validation_error I18n.t(
+      validation_error I18n.t(
         "barclamp.#{bc_name}.validation.platform"
       )
     end
