@@ -52,7 +52,7 @@ class Chef
           Chef::Log.info "Physical volume '#{new_resource.name}' found. Not creating..."
         else
           Chef::Log.info "Creating physical volume '#{new_resource.name}'"
-          cmd = shell_out("pvcreate #{new_resource.name}")
+          cmd = shell_out("pvcreate -f #{new_resource.name}")
           cmd.error!
           new_resource.updated_by_last_action(true)
         end
