@@ -31,7 +31,9 @@ class Api::ClustersController < ApiController
   api :GET, "/api/clusters/health", "Health check HA clusters"
   api_version "2.0"
   def health
-    render json: {}, status: :not_implemented
+    render json: {
+      clusters_health: @cluster.health_report
+    }
   end
 
   api :GET, "/api/clusters/repocheck", "Sanity check ha repositories"
