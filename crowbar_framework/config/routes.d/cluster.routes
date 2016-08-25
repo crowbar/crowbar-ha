@@ -3,8 +3,11 @@ namespace :api,
   resources :clusters,
     only: [:index, :show] do
     collection do
-      get :health
       get :repocheck
+    end
+
+    member do
+      get :health
     end
   end
 end

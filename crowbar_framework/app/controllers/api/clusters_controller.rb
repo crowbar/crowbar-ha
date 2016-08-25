@@ -28,7 +28,7 @@ class Api::ClustersController < ApiController
     render json: {}, status: :not_implemented
   end
 
-  api :GET, "/api/clusters/health", "Health check HA clusters"
+  api :GET, "/api/clusters/:id/health", "Show the health of a HA Cluster"
   api_version "2.0"
   def health
     render json: {}, status: :not_implemented
