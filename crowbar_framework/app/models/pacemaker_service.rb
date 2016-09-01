@@ -393,10 +393,69 @@ class PacemakerService < ServiceObject
                                remote_nodes, member_nodes, remotes, members)
 
     role.save
-
+    remove_cluster_roles_from_removed_nodes(old_role, member_nodes)
     apply_cluster_roles_to_new_nodes(role, member_nodes, remote_nodes)
 
     @logger.debug("Pacemaker apply_role_pre_chef_call: leaving")
+  end
+
+  def remove_cluster_roles_from_removed_nodes(old_role, member_nodes)
+    @logger.debug("Pacemaker remove_cluster_roles_from_removed_nodes: entering")
+    if old_role.nil? || old_role.empty?
+      @logger.debug("Pacemaker remove_cluster_roles_from_removed_nodes: leaving")
+      return
+    end
+    new_member_list = member_nodes.map(&:name)
+    old_member_list = old_role.override_attributes[@bc_name]["elements"]["pacemaker-cluster-member"]
+    member_difference = old_member_list - new_member_list
+    # return if no membership change
+    return if member_difference.empty?
+
+    @logger.debug("Found leaving nodes: #{member_difference}")
+    member_difference.each do |n|
+      changed = false
+      node = NodeObject.find_node_by_name(n)
+      if node.nil?
+        @logger.warn("Node #{n} disappeared while trying to remove HA roles.")
+        next
+      end
+      cluster_name = old_role.proposal.name
+      node.roles.each do |role|
+        # only pick barclamp-config-proposal
+        next unless role =~ /(.*)-config-(.*)/
+        # pick the first part of the role which is the name of the barclamp
+        # to check for that ha attribute
+        barclamp = role.split("-")[0]
+        next unless node[barclamp]
+        next unless node[barclamp]["ha"]
+        # using to_s because if not it will appear as Attribute object
+        next unless node[barclamp]["ha"]["enabled"].to_s == "true"
+        # check the rol elements to see if they are applied to a cluster
+        role = RoleObject.find_role_by_name(role)
+        role.override_attributes[barclamp]["elements"].each do |subrole, members|
+          members.each do |member|
+            # only remove the roles that are applied to our cluster
+            next unless cluster_name(member) == cluster_name
+            @logger.debug("Removing role role[#{subrole}] from #{node.role.name}")
+            node.delete_from_run_list("role[#{subrole}]")
+            changed = true
+          end
+        end
+        # remove the barclamp-config-proposal if all its elements are part of the cluster
+        remove_father_role = role.override_attributes[barclamp]["elements"].all? do |r, members|
+          # modify the list inplace to have the proper cluster name
+          members.map! { |m| cluster_name(m) }
+          members.include?(cluster_name) || members.empty?
+        end
+        if remove_father_role
+          @logger.debug("Removing role role[#{role.name}] from #{node.role.name}")
+          node.delete_from_run_list("role[#{role.name}]")
+        end
+      end
+      node[:pacemaker][:founder] = false
+      node.role.save if changed
+    end
+    @logger.debug("Pacemaker remove_cluster_roles_from_removed_nodes: leaving")
   end
 
   def preserve_existing_password(role, old_role)
