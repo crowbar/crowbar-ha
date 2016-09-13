@@ -15,6 +15,8 @@
 #
 
 class Api::ClustersController < ApiController
+  before_action :set_cluster
+
   api :GET, "/api/clusters", "List all HA clusters"
   api_version "2.0"
   def index
@@ -37,6 +39,12 @@ class Api::ClustersController < ApiController
   api :GET, "/api/clusters/repocheck", "Sanity check ha repositories"
   api_version "2.0"
   def repocheck
-    render json: {}, status: :not_implemented
+    render json: @cluster.repocheck
+  end
+
+  protected
+
+  def set_cluster
+    @cluster = Api::Cluster.new
   end
 end

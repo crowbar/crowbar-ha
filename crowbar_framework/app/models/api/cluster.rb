@@ -15,6 +15,9 @@
 #
 
 module Api
-  class Clusters
+  class Clusters < Tableless
+    def repocheck
+      Api::Node.new.repocheck(addon: "ha")
+    end
   end
 end
