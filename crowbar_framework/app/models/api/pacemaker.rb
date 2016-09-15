@@ -15,7 +15,7 @@
 #
 
 module Api
-  class Clusters < Tableless
+  class Pacemaker < Tableless
     # Simple check if HA clusters report some problems
     # If there are no problems, empty hash is returned.
     # If this fails, information about failed actions for each cluster founder is
@@ -42,12 +42,12 @@ module Api
 
       founders.each do |n|
         ssh_retval = n.run_ssh_cmd("crm status 2>&1")
-        if ssh_retval[:exit_code] != 0
+        if (ssh_retval[:exit_code]).nonzero?
           crm_failures[n.name] = ssh_retval[:stdout]
           next
         end
         ssh_retval = n.run_ssh_cmd('crm status | grep -A 2 "^Failed Actions:"')
-        if ssh_retval[:exit_code] == 0
+        if (ssh_retval[:exit_code]).zero?
           failed_actions[n.name] = ssh_retval[:stdout]
         end
       end

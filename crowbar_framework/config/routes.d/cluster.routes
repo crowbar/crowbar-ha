@@ -1,7 +1,6 @@
 namespace :api,
   constraints: ApiConstraint.new(2.0) do
-  resources :clusters,
-    only: [:index, :show] do
+  resource :pacemaker, controller: :pacemaker, only: [] do
     collection do
       get :health
       get :repocheck
