@@ -612,7 +612,7 @@ class PacemakerService < ServiceObject
       if provisioner_server_node[:platform] == "suse"
         unless Crowbar::Repository.provided_and_enabled? "ha"
           validation_error I18n.t(
-            "barclamp.#{bc_name}.validation.hae_repo"
+            "barclamp.#{bc_name}.validation.ha_repo"
           )
         end
       end
