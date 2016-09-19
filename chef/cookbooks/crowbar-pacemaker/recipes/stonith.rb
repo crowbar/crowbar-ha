@@ -137,7 +137,7 @@ when "libvirt"
     if cluster_node[:s390x]
       manufacturer = cluster_node[:s390x][:system][:manufacturer]
     end
-    unless %w(Bochs QEMU KVM).include? manufacturer
+    unless ["Bochs", "QEMU", "KVM"].include? manufacturer
       message = "Node #{cluster_node[:hostname]} does not seem to be running in libvirt."
       Chef::Log.fatal(message)
       raise message
