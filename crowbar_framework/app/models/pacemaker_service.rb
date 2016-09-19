@@ -548,6 +548,9 @@ class PacemakerService < ServiceObject
       members.each do |member|
         node = NodeObject.find_node_by_name(member)
         manufacturer = node[:dmi][:system][:manufacturer] rescue "unknown"
+        if node[:s390x]
+          manufacturer = node[:s390x][:system][:manufacturer]
+        end
         unless %w(Bochs QEMU).include? manufacturer
           validation_error I18n.t(
             "barclamp.#{bc_name}.validation.libvirt",
