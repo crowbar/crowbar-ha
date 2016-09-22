@@ -56,6 +56,10 @@ module Api
         ret["failed_actions"] = failed_actions unless failed_actions.empty?
         ret
       end
+
+      def repocheck
+        Api::Node.repocheck(addon: "ha")
+      end
     end
   end
 end
