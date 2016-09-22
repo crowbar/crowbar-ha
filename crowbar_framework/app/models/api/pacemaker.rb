@@ -16,44 +16,46 @@
 
 module Api
   class Pacemaker < Tableless
-    # Simple check if HA clusters report some problems
-    # If there are no problems, empty hash is returned.
-    # If this fails, information about failed actions for each cluster founder is
-    # returned in a hash that looks like this:
-    # {
-    #     "crm_failures" => {
-    #             "node1" => "reason for crm status failure"
-    #     },
-    #     "failed_actions" => {
-    #             "node2" => "Failed action on this node"
-    #     }
-    # }
-    # User has to manually clean pacemaker resources before proceeding with the upgrade.
-    def health_report
-      ret = {}
-      crm_failures = {}
-      failed_actions = {}
+    class << self
+      # Simple check if HA clusters report some problems
+      # If there are no problems, empty hash is returned.
+      # If this fails, information about failed actions for each cluster founder is
+      # returned in a hash that looks like this:
+      # {
+      #     "crm_failures" => {
+      #             "node1" => "reason for crm status failure"
+      #     },
+      #     "failed_actions" => {
+      #             "node2" => "Failed action on this node"
+      #     }
+      # }
+      # User has to manually clean pacemaker resources before proceeding with the upgrade.
+      def health_report
+        ret = {}
+        crm_failures = {}
+        failed_actions = {}
 
-      founders = NodeObject.find("pacemaker_founder:true AND pacemaker_config_environment:*")
-      return ret if founders.empty?
+        founders = NodeObject.find("pacemaker_founder:true AND pacemaker_config_environment:*")
+        return ret if founders.empty?
 
-      service_object = CrowbarService.new(Rails.logger)
-      service_object.check_if_nodes_are_available founders
+        service_object = CrowbarService.new(Rails.logger)
+        service_object.check_if_nodes_are_available founders
 
-      founders.each do |n|
-        ssh_retval = n.run_ssh_cmd("crm status 2>&1")
-        if (ssh_retval[:exit_code]).nonzero?
-          crm_failures[n.name] = ssh_retval[:stdout]
-          next
+        founders.each do |n|
+          ssh_retval = n.run_ssh_cmd("crm status 2>&1")
+          if (ssh_retval[:exit_code]).nonzero?
+            crm_failures[n.name] = ssh_retval[:stdout]
+            next
+          end
+          ssh_retval = n.run_ssh_cmd('crm status | grep -A 2 "^Failed Actions:"')
+          if (ssh_retval[:exit_code]).zero?
+            failed_actions[n.name] = ssh_retval[:stdout]
+          end
         end
-        ssh_retval = n.run_ssh_cmd('crm status | grep -A 2 "^Failed Actions:"')
-        if (ssh_retval[:exit_code]).zero?
-          failed_actions[n.name] = ssh_retval[:stdout]
-        end
+        ret["crm_failures"] = crm_failures unless crm_failures.empty?
+        ret["failed_actions"] = failed_actions unless failed_actions.empty?
+        ret
       end
-      ret["crm_failures"] = crm_failures unless crm_failures.empty?
-      ret["failed_actions"] = failed_actions unless failed_actions.empty?
-      ret
     end
   end
 end
