@@ -31,6 +31,12 @@ module CrowbarPacemakerHelper
     node[:pacemaker][:founder]
   end
 
+  # Check if the node is currently in some upgrade phase
+  def self.being_upgraded?(node)
+    upgrade_step = node["crowbar_wall"]["crowbar_upgrade_step"] || "none"
+    upgrade_step == "prepare-os-upgrade"
+  end
+
   # Returns the number of corosync (or non-remote) nodes in the cluster.
   def self.num_corosync_nodes(node)
     return 0 unless cluster_enabled?(node)
