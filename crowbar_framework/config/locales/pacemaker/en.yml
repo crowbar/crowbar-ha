@@ -121,7 +121,7 @@ en:
         sender_address: 'Invalid sender address for mail notifications.'
         recipient_address: 'Invalid recipient address for mail notifications.'
         drbd: 'Setting up DRBD requires a cluster of two nodes.'
-        hae_repo: 'The HAE repositories have not been setup.'
+        ha_repo: 'The SLE HA repositories have not been setup.'
         transport_value: 'Invalid transport value: %{transport}.'
         quorum_policy: 'Invalid no-quorum-policy value: %{no_quorum_policy}.'
         platform: 'All nodes in proposal must have the same platform.'
