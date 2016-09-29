@@ -18,6 +18,10 @@
 en:
   nav:
     pacemaker: 'Pacemaker'
+  api:
+    pacemaker:
+      ha_not_installed: 'HA add-on is not installed.'
+      ha_not_configured: 'No Pacemaker cluster is configured.'
   barclamp:
     pacemaker:
       edit_attributes:
