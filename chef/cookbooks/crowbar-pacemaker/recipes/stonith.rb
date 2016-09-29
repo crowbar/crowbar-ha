@@ -134,7 +134,10 @@ when "libvirt"
 
   all_nodes.each do |cluster_node|
     manufacturer = cluster_node[:dmi][:system][:manufacturer] rescue "unknown"
-    unless %w(Bochs QEMU).include? manufacturer
+    if cluster_node[:s390x]
+      manufacturer = cluster_node[:s390x][:system][:manufacturer]
+    end
+    unless ["Bochs", "QEMU", "KVM"].include? manufacturer
       message = "Node #{cluster_node[:hostname]} does not seem to be running in libvirt."
       Chef::Log.fatal(message)
       raise message
@@ -143,6 +146,9 @@ when "libvirt"
     # We need to know the domain to interact with for each cluster member; it
     # turns out that libvirt puts the domain UUID in DMI
     domain_id = cluster_node[:dmi][:system][:uuid]
+    if cluster_node[:s390x]
+      domain_id = cluster_node[:s390x][:system][:uuid]
+    end
 
     stonith_node_name = pacemaker_node_name(cluster_node)
 
