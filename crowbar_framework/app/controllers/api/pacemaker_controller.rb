@@ -20,7 +20,7 @@ module Api
     api_version "2.0"
     def health
       render json: {
-        clusters_health: @pacemaker.health_report
+        clusters_health: Api::Pacemaker.health_report
       }
     end
 
