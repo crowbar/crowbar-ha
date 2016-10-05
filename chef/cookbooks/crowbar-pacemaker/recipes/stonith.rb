@@ -133,16 +133,15 @@ when "libvirt"
     CrowbarPacemakerHelper.remote_nodes(node)
 
   all_nodes.each do |cluster_node|
-    manufacturer = cluster_node[:dmi][:system][:manufacturer] rescue "unknown"
-    unless %w(Bochs QEMU).include? manufacturer
+    unless cluster_node[:crowbar_ohai][:libvirt][:guest_uuid]
       message = "Node #{cluster_node[:hostname]} does not seem to be running in libvirt."
       Chef::Log.fatal(message)
       raise message
     end
 
     # We need to know the domain to interact with for each cluster member; it
-    # turns out that libvirt puts the domain UUID in DMI
-    domain_id = cluster_node[:dmi][:system][:uuid]
+    # turns out the domain UUID is accessible via ohai
+    domain_id = cluster_node[:crowbar_ohai][:libvirt][:guest_uuid]
 
     stonith_node_name = pacemaker_node_name(cluster_node)
 
