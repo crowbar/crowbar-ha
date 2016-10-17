@@ -291,4 +291,19 @@ module CrowbarPacemakerHelper
 
     servers
   end
+
+  # Helper method that adds a Pacemaker location constraint to the given list of transation objects.
+  # Such constraint limits resources to only run on node that has already been upgraded.
+  def self.add_upgraded_only_location(node, transaction_objects, resource)
+    return transaction_objects unless CrowbarPacemakerHelper.being_upgraded?(node)
+    return transaction_objects unless CrowbarPacemakerHelper.is_cluster_founder?(node)
+    location = "l-#{resource}-upgraded-only"
+    pacemaker_location location do
+      definition "location #{location} #{service} resource-discovery=exclusive " \
+        "rule 0: pre-upgrade eq false"
+      action :update
+    end
+    transaction_objects << "pacemaker_location[#{location}]"
+    transaction_objects
+  end
 end
