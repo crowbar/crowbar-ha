@@ -58,5 +58,12 @@ action :create do
   end
   section["servers"] = new_resource.servers
 
-  node.default["haproxy"]["sections"][new_resource.type][new_resource.name] = section
+  node["haproxy"]["sections"][new_resource.type] ||= {}
+  node["haproxy"]["sections"][new_resource.type][new_resource.name] = section
+end
+
+action :delete do
+  node["haproxy"]["sections"].keys.each do |type|
+    node["haproxy"]["sections"][type].delete(new_resource.name)
+  end
 end
