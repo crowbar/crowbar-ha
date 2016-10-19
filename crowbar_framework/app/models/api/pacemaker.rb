@@ -17,6 +17,15 @@
 module Api
   class Pacemaker < Tableless
     class << self
+      # Check for presence of HA setup, which is a requirement for non-disruptive upgrade
+      def ha_presence_check
+        unless repocheck["ha"]["available"]
+          return { errors: [I18n.t("api.pacemaker.ha_not_installed")] }
+        end
+        founders = NodeObject.find("pacemaker_founder:true AND pacemaker_config_environment:*")
+        founders.empty? ? { errors: [I18n.t("api.pacemaker.ha_not_configured")] } : {}
+      end
+
       # Simple check if HA clusters report some problems
       # If there are no problems, empty hash is returned.
       # If this fails, information about failed actions for each cluster founder is
