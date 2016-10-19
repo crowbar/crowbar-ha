@@ -31,6 +31,9 @@ action :create do
   raise "Remote node #{remote_host} not found!" if remote_nodes.empty?
   remote = remote_nodes.first
 
+  ip = Chef::Recipe::Barclamp::Inventory.get_network_by_type(node, "admin").address
+  remote_ip = Chef::Recipe::Barclamp::Inventory.get_network_by_type(remote, "admin").address
+
   drbd_resource_template = template "/etc/drbd.d/#{name}.res" do
     cookbook "drbd"
     source "resource.erb"
@@ -39,10 +42,10 @@ action :create do
       device: device,
       disk: disk,
       local_hostname: node.hostname,
-      local_ip: node.ipaddress,
+      local_ip: ip,
       port: port,
       remote_hostname: remote.hostname,
-      remote_ip: remote.ipaddress
+      remote_ip: remote_ip
     )
     owner "root"
     group "root"
