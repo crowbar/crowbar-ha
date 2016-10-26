@@ -92,11 +92,17 @@ module Api
           Rails.logger.warning("No cluster founder found. Making #{name} the new founder anyway.")
         else
           old_founder[:pacemaker][:founder] = false
+          if old_founder[:drbd] && old_founder[:drbd][:rsc]
+            old_founder[:drbd][:rsc].each { |_, res| res[:master] = false }
+          end
           old_founder.save
         end
 
         # 3. mark given node as founder
         new_founder[:pacemaker][:founder] = true
+        if new_founder[:drbd] && new_founder[:drbd][:rsc]
+          new_founder[:drbd][:rsc].each { |_, res| res[:master] = true }
+        end
         new_founder.save
       end
 
