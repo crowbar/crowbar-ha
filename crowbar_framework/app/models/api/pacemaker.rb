@@ -66,6 +66,46 @@ module Api
         ret
       end
 
+      def set_node_as_founder(name)
+        # 1. find the cluster new founder is in
+        new_founder = NodeObject.find_node_by_name(name)
+        if new_founder.nil?
+          Rails.logger.error("Node #{name} not found!")
+          return false
+        end
+        unless new_founder[:pacemaker]
+          Rails.logger.error("Node #{name} does not have pacemaker setup")
+          return false
+        end
+        if new_founder[:pacemaker][:founder]
+          Rails.logger.debug("Node #{name} is already the cluster founder.")
+          return true
+        end
+
+        # 2. find the current cluster founder in the same cluster
+        cluster_env = new_founder[:pacemaker][:config][:environment]
+        old_founder = NodeObject.find(
+          "pacemaker_founder:true AND pacemaker_config_environment:#{cluster_env}"
+        ).first
+
+        if old_founder.nil?
+          Rails.logger.warning("No cluster founder found. Making #{name} the new founder anyway.")
+        else
+          old_founder[:pacemaker][:founder] = false
+          if old_founder[:drbd] && old_founder[:drbd][:rsc]
+            old_founder[:drbd][:rsc].each { |_, res| res[:master] = false }
+          end
+          old_founder.save
+        end
+
+        # 3. mark given node as founder
+        new_founder[:pacemaker][:founder] = true
+        if new_founder[:drbd] && new_founder[:drbd][:rsc]
+          new_founder[:drbd][:rsc].each { |_, res| res[:master] = true }
+        end
+        new_founder.save
+      end
+
       def repocheck
         Api::Node.repocheck(addon: "ha")
       end
