@@ -60,6 +60,11 @@ module CrowbarPacemakerSynchronization
   def self.wait_for_mark_from_founder(node, mark, revision, fatal = false, timeout = 60)
     return unless CrowbarPacemakerHelper.cluster_enabled?(node)
     return if CrowbarPacemakerHelper.is_cluster_founder?(node)
+    if CrowbarPacemakerHelper.being_upgraded?(node)
+      Chef::Log.debug("Node is being upgraded." \
+        "Skipping wait loop for cluster founder.")
+      return
+    end
 
     cluster_name = CrowbarPacemakerHelper.cluster_name(node)
 
@@ -127,6 +132,12 @@ module CrowbarPacemakerSynchronization
 
     node_count = CrowbarPacemakerHelper.cluster_nodes(node).length
     raise "No member in the cluster!" if node_count == 0
+
+    if CrowbarPacemakerHelper.being_upgraded?(node)
+      Chef::Log.debug("Node is being upgraded." \
+        "Skipping wait loop for all other cluster nodes.")
+      return
+    end
 
     Chef::Log.info("Checking if all cluster nodes have set #{mark} to #{revision}...")
 
