@@ -93,7 +93,8 @@ end
 block_corosync_file = "/var/spool/corosync/block_automatic_start"
 
 sysvinit_corosync_wrapper = "#{node[:corosync][:platform][:service_name]}-wrapper"
-systemd_corosync_override_dir = "/etc/systemd/system/#{node[:corosync][:platform][:service_name]}.service.d"
+systemd_corosync_override_dir = \
+  "/etc/systemd/system/#{node[:corosync][:platform][:service_name]}.service.d"
 
 # migration from Crowbar 3.0; can be removed in 5.0
 old_corosync_shutdown = "#{node[:corosync][:platform][:service_name]}-shutdown-cleaner"
@@ -182,7 +183,9 @@ if node[:corosync][:require_clean_for_autostart]
     bash "reload systemd after #{systemd_corosync_override_dir}/crowbar.conf update" do
       code "systemctl daemon-reload"
       action :nothing
-      subscribes :run, resources(template: "#{systemd_corosync_override_dir}/crowbar.conf"), :immediately
+      subscribes :run,
+        resources(template: "#{systemd_corosync_override_dir}/crowbar.conf"),
+        :immediately
     end
   end
 else
@@ -202,7 +205,9 @@ else
     bash "reload systemd after #{systemd_corosync_override_dir}/crowbar.conf removal" do
       code "systemctl daemon-reload"
       action :nothing
-      subscribes :run, resources(file: "#{systemd_corosync_override_dir}/crowbar.conf"), :immediately
+      subscribes :run,
+        resources(file: "#{systemd_corosync_override_dir}/crowbar.conf"),
+        :immediately
     end
   end
 
