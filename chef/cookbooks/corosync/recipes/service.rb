@@ -120,8 +120,8 @@ enable_or_disable = :enable
 if node[:corosync][:require_clean_for_autostart]
   already_running = system("crm status &> /dev/null")
 
-  # We want to fail (so we do not start corosync) if these two conditions are
-  # both met:
+  # We want to have chef fail here (so that we do not start corosync) if these
+  # two conditions are both met:
   #  a) the blocking file exists
   #  b) corosync is not running
   #
