@@ -93,7 +93,9 @@ module Api
         else
           old_founder[:pacemaker][:founder] = false
           if old_founder[:drbd] && old_founder[:drbd][:rsc]
-            old_founder[:drbd][:rsc].each { |_, res| res[:master] = false }
+            old_founder[:drbd][:rsc].each do |res, _|
+              old_founder[:drbd][:rsc][res][:master] = false
+            end
           end
           old_founder.save
         end
@@ -101,7 +103,9 @@ module Api
         # 3. mark given node as founder
         new_founder[:pacemaker][:founder] = true
         if new_founder[:drbd] && new_founder[:drbd][:rsc]
-          new_founder[:drbd][:rsc].each { |_, res| res[:master] = true }
+          new_founder[:drbd][:rsc].each do |res, _|
+            new_founder[:drbd][:rsc][res][:master] = true
+          end
         end
         new_founder.save
       end
