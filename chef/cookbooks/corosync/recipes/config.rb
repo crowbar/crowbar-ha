@@ -56,8 +56,27 @@ template "/etc/corosync/corosync.conf" do
     transport: node[:corosync][:transport]
   )
 
-  service_name = node[:pacemaker][:platform][:service_name] rescue nil
-  if service_name
-    notifies :restart, "service[#{service_name}]"
-  end
+  # If the config parameters are changed, it's too risky to just
+  # restart the cluster - this could happen on all cluster nodes at a
+  # similar time and cause a significant outage.  Fortunately it's
+  # possible to instead reload the config whilst keeping corosync running,
+  # via corosync-cfgtool -R.
+end
+
+execute "reload corosync.conf" do
+  # corosync-cfgtool -R reloads the configuration across ALL the nodes in the
+  # cluster - each reloading its own local configuration file. This means that
+  # running this command on a cluster with n nodes results in n^2 reloads.
+  # Given that the reloads might happen while some of the nodes still having
+  # the old configuration, this approach is not valid for updating nodelist
+  # or votequorum parameters, but should work for amending token timeouts.
+  # Ideally we would synchronize between all nodes after the config files are
+  # updated, and then just run the reload on a single node, but we can only
+  # achieve that when the proposal is being applied, and we need something
+  # which works with the convergence runs.
+  command "corosync-cfgtool -R"
+  user "root"
+  group "root"
+  action :nothing
+  subscribes :run, "template[/etc/corosync/corosync.conf]", :delayed
 end
