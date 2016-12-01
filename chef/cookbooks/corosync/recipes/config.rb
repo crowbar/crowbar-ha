@@ -68,5 +68,5 @@ execute "reload corosync.conf" do
   user "root"
   group "root"
   action :nothing
-  subscribes :run, "template[/etc/corosync/corosync.conf]", :immediately
+  subscribes :run, "template[/etc/corosync/corosync.conf]", :delayed
 end
