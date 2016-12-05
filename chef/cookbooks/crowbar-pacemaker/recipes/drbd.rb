@@ -17,54 +17,8 @@
 # limitations under the License.
 #
 
-claim_string = "LVM_DRBD"
 lvm_group = "drbd"
-lvm_disk = nil
-
-unclaimed_disks = BarclampLibrary::Barclamp::Inventory::Disk.unclaimed(node).sort
-claimed_disks = BarclampLibrary::Barclamp::Inventory::Disk.claimed(node, claim_string).sort
-
-if claimed_disks.empty? and not unclaimed_disks.empty?
-  unclaimed_disks.each do |disk|
-    if disk.claim(claim_string)
-      Chef::Log.info("#{claim_string}: Claimed #{disk.name}")
-      lvm_disk = disk
-      break
-    else
-      Chef::Log.info("#{claim_string}: Ignoring #{disk.name}")
-    end
-  end
-else
-  lvm_disk = claimed_disks.first
-end
-
-if lvm_disk.nil?
-  message = "There is no suitable disk for LVM for DRBD!"
-  Chef::Log.fatal(message)
-  raise message
-end
-
-# SLE11 only
-if node[:platform] == "suse" && node[:platform_version].to_f < 12.0
-  # Make sure that LVM is setup on boot
-  service "boot.lvm" do
-    action [:enable]
-  end
-end
-
-include_recipe "lvm::default"
-
-lvm_physical_volume lvm_disk.name
-
-lvm_volume_group lvm_group do
-  physical_volumes [lvm_disk.name]
-end
-
-include_recipe "drbd::install"
-include_recipe "drbd::config"
 
 crowbar_pacemaker_drbd_create_internal "create drbd resources" do
   lvm_group lvm_group
 end
-
-include_recipe "drbd::default"

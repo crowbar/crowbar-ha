@@ -73,7 +73,7 @@ node[:pacemaker][:platform][:resource_packages][:openstack].each do |pkg|
 end
 
 if node[:pacemaker][:drbd][:enabled]
-  include_recipe "crowbar-pacemaker::drbd"
+  include_recipe "crowbar-pacemaker::drbd_setup"
 end
 
 node[:pacemaker][:attributes].each do |attr, value|
