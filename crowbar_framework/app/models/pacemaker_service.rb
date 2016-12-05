@@ -368,11 +368,6 @@ class PacemakerService < ServiceObject
     role.default_attributes["corosync"]["members"] = member_nodes.map{ |n| n.get_network_by_type("admin")["address"] }
     role.default_attributes["corosync"]["transport"] = role.default_attributes["pacemaker"]["corosync"]["transport"]
 
-    role.default_attributes["drbd"] ||= {}
-    role.default_attributes["drbd"]["common"] ||= {}
-    role.default_attributes["drbd"]["common"]["net"] ||= {}
-    role.default_attributes["drbd"]["common"]["net"]["shared_secret"] = role.default_attributes["pacemaker"]["drbd"]["shared_secret"]
-
     case role.default_attributes["pacemaker"]["corosync"]["require_clean_for_autostart_wrapper"]
     when "auto"
       role.default_attributes["corosync"]["require_clean_for_autostart"] = (members.length == 2)
@@ -385,6 +380,12 @@ class PacemakerService < ServiceObject
     end
 
     preserve_existing_password(role, old_role)
+
+    # set drbd attributes based on what we got in the proposal
+    role.default_attributes["drbd"] ||= {}
+    role.default_attributes["drbd"]["common"] ||= {}
+    role.default_attributes["drbd"]["common"]["net"] ||= {}
+    role.default_attributes["drbd"]["common"]["net"]["shared_secret"] = role.default_attributes["pacemaker"]["drbd"]["shared_secret"]
 
     role.save
 
