@@ -85,6 +85,5 @@ node[:pacemaker][:attributes].each do |attr, value|
   end
 end
 
-include_recipe "crowbar-pacemaker::haproxy"
 include_recipe "crowbar-pacemaker::maintenance-mode"
 include_recipe "crowbar-pacemaker::mutual_ssh"
