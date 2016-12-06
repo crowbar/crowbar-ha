@@ -60,17 +60,7 @@ crowbar_pacemaker_sync_mark "create-pacemaker_setup" do
   revision node[:pacemaker]["crowbar-revision"]
 end
 
-# if we ever want to not have a hard dependency on openstack here, we can have
-# Crowbar set a node[:pacemaker][:resource_agents] attribute based on available
-# barclamps, and do:
-# node[:pacemaker][:resource_agents].each do |resource_agent|
-#   node[:pacemaker][:platform][:resource_packages][resource_agent].each do |pkg|
-#     package pkg
-#   end
-# end
-node[:pacemaker][:platform][:resource_packages][:openstack].each do |pkg|
-  package pkg
-end
+include_recipe "crowbar-pacemaker::openstack"
 
 if node[:pacemaker][:drbd][:enabled]
   include_recipe "crowbar-pacemaker::drbd_setup"
