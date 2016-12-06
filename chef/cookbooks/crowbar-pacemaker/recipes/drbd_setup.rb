@@ -24,7 +24,7 @@ lvm_disk = nil
 unclaimed_disks = BarclampLibrary::Barclamp::Inventory::Disk.unclaimed(node).sort
 claimed_disks = BarclampLibrary::Barclamp::Inventory::Disk.claimed(node, claim_string).sort
 
-if claimed_disks.empty? and not unclaimed_disks.empty?
+if claimed_disks.empty? && !unclaimed_disks.empty?
   unclaimed_disks.each do |disk|
     if disk.claim(claim_string)
       Chef::Log.info("#{claim_string}: Claimed #{disk.name}")
