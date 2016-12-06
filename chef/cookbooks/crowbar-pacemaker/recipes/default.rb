@@ -60,15 +60,7 @@ crowbar_pacemaker_sync_mark "create-pacemaker_setup" do
   revision node[:pacemaker]["crowbar-revision"]
 end
 
-node[:pacemaker][:attributes].each do |attr, value|
-  execute %(set pacemaker attribute "#{attr}" to "#{value}") do
-    command %(crm node attribute #{node[:hostname]} set "#{attr}" "#{value}")
-    # The cluster only does a transition if the attribute value changes,
-    # so checking the value before setting would only slow things down
-    # for no benefit.
-  end
-end
-
+include_recipe "crowbar-pacemaker::attributes"
 include_recipe "crowbar-pacemaker::maintenance-mode"
 include_recipe "crowbar-pacemaker::mutual_ssh"
 
