@@ -385,7 +385,8 @@ class PacemakerService < ServiceObject
     role.default_attributes["drbd"] ||= {}
     role.default_attributes["drbd"]["common"] ||= {}
     role.default_attributes["drbd"]["common"]["net"] ||= {}
-    role.default_attributes["drbd"]["common"]["net"]["shared_secret"] = role.default_attributes["pacemaker"]["drbd"]["shared_secret"]
+    role.default_attributes["drbd"]["common"]["net"]["shared_secret"] = \
+      role.default_attributes["pacemaker"]["drbd"]["shared_secret"]
 
     # translate crowbar-specific stonith methods to proper attributes
     prepare_stonith_attributes(role, remote_nodes, member_nodes, remotes, members)
