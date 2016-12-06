@@ -27,12 +27,6 @@ node[:corosync][:cluster_name] = CrowbarPacemakerHelper.cluster_name(node)
 
 if node[:pacemaker][:stonith][:mode] == "sbd"
   include_recipe "crowbar-pacemaker::sbd"
-
-  stonith_node_name = "remote-#{node[:hostname]}"
-  if node[:pacemaker][:stonith][:sbd][:nodes][node[:fqdn]][:slot_name] != stonith_node_name
-    node[:pacemaker][:stonith][:sbd][:nodes][node[:fqdn]][:slot_name] = stonith_node_name
-    node.save
-  end
 end
 
 include_recipe "crowbar-pacemaker::pacemaker_authkey"

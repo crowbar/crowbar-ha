@@ -689,9 +689,14 @@ class PacemakerService < ServiceObject
   def prepare_stonith_attributes(role, remote_nodes, member_nodes, remotes, members)
     cluster_nodes = member_nodes + remote_nodes
     stonith_attributes = role.default_attributes["pacemaker"]["stonith"]
+
     case stonith_attributes["mode"]
     when "sbd"
-      # Nothing to do
+      # Need to fix the slot name for remote nodes
+      remote_nodes.each do |remote_node|
+        stonith_node_name = pacemaker_node_name(remote_node, remotes)
+        stonith_attributes["sbd"]["nodes"][remote_node[:fqdn]]["slot_name"] = stonith_node_name
+      end
 
     when "shared"
       # Need to add the hostlist param for shared
