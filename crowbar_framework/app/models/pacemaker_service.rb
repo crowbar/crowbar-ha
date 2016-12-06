@@ -502,6 +502,9 @@ class PacemakerService < ServiceObject
       validation_error I18n.t(
         "barclamp.#{bc_name}.validation.missing_fencing_agent_params"
       ) if params.blank?
+      validation_error I18n.t(
+        "barclamp.#{bc_name}.validation.shared_params_no_hostlist"
+      ) if params =~ /^hostlist=|\shostlist=/
     when "per_node"
       agent = stonith_attributes["per_node"]["agent"]
       nodes = stonith_attributes["per_node"]["nodes"]
