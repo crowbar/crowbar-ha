@@ -38,11 +38,11 @@ end
 include_recipe "crowbar-pacemaker::pacemaker_authkey"
 include_recipe "pacemaker::remote"
 
-include_recipe "crowbar-pacemaker::openstack"
-
 ruby_block "mark node as ready for pacemaker_remote" do
   block do
     node[:pacemaker][:remote_setup] = true
     node.save
   end
 end
+
+include_recipe "crowbar-pacemaker::openstack"

@@ -60,12 +60,6 @@ crowbar_pacemaker_sync_mark "create-pacemaker_setup" do
   revision node[:pacemaker]["crowbar-revision"]
 end
 
-include_recipe "crowbar-pacemaker::openstack"
-
-if node[:pacemaker][:drbd][:enabled]
-  include_recipe "crowbar-pacemaker::drbd_setup"
-end
-
 node[:pacemaker][:attributes].each do |attr, value|
   execute %(set pacemaker attribute "#{attr}" to "#{value}") do
     command %(crm node attribute #{node[:hostname]} set "#{attr}" "#{value}")
@@ -77,3 +71,9 @@ end
 
 include_recipe "crowbar-pacemaker::maintenance-mode"
 include_recipe "crowbar-pacemaker::mutual_ssh"
+
+include_recipe "crowbar-pacemaker::openstack"
+
+if node[:pacemaker][:drbd][:enabled]
+  include_recipe "crowbar-pacemaker::drbd_setup"
+end
