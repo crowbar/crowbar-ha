@@ -60,17 +60,6 @@ action :create do
   end
   p.run_action(:run)
 
-  if p.updated_by_last_action?
-    # we would usually do something like:
-    #    notifies :restart, "service[drbd]", :immediately
-    # in the execute above; but the notification doesn't work (probably because
-    # we're already in a LWRP). So we hack around this.
-    service "drbd(#{name})" do
-      service_name "drbd"
-      action :nothing
-    end.run_action(:restart)
-  end
-
   overview = DrbdOverview.get(name)
   if !overview.nil? && overview["state"] != "Unconfigured" && overview["primary"].nil?
     # claim primary based off of master

@@ -68,8 +68,6 @@ crowbar_pacemaker_drbd_create_internal "create drbd resources" do
 end
 
 # Disable drbd as it should never be started on boot (pacemaker should do it)
-# However, start it because on initial setup, we currently require drbd to be
-# running.
 service "drbd" do
-  action [:disable, :start]
+  action :disable
 end
