@@ -681,6 +681,9 @@ class PacemakerService < ServiceObject
     cluster_nodes = member_nodes + remote_nodes
     stonith_attributes = role_attributes["stonith"]
 
+    # still make the original mode available
+    stonith_attributes["crowbar_mode"] = stonith_attributes["mode"]
+
     case stonith_attributes["mode"]
     when "sbd"
       # Need to fix the slot name for remote nodes

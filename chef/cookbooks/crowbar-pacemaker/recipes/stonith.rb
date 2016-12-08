@@ -43,7 +43,7 @@ else
   node[:pacemaker][:stonith][:per_node][:mode] = "self"
 end
 
-case node[:pacemaker][:stonith][:mode]
+case node[:pacemaker][:stonith][:crowbar_mode]
 when "sbd"
   include_recipe "crowbar-pacemaker::sbd"
 when "shared"
