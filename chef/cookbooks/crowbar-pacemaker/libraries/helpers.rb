@@ -297,4 +297,12 @@ module CrowbarPacemakerHelper
 
     servers
   end
+
+  # Helper method to provides a convenient way to create Pacemaker
+  # location constraints which limit resources to only run on node that has already been upgraded
+  def self.upgraded_only_location(location, service)
+    # resource-discovery=exclusive means that Pacemaker will detect
+    # if a resource is running where it shouldn't be (i.e. on a pre-upgrade node), and then stop it
+    "location #{location} #{service} resource-discovery=exclusive rule 0: pre-upgrade eq false"
+  end
 end
