@@ -154,7 +154,8 @@ class PacemakerService < ServiceObject
         end
 
         expanded_nodes.sort!
-        old_expanded_nodes = deployment["elements_expanded"][role_name].sort
+        old_expanded_nodes = deployment["elements_expanded"][role_name] || []
+        old_expanded_nodes.sort!
 
         if old_expanded_nodes != expanded_nodes
           deployment["elements_expanded"][role_name] = expanded_nodes
