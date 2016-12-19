@@ -34,6 +34,7 @@ node["drbd"]["rsc"].keys.sort.each do |resource_name|
     action :create
   end
 
-  node["drbd"]["rsc"][resource_name]["configured"] = true
+  # we know we have to save due to the "next" earlier on
+  node.set["drbd"]["rsc"][resource_name]["configured"] = true
   node.save
 end
