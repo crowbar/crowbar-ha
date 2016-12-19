@@ -32,16 +32,28 @@ end
 #
 # The only exception is the remote nodes, which can't setup resources. So we
 # kindly ask the founder node to deal with configuring their STONITH resources.
+dirty = false
+
 if CrowbarPacemakerHelper.is_cluster_founder?(node)
   node_list = [pacemaker_node_name(node)]
   remotes = CrowbarPacemakerHelper.remote_nodes(node).map { |n| pacemaker_node_name(n) }
   node_list.concat(remotes)
 
-  node[:pacemaker][:stonith][:per_node][:mode] = "list"
-  node[:pacemaker][:stonith][:per_node][:list] = node_list
+  per_node_mode = "list"
+  if node[:pacemaker][:stonith][:per_node][:list] != node_list
+    node.set[:pacemaker][:stonith][:per_node][:list] = node_list
+    dirty = true
+  end
 else
-  node[:pacemaker][:stonith][:per_node][:mode] = "self"
+  per_node_mode = "self"
 end
+
+if node[:pacemaker][:stonith][:per_node][:mode] != per_node_mode
+  node.set[:pacemaker][:stonith][:per_node][:mode] = per_node_mode
+  dirty = true
+end
+
+node.save if dirty
 
 case node[:pacemaker][:stonith][:crowbar_mode]
 when "sbd"
