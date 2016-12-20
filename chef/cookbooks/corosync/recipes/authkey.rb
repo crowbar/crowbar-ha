@@ -28,16 +28,12 @@ if cluster_name.nil? || cluster_name.empty?
   return
 end
 
-# Find pre-existing authkey on other node(s)
-query  = "chef_environment:#{node.chef_environment}"
-query += " AND corosync_cluster_name:#{cluster_name}"
-
 # FIXME: move this Crowbar-specific code into the crowbar-pacemaker cookbook
 is_crowbar = !(node[:crowbar].nil?)
 authkey_node = nil
 
 if is_crowbar
-  if node[:pacemaker][:founder]
+  if node[:pacemaker][:founder] == node[:fqdn]
     if node[:corosync][:authkey].nil?
       include_recipe "corosync::authkey_generator"
     else
@@ -45,13 +41,17 @@ if is_crowbar
       include_recipe "corosync::authkey_writer"
     end
   else
-    query += " AND pacemaker_founder:true AND pacemaker_config_environment:#{node[:pacemaker][:config][:environment]}"
-    founder_nodes = search(:node, query)
-    raise "No founder node found!" if founder_nodes.length == 0
-    raise "Multiple founder nodes found!" if founder_nodes.length > 1
-    authkey_node = founder_nodes[0]
+    begin
+      authkey_node = Node.load(node[:pacemaker][:founder])
+    rescue Net::HTTPServerException => e
+      raise "No cluster founder found!" if e.response.code == "404"
+      raise e
+    end
   end
 else
+  # Find pre-existing authkey on other node(s)
+  query  = "chef_environment:#{node.chef_environment}"
+  query += " AND corosync_cluster_name:#{cluster_name}"
   query += " AND corosync:authkey"
 
   log("search query: #{query}")
