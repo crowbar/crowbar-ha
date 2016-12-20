@@ -301,61 +301,43 @@ class PacemakerService < ServiceObject
     remotes = role.override_attributes[@bc_name]["elements"]["pacemaker-remote"] || []
     remote_nodes = remotes.map { |n| NodeObject.find_node_by_name n }
 
+    founder_name = nil
+    founder = nil
+
     # elect a founder
     unless members.empty?
-      founder = nil
-
       # try to re-use founder that was part of old role, or if missing, another
       # node part of the old role (since it's already part of the pacemaker
       # cluster)
       unless old_role.nil?
-        old_members = old_role.override_attributes[@bc_name]["elements"]["pacemaker-cluster-member"]
-        old_members = old_members.select { |n| members.include? n }
-        old_nodes = old_members.map { |n| NodeObject.find_node_by_name n }
-        old_nodes.each do |old_node|
-          if (old_node[:pacemaker][:founder] rescue false) == true
-            founder = old_node
-            break
-          end
-        end
+        old_founder_name = old_role.default_attributes["pacemaker"]["founder"]
+        founder_name = old_founder_name if members.include?(old_founder_name)
 
         # the founder from the old role is not there anymore; let's promote
         # another node to founder, so we get the same authkey
-        if founder.nil?
-          founder = old_nodes.first
+        if founder_name.nil?
+          old_members = old_role.override_attributes[@bc_name]["elements"]["pacemaker-cluster-member"]
+          old_members = old_members.select { |n| members.include? n }
+          founder_name = old_members.first
         end
       end
 
       # Still nothing, there are two options:
       #  - there was nothing in common with the old role (we will want to just
       #    take one node)
-      #  - the proposal was deactivated (but we still had a founder before that
-      #    we want to keep)
-      if founder.nil?
-        member_nodes.each do |member_node|
-          if (member_node[:pacemaker][:founder] rescue false) == true
-            founder = member_node
-            break
-          end
-        end
+      #  - the proposal was deactivated (in which case we lost the info on
+      #    which node was the founder, but that's no big issue)
+      # Let's just take the first node as founder
+      if founder_name.nil?
+        founder_name = members.first
       end
 
-      # nothing worked; just take the first node as founder
-      if founder.nil?
-        founder = member_nodes.first
-      end
-
-      member_nodes.each do |member_node|
-        member_node[:pacemaker] ||= {}
-        is_founder = (member_node.name == founder.name)
-        if is_founder != member_node[:pacemaker][:founder]
-          member_node[:pacemaker][:founder] = is_founder
-          member_node.save
-        end
-      end
+      founder = member_nodes.find { |n| n.name == founder_name }
 
       PacemakerServiceObject.reset_sync_marks_on_cluster_founder(founder, role.inst)
     end
+
+    role.default_attributes["pacemaker"]["founder"] = founder_name
 
     # set corosync attributes based on what we got in the proposal
     admin_net = founder.get_network_by_type("admin")

@@ -16,15 +16,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-
-# Depending on how crowbar orchestrate things, a non-founder node might reach
-# this code while the founder node has not its attributes indexed yet on the
-# server side. This only happens the very first time (which is when we don't
-# even have an auth key); on next runs, we know we're good.
-if node[:corosync][:authkey].nil?
-  include_recipe "crowbar-pacemaker::wait_for_founder"
-end
-
 node.normal[:corosync][:cluster_name] = CrowbarPacemakerHelper.cluster_name(node)
 node.normal[:corosync][:bind_addr] = Barclamp::Inventory.get_network_by_type(node, "admin").address
 
