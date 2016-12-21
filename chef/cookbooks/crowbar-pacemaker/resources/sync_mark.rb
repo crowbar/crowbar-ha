@@ -23,9 +23,8 @@ default_action :guess
 #
 # with no attribute.
 #
-# This will guess the desired action based on the name, the desired mark based
-# on the name, and the revision, based on the
-# node[cookbook_name]["crowbar-revision"] attribute.
+# This will guess the desired action based on the name, and the desired mark
+# based on the name.
 #
 # For instance, calling this from the keystone barclamp:
 #
@@ -35,15 +34,11 @@ default_action :guess
 #
 #   crowbar_pacemaker_sync_mark "my sync mark for keystone" do
 #     mark "keystone_pki"
-#     revision node["keystone"]["crowbar-revision"]
 #     action :wait
 #   end
 #
 # This assumes that the cookbook in question (e.g. 'keystone') has the
-# same name as the barclamp which contains it, and means that the
-# nodes will need to resynchronize on a new revision every time the
-# proposal is saved (since this updates the proposal role's
-# crowbar-revision number).
+# same name as the barclamp which contains it.
 
 # we cannot use mark as the name attribute because we generally will have two
 # resources: one for wait and one for create. However, we detect some magic
@@ -55,7 +50,7 @@ attribute :name,      kind_of: String,  name_attribute: true
 # paramater
 attribute :mark,      kind_of: String,  default: nil
 
-# this is optional in crowbar; the barclamp proposal revision will be used
+# deprecated
 attribute :revision,  kind_of: Integer, default: nil
 
 attribute :fatal,     kind_of: [TrueClass, FalseClass], default: true
