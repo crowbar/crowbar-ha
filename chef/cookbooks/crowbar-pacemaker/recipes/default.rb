@@ -17,6 +17,8 @@
 # limitations under the License.
 #
 
+require "timeout"
+
 node[:corosync][:cluster_name] = CrowbarPacemakerHelper.cluster_name(node)
 
 include_recipe "crowbar-pacemaker::quorum_policy"
@@ -27,17 +29,58 @@ include_recipe "crowbar-pacemaker::stonith"
 # chef run because the non-founder nodes will look during the compile phase for
 # the attribute, while the attribute is set during the convergence phase of the
 # founder node.
-# Note that resetting this sync mark should be avoided after the initial setup
-# is done: since wait is done during compile phase and create is done during
-# convergence phase, it can create a drift between the founder node and the
-# non-founder nodes.
-crowbar_pacemaker_sync_mark "wait-pacemaker_setup" do
-  revision node[:pacemaker]["crowbar-revision"]
-  # we use a longer timeout because the wait / create are in two different
+begin
+  # we use a long timeout because the wait / attribute-set are in two different
   # phases, and this wait is fatal in case of errors
-  timeout 120
-  fatal true
-end.run_action(:guess)
+  Timeout.timeout(120) do
+    Chef::Log.info("Waiting for cluster founder to be setup...")
+    loop do
+      founder = CrowbarPacemakerHelper.cluster_founder(node)
+      # be safe, in case the node doesn't have pacemaker attributes yet
+      # (depends on whether chef already started on it or not)
+      if founder.fetch(:pacemaker, {})[:setup]
+        if founder[:pacemaker][:reset_sync_marks]
+          Chef::Log.info("Cluster founder is resetting sync marks, waiting...")
+        else
+          Chef::Log.info("Cluster founder is setup, going on...")
+          break
+        end
+      else
+        Chef::Log.info("Cluster founder not setup yet, waiting...")
+      end
+      sleep(5)
+    end # while true
+  end # Timeout
+rescue Timeout::Error
+  raise "Cluster founder not setup!"
+end
+
+dirty = false
+
+# remove old-style sync marks (from <= 3.0 days)
+if node.normal_attrs[:pacemaker][:sync_marks]
+  # if founder, actually migrate all sync marks
+  if CrowbarPacemakerHelper.is_cluster_founder?(node)
+    CrowbarPacemakerHelper.cluster_nodes(node).each do |cluster_node|
+      CrowbarPacemakerSynchronization.migrate_sync_marks_v1(cluster_node)
+    end
+  end
+  node.normal_attrs[:pacemaker].delete(:sync_marks)
+  dirty = true
+end
+
+if CrowbarPacemakerHelper.is_cluster_founder?(node) &&
+    node[:pacemaker][:reset_sync_marks]
+  # we can't reset sync marks if the pacemaker stack is not setup...
+  if node[:pacemaker][:setup]
+    CrowbarPacemakerSynchronization.reset_marks(node)
+  end
+  # ... but we don't want to block the other nodes forever
+  node.set[:pacemaker][:reset_sync_marks]
+  dirty = true
+end
+
+node.save if dirty
 
 include_recipe "pacemaker::default"
 
@@ -48,8 +91,13 @@ include_recipe "crowbar-pacemaker::pacemaker_authkey"
 # saving the corosync authkey attribute is done in convergence phase for
 # founder (but reading the attribute is done in compile phase for non-founder
 # nodes) -- see the corosync::authkey_generator recipe.
-crowbar_pacemaker_sync_mark "create-pacemaker_setup" do
-  revision node[:pacemaker]["crowbar-revision"]
+ruby_block "mark node as ready for pacemaker" do
+  block do
+    unless node[:pacemaker][:setup]
+      node.set[:pacemaker][:setup] = true
+      node.save
+    end
+  end
 end
 
 include_recipe "crowbar-pacemaker::attributes"

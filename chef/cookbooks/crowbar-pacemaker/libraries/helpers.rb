@@ -189,6 +189,23 @@ module CrowbarPacemakerHelper
       end
   end
 
+  # Returns an Array of names matching each corosync node in the same cluster
+  # as the given node, or an empty array if the node isn't in a cluster.
+  def self.cluster_nodes_names(node)
+    return [] unless cluster_enabled?(node)
+
+    node[:pacemaker][:elements]["pacemaker-cluster-member"].map { |n| n.gsub(/\..*/, "") }
+  end
+
+  # Returns the founder name of the cluster the current node belongs to, or nil
+  # if the current node is not part of a cluster
+  def self.cluster_founder_name(node)
+    return nil unless cluster_enabled?(node)
+
+    # we want the short hostname
+    node[:pacemaker][:founder].gsub(/\..*/, "")
+  end
+
   # Returns an Array with two elements:
   #
   # 1. An Array of Hashes representing haproxy backend servers,
