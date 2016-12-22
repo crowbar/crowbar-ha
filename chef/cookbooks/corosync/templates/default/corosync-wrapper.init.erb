@@ -1,9 +1,9 @@
 #! /bin/sh
 #
-# /etc/init.d/<%= @service_name %>-shutdown
+# /etc/init.d/<%= @service_name %>-wrapper
 #
 ### BEGIN INIT INFO
-# Provides:          <%= @service_name %>-shutdown
+# Provides:          <%= @service_name %>-wrapper
 # Required-Start:    $local_fs
 # Should-Start:      $null
 # Required-Stop:     $null
@@ -11,7 +11,7 @@
 # X-Stop-After:      <%= @service_name %>
 # Default-Start:     3 5
 # Default-Stop:      0 6
-# Description:       Clean file blocking <%= @service_name %> start after fencing
+# Description:       Wrapper for <%= @service_name %> to avoid fencing loops
 ### END INIT INFO
 
 . /etc/rc.status
@@ -20,7 +20,13 @@ rc_reset
 
 case "$1" in
   start)
-        rc_status -v
+        if test -e <%= @block_corosync_file %>; then
+          rc_failed 1
+          rc_status -v
+        else
+          service <%= @service_name %> start
+          rc_status -v
+        fi
         ;;
   stop)
         service <%= @service_name %> stop && rm -f <%= @block_corosync_file %>
