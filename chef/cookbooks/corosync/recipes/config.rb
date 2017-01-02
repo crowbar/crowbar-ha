@@ -56,8 +56,17 @@ template "/etc/corosync/corosync.conf" do
     transport: node[:corosync][:transport]
   )
 
-  service_name = node[:pacemaker][:platform][:service_name] rescue nil
-  if service_name
-    notifies :restart, "service[#{service_name}]"
-  end
+  # If the config parameters are changed, it's too risky to just
+  # restart the cluster - this could happen on all cluster nodes at a
+  # similar time and cause a significant outage.  Fortunately it's
+  # possible to instead reload the config whilst keeping corosync running,
+  # via corosync-cfgtool -R.
+end
+
+execute "reload corosync.conf" do
+  command "corosync-cfgtool -R"
+  user "root"
+  group "root"
+  action :nothing
+  subscribes :run, "template[/etc/corosync/corosync.conf]", :delayed
 end
