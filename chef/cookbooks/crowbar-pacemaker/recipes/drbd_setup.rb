@@ -62,5 +62,10 @@ end
 
 include_recipe "drbd::install"
 include_recipe "drbd::config"
-# this will start drbd
-include_recipe "drbd::default"
+
+# Disable drbd as it should never be started on boot (pacemaker should do it)
+# However, start it because on initial setup, we currently require drbd to be
+# running.
+service "drbd" do
+  action [:disable, :start]
+end
