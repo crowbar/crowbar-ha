@@ -1,8 +1,9 @@
 #
+# Author:: Vincent Untz
 # Cookbook Name:: crowbar-pacemaker
-# Recipe:: drbd
+# Recipe:: attributes
 #
-# Copyright 2014, SUSE
+# Copyright 2016, SUSE
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,8 +18,11 @@
 # limitations under the License.
 #
 
-lvm_group = "drbd"
-
-crowbar_pacemaker_drbd_create_internal "create drbd resources" do
-  lvm_group lvm_group
+node[:pacemaker][:attributes].each do |attr, value|
+  execute %(set pacemaker attribute "#{attr}" to "#{value}") do
+    command %(crm node attribute #{node[:hostname]} set "#{attr}" "#{value}")
+    # The cluster only does a transition if the attribute value changes,
+    # so checking the value before setting would only slow things down
+    # for no benefit.
+  end
 end

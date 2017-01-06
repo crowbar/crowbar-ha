@@ -1,8 +1,9 @@
 #
+# Author:: Vincent Untz
 # Cookbook Name:: crowbar-pacemaker
-# Recipe:: drbd
+# Recipe:: openstack
 #
-# Copyright 2014, SUSE
+# Copyright 2016, SUSE
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,8 +18,14 @@
 # limitations under the License.
 #
 
-lvm_group = "drbd"
-
-crowbar_pacemaker_drbd_create_internal "create drbd resources" do
-  lvm_group lvm_group
+# if we ever want to not have a hard dependency on openstack here, we can have
+# Crowbar set a node[:pacemaker][:resource_agents] attribute based on available
+# barclamps, and do:
+# node[:pacemaker][:resource_agents].each do |resource_agent|
+#   node[:pacemaker][:platform][:resource_packages][resource_agent].each do |pkg|
+#     package pkg
+#   end
+# end
+node[:pacemaker][:platform][:resource_packages][:openstack].each do |pkg|
+  package pkg
 end

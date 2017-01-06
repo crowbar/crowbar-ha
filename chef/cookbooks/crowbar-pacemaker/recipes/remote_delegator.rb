@@ -50,14 +50,6 @@ CrowbarPacemakerHelper.remote_nodes(node, true).each do |remote|
     action :commit_new
     only_if { CrowbarPacemakerHelper.is_cluster_founder?(node) }
   end
-
-  remote[:pacemaker][:attributes].each do |attr, value|
-    execute %(set pacemaker attribute "#{attr}" to "#{value}" on remote #{remote[:hostname]}) do
-      command %(crm node attribute remote-#{remote[:hostname]} set "#{attr}" "#{value}")
-      # The cluster only does a transition if the attribute value changes,
-      # so checking the value before setting would only slow things down
-      # for no benefit.
-      only_if { CrowbarPacemakerHelper.is_cluster_founder?(node) }
-    end
-  end
 end
+
+include_recipe "crowbar-pacemaker::remote_attributes"

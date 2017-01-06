@@ -60,31 +60,12 @@ crowbar_pacemaker_sync_mark "create-pacemaker_setup" do
   revision node[:pacemaker]["crowbar-revision"]
 end
 
-# if we ever want to not have a hard dependency on openstack here, we can have
-# Crowbar set a node[:pacemaker][:resource_agents] attribute based on available
-# barclamps, and do:
-# node[:pacemaker][:resource_agents].each do |resource_agent|
-#   node[:pacemaker][:platform][:resource_packages][resource_agent].each do |pkg|
-#     package pkg
-#   end
-# end
-node[:pacemaker][:platform][:resource_packages][:openstack].each do |pkg|
-  package pkg
-end
-
-if node[:pacemaker][:drbd][:enabled]
-  include_recipe "crowbar-pacemaker::drbd"
-end
-
-node[:pacemaker][:attributes].each do |attr, value|
-  execute %(set pacemaker attribute "#{attr}" to "#{value}") do
-    command %(crm node attribute #{node[:hostname]} set "#{attr}" "#{value}")
-    # The cluster only does a transition if the attribute value changes,
-    # so checking the value before setting would only slow things down
-    # for no benefit.
-  end
-end
-
-include_recipe "crowbar-pacemaker::haproxy"
+include_recipe "crowbar-pacemaker::attributes"
 include_recipe "crowbar-pacemaker::maintenance-mode"
 include_recipe "crowbar-pacemaker::mutual_ssh"
+
+include_recipe "crowbar-pacemaker::openstack"
+
+if node[:pacemaker][:drbd][:enabled]
+  include_recipe "crowbar-pacemaker::drbd_setup"
+end
