@@ -55,11 +55,11 @@ action :create do
 
   # first pass only, initialize drbd
   # for disks re-usage from old resources we will run with force option
-  p = execute "drbdadm -- --force create-md #{name}" do
+  drbdadm_create_md = execute "drbdadm -- --force create-md #{name}" do
     only_if { drbd_resource_template.updated_by_last_action? }
     action :nothing
   end
-  p.run_action(:run)
+  drbdadm_create_md.run_action(:run)
 
   drbdadm_up = execute "drbdadm up #{name}" do
     only_if { drbd_resource_template.updated_by_last_action? }
