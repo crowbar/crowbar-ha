@@ -389,7 +389,8 @@ class PacemakerService < ServiceObject
       role.default_attributes["pacemaker"]["drbd"]["shared_secret"]
 
     # translate crowbar-specific stonith methods to proper attributes
-    prepare_stonith_attributes(role, remote_nodes, member_nodes, remotes, members)
+    prepare_stonith_attributes(role.default_attributes["pacemaker"],
+                               remote_nodes, member_nodes, remotes, members)
 
     role.save
 
@@ -676,20 +677,9 @@ class PacemakerService < ServiceObject
     super
   end
 
-  private
-
-  def pacemaker_node_name(node, remotes)
-    remotes ||= []
-    if remotes.include?(node.name)
-      "remote-#{node["hostname"]}"
-    else
-      node["hostname"]
-    end
-  end
-
-  def prepare_stonith_attributes(role, remote_nodes, member_nodes, remotes, members)
+  def prepare_stonith_attributes(role_attributes, remote_nodes, member_nodes, remotes, members)
     cluster_nodes = member_nodes + remote_nodes
-    stonith_attributes = role.default_attributes["pacemaker"]["stonith"]
+    stonith_attributes = role_attributes["stonith"]
 
     case stonith_attributes["mode"]
     when "sbd"
@@ -771,6 +761,17 @@ class PacemakerService < ServiceObject
         stonith_attributes["per_node"]["nodes"][stonith_node_name] ||= {}
         stonith_attributes["per_node"]["nodes"][stonith_node_name]["params"] = params
       end
+    end
+  end
+
+  private
+
+  def pacemaker_node_name(node, remotes)
+    remotes ||= []
+    if remotes.include?(node.name)
+      "remote-#{node["hostname"]}"
+    else
+      node["hostname"]
     end
   end
 end
