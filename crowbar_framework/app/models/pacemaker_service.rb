@@ -456,10 +456,11 @@ class PacemakerService < ServiceObject
       nodes = stonith_attributes["sbd"]["nodes"]
 
       members.each do |member|
+        next if nodes.key?(member)
         validation_error I18n.t(
           "barclamp.#{@bc_name}.validation.missing_sbd_device",
           member: member
-        ) unless nodes.key?(member)
+        )
       end
 
       sbd_devices_nb = -1
@@ -478,10 +479,12 @@ class PacemakerService < ServiceObject
           end
 
           devices = node_devices.select{ |d| !d.empty? }
-          validation_error I18n.t(
-            "barclamp.#{@bc_name}.validation.missing_sbd_for_node",
-            node_name: node_name
-          ) if devices.empty?
+          if devices.empty?
+            validation_error I18n.t(
+              "barclamp.#{@bc_name}.validation.missing_sbd_for_node",
+              node_name: node_name
+            )
+          end
 
           sbd_devices_nb = devices.length if sbd_devices_nb == -1
           sbd_devices_mismatch = true if devices.length != sbd_devices_nb
@@ -492,43 +495,56 @@ class PacemakerService < ServiceObject
           )
         end
       end
-      validation_error I18n.t(
-        "barclamp.#{@bc_name}.validation.same_number_of_devices"
-      ) if sbd_devices_mismatch
+      if sbd_devices_mismatch
+        validation_error I18n.t(
+          "barclamp.#{@bc_name}.validation.same_number_of_devices"
+        )
+      end
     when "shared"
       agent = stonith_attributes["shared"]["agent"]
       params = stonith_attributes["shared"]["params"]
-      validation_error I18n.t(
-        "barclamp.#{bc_name}.validation.missing_fencing_agent"
-      ) if agent.blank?
-      validation_error I18n.t(
-        "barclamp.#{bc_name}.validation.missing_fencing_agent_params"
-      ) if params.blank?
-      validation_error I18n.t(
-        "barclamp.#{bc_name}.validation.shared_params_no_hostlist"
-      ) if params =~ /^hostlist=|\shostlist=/
+      if agent.blank?
+        validation_error I18n.t(
+          "barclamp.#{bc_name}.validation.missing_fencing_agent"
+        )
+      end
+      if params.blank?
+        validation_error I18n.t(
+          "barclamp.#{bc_name}.validation.missing_fencing_agent_params"
+        )
+      end
+      if params =~ /^hostlist=|\shostlist=/
+        validation_error I18n.t(
+          "barclamp.#{bc_name}.validation.shared_params_no_hostlist"
+        )
+      end
     when "per_node"
       agent = stonith_attributes["per_node"]["agent"]
       nodes = stonith_attributes["per_node"]["nodes"]
 
-      validation_error I18n.t(
-        "barclamp.#{bc_name}.validation.missing_fencing_agent_per_node"
-      ) if agent.blank?
+      if agent.blank?
+        validation_error I18n.t(
+          "barclamp.#{bc_name}.validation.missing_fencing_agent_per_node"
+        )
+      end
 
       members.each do |member|
+        next if nodes.key?(member)
         validation_error I18n.t(
           "barclamp.#{bc_name}.validation.node_missing_fencing_params",
           member: member
-        ) unless nodes.key?(member)
+        )
       end
 
       nodes.keys.each do |node_name|
         if members.include? node_name
           params = nodes[node_name]["params"]
-          validation_error I18n.t(
-            "barclamp.#{bc_name}.validation.node_missing_fencing_params",
-            member: node_name
-          ) if params.blank?
+          if params.blank?
+            validation_error I18n.t(
+              "barclamp.#{bc_name}.validation.node_missing_fencing_params",
+              member: node_name
+            )
+          end
         else
           validation_error I18n.t(
             "barclamp.#{bc_name}.validation.fencing_agent_no_cluster",
