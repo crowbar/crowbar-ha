@@ -61,6 +61,12 @@ action :create do
   end
   p.run_action(:run)
 
+  drbdadm_up = execute "drbdadm up #{name}" do
+    only_if { drbd_resource_template.updated_by_last_action? }
+    action :nothing
+  end
+  drbdadm_up.run_action(:run)
+
   # claim primary based off of master
   execute "drbdadm -- --overwrite-data-of-peer primary #{name}" do
     only_if { drbd_resource_template.updated_by_last_action? && master }
