@@ -47,6 +47,10 @@ action :create do
   else
     section["mode"] = new_resource.mode
   end
+  unless new_resource.balance.empty?
+    section["balance"] = new_resource.balance
+  end
+
   section["options"] = new_resource.options || []
   if section["options"].empty? || section["options"].include?("defaults")
     section["options"].delete("defaults")

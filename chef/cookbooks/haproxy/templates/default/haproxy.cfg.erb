@@ -47,6 +47,10 @@ listen  admin-stats <%= node[:haproxy][:stats][:enabled] ? node[:haproxy][:stats
 	mode <%= content[:mode] %>
     <% end -%>
 
+    <% unless content[:balance].nil? -%>
+	balance <%= content[:balance] %>
+    <% end -%>
+
     <% content[:options].each do |option| -%>
 	option <%= option %>
     <% end -%>
