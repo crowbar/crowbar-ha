@@ -47,6 +47,9 @@ action :create do
   else
     section["mode"] = new_resource.mode
   end
+  unless new_resource.balance.empty?
+    section["balance"] = new_resource.balance
+  end
 
   section["stick"] = new_resource.stick
   section["stick"]["expire"] ||= "30m"
