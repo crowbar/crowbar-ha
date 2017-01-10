@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-actions :create
+actions :create, :wait
 default_action :create
 
 attribute :name,        kind_of: String,  name_attribute: true
