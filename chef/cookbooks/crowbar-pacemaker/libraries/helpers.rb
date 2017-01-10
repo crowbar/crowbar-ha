@@ -297,4 +297,30 @@ module CrowbarPacemakerHelper
 
     servers
   end
+
+  # Return a commonly appropriate hash for the meta attribute of a
+  # pacemaker_clone resource.
+  #
+  # Firstly, we set clone-max in many places to limit the number of
+  # clones to the number of corosync nodes, otherwise the UI would get
+  # noisy by showing inactive clone instances on remote nodes which
+  # the clones are constrained from running on.  Conversely we were
+  # also restricting the number of compute-only clones to the number
+  # of remote nodes, avoiding inactive clones showing on the corosync
+  # nodes.
+  #
+  # Secondly, we need to interleave the clones as per
+  #
+  #   https://bugzilla.suse.com/show_bug.cgi?id=965886
+  #
+  # so that if one clone instance needs to be stopped/restarted, it
+  # doesn't affect any of the other nodes:
+  #
+  #   https://www.hastexo.com/resources/hints-and-kinks/interleaving-pacemaker-clones/
+  def self.clone_meta(node, remote: false)
+    {
+      "clone-max" => remote ? num_remote_nodes(node) : num_corosync_nodes(node),
+      "interleave" => "true",
+    }
+  end
 end
