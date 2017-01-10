@@ -40,6 +40,9 @@ listen  admin-stats <%= node[:haproxy][:stats][:enabled] ? node[:haproxy][:stats
 <%= type %> <%= name %>
     bind <%= content[:address] %>:<%= content[:port] %>
 	mode <%= content[:mode] %>
+    <% unless content[:balance].nil? -%>
+	balance <%= content[:balance] %>
+    <% end -%>
 
     <% if content[:use_ssl] # http://blog.exceliance.fr/2011/07/04/maintain-affinity-based-on-ssl-session-id/ -%>
 	# maximum SSL session ID length is 32 bytes.
