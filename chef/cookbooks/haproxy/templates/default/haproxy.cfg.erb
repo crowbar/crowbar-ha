@@ -44,7 +44,7 @@ listen  admin-stats <%= node[:haproxy][:stats][:enabled] ? node[:haproxy][:stats
 
     <% if content[:use_ssl] # http://blog.exceliance.fr/2011/07/04/maintain-affinity-based-on-ssl-session-id/ -%>
 	# maximum SSL session ID length is 32 bytes.
-	stick-table type binary len 32 size 30k expire 30m
+	stick-table type binary len 32 size 30k expire <%= content[:stick][:expire] %>
 
 	acl clienthello req_ssl_hello_type 1
 	acl serverhello rep_ssl_hello_type 2
@@ -64,6 +64,17 @@ listen  admin-stats <%= node[:haproxy][:stats][:enabled] ? node[:haproxy][:stats
 
 	# Learn on response if server hello.
 	stick store-response payload_lv(43,1) if serverhello
+    <% elsif content[:mode] == "http" && content[:stick] && content[:stick][:cookie]
+       # There are various options here, described in:
+       # http://stackoverflow.com/questions/27094501/haproxy-1-5-8-how-do-i-configure-cookie-based-stickiness
+       # We go with the stick-table to avoid no-cache and exposing backends
+       # through cookies.
+       # Note that appsession is easier, but deprecated:
+       # http://serverfault.com/questions/550910/haproxy-appsession-vs-cookie-precedence
+        -%>
+	stick-table type string len 64 size 100k expire <%= content[:stick][:expire] %>
+	stick store-response res.cook(<%= content[:stick][:cookie] %>)
+	stick match req.cook(<%= content[:stick][:cookie] %>)
     <% end -%>
 
     <% content[:options].each do |option| -%>

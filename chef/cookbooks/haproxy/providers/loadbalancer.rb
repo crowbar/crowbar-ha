@@ -47,6 +47,10 @@ action :create do
   else
     section["mode"] = new_resource.mode
   end
+
+  section["stick"] = new_resource.stick
+  section["stick"]["expire"] ||= "30m"
+
   section["options"] = new_resource.options || []
   if section["options"].empty? || section["options"].include?("defaults")
     section["options"].delete("defaults")
