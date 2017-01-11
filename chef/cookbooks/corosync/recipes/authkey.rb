@@ -69,7 +69,9 @@ unless authkey_node.nil?
   log("Using corosync authkey from node: #{authkey_node.name}")
   authkey = authkey_node[:corosync][:authkey]
 
-  node.set[:corosync][:authkey] = authkey
-  node.save
+  if node[:corosync][:authkey] != authkey
+    node.set[:corosync][:authkey] = authkey
+    node.save
+  end
   include_recipe "corosync::authkey_writer"
 end

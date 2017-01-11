@@ -63,7 +63,8 @@ action :create do
       action :nothing
     end.run_action(:create)
 
-    node["drbd"]["rsc"][resource_name]["configured"] = true
+    # we know we have to save due to the "next" earlier on
+    node.set["drbd"]["rsc"][resource_name]["configured"] = true
     node.save
   end
 

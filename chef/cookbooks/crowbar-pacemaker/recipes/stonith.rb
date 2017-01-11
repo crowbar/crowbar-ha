@@ -37,11 +37,23 @@ if CrowbarPacemakerHelper.is_cluster_founder?(node)
   remotes = CrowbarPacemakerHelper.remote_nodes(node).map { |n| pacemaker_node_name(n) }
   node_list.concat(remotes)
 
-  node[:pacemaker][:stonith][:per_node][:mode] = "list"
-  node[:pacemaker][:stonith][:per_node][:list] = node_list
+  per_node_mode = "list"
+  per_node_list = node_list
 else
-  node[:pacemaker][:stonith][:per_node][:mode] = "self"
+  per_node_mode = "self"
+  per_node_list = [pacemaker_node_name(node)]
 end
+
+dirty = false
+if node[:pacemaker][:stonith][:per_node][:mode] != per_node_mode
+  node.set[:pacemaker][:stonith][:per_node][:mode] = per_node_mode
+  dirty = true
+end
+if node[:pacemaker][:stonith][:per_node][:list] != per_node_list
+  node.set[:pacemaker][:stonith][:per_node][:list] = per_node_list
+  dirty = true
+end
+node.save if dirty
 
 case node[:pacemaker][:stonith][:mode]
 when "sbd"

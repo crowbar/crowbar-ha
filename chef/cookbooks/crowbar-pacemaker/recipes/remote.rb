@@ -30,7 +30,7 @@ if node[:pacemaker][:stonith][:mode] == "sbd"
 
   stonith_node_name = "remote-#{node[:hostname]}"
   if node[:pacemaker][:stonith][:sbd][:nodes][node[:fqdn]][:slot_name] != stonith_node_name
-    node[:pacemaker][:stonith][:sbd][:nodes][node[:fqdn]][:slot_name] = stonith_node_name
+    node.set[:pacemaker][:stonith][:sbd][:nodes][node[:fqdn]][:slot_name] = stonith_node_name
     node.save
   end
 end
@@ -40,8 +40,10 @@ include_recipe "pacemaker::remote"
 
 ruby_block "mark node as ready for pacemaker_remote" do
   block do
-    node[:pacemaker][:remote_setup] = true
-    node.save
+    unless node[:pacemaker][:remote_setup]
+      node.set[:pacemaker][:remote_setup] = true
+      node.save
+    end
   end
 end
 
