@@ -67,4 +67,7 @@ crowbar_pacemaker_drbd_create_internal "create drbd resources" do
   lvm_group lvm_group
 end
 
-include_recipe "drbd::default"
+# Disable drbd as it should never be started on boot (pacemaker should do it)
+service "drbd" do
+  action :disable
+end
