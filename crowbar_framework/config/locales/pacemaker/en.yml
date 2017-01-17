@@ -113,6 +113,7 @@ en:
         same_number_of_devices: 'All nodes must share the same number of SBD devices (with possibly different paths).'
         missing_fencing_agent: 'Missing fencing agent for shared setup.'
         missing_fencing_agent_params: 'Missing fencing agent parameters for shared setup.'
+        shared_params_no_hostlist: 'The hostlist for fencing agent parameters for shared setup must not included as it will be automatically computed.'
         missing_fencing_agent_per_node: 'Missing fencing agent for per-node setup.'
         node_missing_fencing_params: 'Missing fencing agent parameters for node %{member}'
         fencing_agent_no_cluster: 'Fencing agent parameters present for node %{node_name}, while this node is not a member of the cluster.'

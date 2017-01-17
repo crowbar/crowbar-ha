@@ -368,11 +368,6 @@ class PacemakerService < ServiceObject
     role.default_attributes["corosync"]["members"] = member_nodes.map{ |n| n.get_network_by_type("admin")["address"] }
     role.default_attributes["corosync"]["transport"] = role.default_attributes["pacemaker"]["corosync"]["transport"]
 
-    role.default_attributes["drbd"] ||= {}
-    role.default_attributes["drbd"]["common"] ||= {}
-    role.default_attributes["drbd"]["common"]["net"] ||= {}
-    role.default_attributes["drbd"]["common"]["net"]["shared_secret"] = role.default_attributes["pacemaker"]["drbd"]["shared_secret"]
-
     case role.default_attributes["pacemaker"]["corosync"]["require_clean_for_autostart_wrapper"]
     when "auto"
       role.default_attributes["corosync"]["require_clean_for_autostart"] = (members.length == 2)
@@ -385,6 +380,17 @@ class PacemakerService < ServiceObject
     end
 
     preserve_existing_password(role, old_role)
+
+    # set drbd attributes based on what we got in the proposal
+    role.default_attributes["drbd"] ||= {}
+    role.default_attributes["drbd"]["common"] ||= {}
+    role.default_attributes["drbd"]["common"]["net"] ||= {}
+    role.default_attributes["drbd"]["common"]["net"]["shared_secret"] = \
+      role.default_attributes["pacemaker"]["drbd"]["shared_secret"]
+
+    # translate crowbar-specific stonith methods to proper attributes
+    prepare_stonith_attributes(role.default_attributes["pacemaker"],
+                               remote_nodes, member_nodes, remotes, members)
 
     role.save
 
@@ -450,10 +456,11 @@ class PacemakerService < ServiceObject
       nodes = stonith_attributes["sbd"]["nodes"]
 
       members.each do |member|
+        next if nodes.key?(member)
         validation_error I18n.t(
           "barclamp.#{@bc_name}.validation.missing_sbd_device",
           member: member
-        ) unless nodes.key?(member)
+        )
       end
 
       sbd_devices_nb = -1
@@ -472,10 +479,12 @@ class PacemakerService < ServiceObject
           end
 
           devices = node_devices.select{ |d| !d.empty? }
-          validation_error I18n.t(
-            "barclamp.#{@bc_name}.validation.missing_sbd_for_node",
-            node_name: node_name
-          ) if devices.empty?
+          if devices.empty?
+            validation_error I18n.t(
+              "barclamp.#{@bc_name}.validation.missing_sbd_for_node",
+              node_name: node_name
+            )
+          end
 
           sbd_devices_nb = devices.length if sbd_devices_nb == -1
           sbd_devices_mismatch = true if devices.length != sbd_devices_nb
@@ -486,40 +495,56 @@ class PacemakerService < ServiceObject
           )
         end
       end
-      validation_error I18n.t(
-        "barclamp.#{@bc_name}.validation.same_number_of_devices"
-      ) if sbd_devices_mismatch
+      if sbd_devices_mismatch
+        validation_error I18n.t(
+          "barclamp.#{@bc_name}.validation.same_number_of_devices"
+        )
+      end
     when "shared"
       agent = stonith_attributes["shared"]["agent"]
       params = stonith_attributes["shared"]["params"]
-      validation_error I18n.t(
-        "barclamp.#{bc_name}.validation.missing_fencing_agent"
-      ) if agent.blank?
-      validation_error I18n.t(
-        "barclamp.#{bc_name}.validation.missing_fencing_agent_params"
-      ) if params.blank?
+      if agent.blank?
+        validation_error I18n.t(
+          "barclamp.#{bc_name}.validation.missing_fencing_agent"
+        )
+      end
+      if params.blank?
+        validation_error I18n.t(
+          "barclamp.#{bc_name}.validation.missing_fencing_agent_params"
+        )
+      end
+      if params =~ /^hostlist=|\shostlist=/
+        validation_error I18n.t(
+          "barclamp.#{bc_name}.validation.shared_params_no_hostlist"
+        )
+      end
     when "per_node"
       agent = stonith_attributes["per_node"]["agent"]
       nodes = stonith_attributes["per_node"]["nodes"]
 
-      validation_error I18n.t(
-        "barclamp.#{bc_name}.validation.missing_fencing_agent_per_node"
-      ) if agent.blank?
+      if agent.blank?
+        validation_error I18n.t(
+          "barclamp.#{bc_name}.validation.missing_fencing_agent_per_node"
+        )
+      end
 
       members.each do |member|
+        next if nodes.key?(member)
         validation_error I18n.t(
           "barclamp.#{bc_name}.validation.node_missing_fencing_params",
           member: member
-        ) unless nodes.key?(member)
+        )
       end
 
       nodes.keys.each do |node_name|
         if members.include? node_name
           params = nodes[node_name]["params"]
-          validation_error I18n.t(
-            "barclamp.#{bc_name}.validation.node_missing_fencing_params",
-            member: node_name
-          ) if params.blank?
+          if params.blank?
+            validation_error I18n.t(
+              "barclamp.#{bc_name}.validation.node_missing_fencing_params",
+              member: node_name
+            )
+          end
         else
           validation_error I18n.t(
             "barclamp.#{bc_name}.validation.fencing_agent_no_cluster",
@@ -667,5 +692,105 @@ class PacemakerService < ServiceObject
 
     super
   end
-end
 
+  def prepare_stonith_attributes(role_attributes, remote_nodes, member_nodes, remotes, members)
+    cluster_nodes = member_nodes + remote_nodes
+    stonith_attributes = role_attributes["stonith"]
+
+    # still make the original mode available
+    stonith_attributes["crowbar_mode"] = stonith_attributes["mode"]
+
+    case stonith_attributes["mode"]
+    when "sbd"
+      # Need to fix the slot name for remote nodes
+      remote_nodes.each do |remote_node|
+        stonith_node_name = pacemaker_node_name(remote_node, remotes)
+        stonith_attributes["sbd"]["nodes"][remote_node[:fqdn]]["slot_name"] = stonith_node_name
+      end
+
+    when "shared"
+      # Need to add the hostlist param for shared
+      params = stonith_attributes["shared"]["params"]
+      member_names = cluster_nodes.map { |n| pacemaker_node_name(n, remotes) }
+      params = "#{params} hostlist=\"#{member_names.join(" ")}\""
+
+      stonith_attributes["shared"]["params"] = params
+
+    when "per_node"
+      # Crowbar is using FQDN, but pacemaker seems to only know about the
+      # hostname without the domain (and hostnames for remote nodes are not
+      # real "hostnames", but primitive names), so we need to translate this
+      # here
+      nodes = stonith_attributes["per_node"]["nodes"]
+      new_nodes = {}
+
+      nodes.keys.each do |fqdn|
+        cluster_node = cluster_nodes.find { |n| fqdn == n[:fqdn] }
+        next if cluster_node.nil?
+
+        stonith_node_name = pacemaker_node_name(cluster_node, remotes)
+        new_nodes[stonith_node_name] = nodes[fqdn].to_hash
+      end
+
+      stonith_attributes["per_node"]["nodes"] = new_nodes
+
+    when "ipmi_barclamp"
+      # Translate IPMI stonith mode from the barclamp into something that can
+      # be understood from the pacemaker cookbook (per_node)
+      stonith_attributes["mode"] = "per_node"
+      stonith_attributes["per_node"]["agent"] = "external/ipmi"
+      stonith_attributes["per_node"]["nodes"] = {}
+
+      cluster_nodes.each do |cluster_node|
+        stonith_node_name = pacemaker_node_name(cluster_node, remotes)
+
+        bmc_net = cluster_node.get_network_by_type("bmc")
+
+        params = {}
+        params["hostname"] = stonith_node_name
+        params["ipaddr"] = bmc_net["address"]
+        params["userid"] = cluster_node["ipmi"]["bmc_user"]
+        params["passwd"] = cluster_node["ipmi"]["bmc_password"]
+
+        stonith_attributes["per_node"]["nodes"][stonith_node_name] ||= {}
+        stonith_attributes["per_node"]["nodes"][stonith_node_name]["params"] = params
+      end
+
+    when "libvirt"
+      # Translate libvirt stonith mode from the barclamp into something that can
+      # be understood from the pacemaker cookbook (per_node)
+      stonith_attributes["mode"] = "per_node"
+      stonith_attributes["per_node"]["agent"] = "external/libvirt"
+      stonith_attributes["per_node"]["nodes"] = {}
+
+      hypervisor_ip = stonith_attributes["libvirt"]["hypervisor_ip"]
+      hypervisor_uri = "qemu+tcp://#{hypervisor_ip}/system"
+
+      cluster_nodes.each do |cluster_node|
+        stonith_node_name = pacemaker_node_name(cluster_node, remotes)
+
+        # We need to know the domain to interact with for each cluster member; it
+        # turns out the domain UUID is accessible via ohai
+        domain_id = cluster_node["crowbar_ohai"]["libvirt"]["guest_uuid"]
+
+        params = {}
+        params["hostlist"] = "#{stonith_node_name}:#{domain_id}"
+        params["hypervisor_uri"] = hypervisor_uri
+
+        stonith_attributes["per_node"]["nodes"][stonith_node_name] ||= {}
+        stonith_attributes["per_node"]["nodes"][stonith_node_name]["params"] = params
+      end
+    end
+  end
+
+  private
+
+  def pacemaker_node_name(node, remotes)
+    remotes ||= []
+    if remotes.include?(node.name)
+      "remote-#{node["hostname"]}"
+    else
+      node["hostname"]
+    end
+  end
+end
