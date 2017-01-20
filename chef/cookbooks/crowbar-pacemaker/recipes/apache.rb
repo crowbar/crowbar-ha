@@ -101,3 +101,8 @@ end
 # Override service provider for apache2 resource defined in apache2 cookbook
 resource = resources(service: "apache2")
 resource.provider(Chef::Provider::CrowbarPacemakerService)
+
+# Disable apache2 as it should be only managed by pacemaker now
+service "apache2" do
+  action :disable
+end
