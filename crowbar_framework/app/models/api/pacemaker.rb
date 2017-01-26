@@ -79,7 +79,6 @@ module Api
         end
         if new_founder[:pacemaker][:founder]
           Rails.logger.debug("Node #{name} is already the cluster founder.")
-          return true
         end
 
         # 2. find the current cluster founder in the same cluster
