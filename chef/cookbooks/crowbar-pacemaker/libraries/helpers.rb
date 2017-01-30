@@ -334,13 +334,17 @@ module CrowbarPacemakerHelper
 
     # evil command line; there must be a better way to fetch the list of resources
     # unfortunately, "crm_resource --list-raw" doesn't list groups/clones/etc.
-    all_resources = %x{crm --display=plain configure show | awk '/^(primitive|group|clone|ms)/ {print $2}'}.split("\n")
+    crm_out = `crm --display=plain configure show | awk '/^(primitive|group|clone|ms)/ {print $2}'`
+    all_resources = crm_out.split("\n")
+
     case resources
     when Array
       existing_resources = resources.select { |r| all_resources.include?(r) }
     when String
       # Try to ensure the syntax makes sense
-      raise "Sets in ordering cannot be nested." if resources =~ /\([^\)]*[\(\[\]]/ || resources =~ /\[[^\]]*[\[\(\)]/
+      if resources =~ /\([^\)]*[\(\[\]]/ || resources =~ /\[[^\]]*[\[\(\)]/
+        raise "Sets in ordering cannot be nested."
+      end
       # Only keep valid items, including what's valid in the crm syntax, which
       # is:
       # - foo ( bar foobar ) xyz
@@ -349,14 +353,21 @@ module CrowbarPacemakerHelper
       # - foo [ bar foobar require-all=true ] xyz
       resources_array = resources.split(" ")
       existing_resources_array = resources_array.select do |r|
-        all_resources.include?(r) || %w{( ) [ ]}.include?(r) || r =~ /sequential=/ || r =~ /require-all=/
+        all_resources.include?(r) ||
+          ["(", ")", "[", "]"].include?(r) ||
+          r =~ /sequential=/ ||
+          r =~ /require-all=/
       end
       # Drop empty sets; we don't want something like:
       #  order Mandatory: foo ( ) bar
       # It should become:
       #  order Mandatory: foo bar
-      existing_resources_hack = existing_resources_array.join(" ").gsub(/[\(\[](( sequential=[^ ]*)|( require-all=[^ ]*))* [\)\]]/, "")
-      existing_resources = existing_resources_hack.split(" ")
+      existing_resources_str = existing_resources_array.join(" ")
+      existing_resources_no_empty_set_str = existing_resources_str.gsub(
+        /[\(\[](( sequential=[^ ]*)|( require-all=[^ ]*))* [\)\]]/,
+        ""
+      )
+      existing_resources = existing_resources_no_empty_set_str.split(" ")
     end
 
     existing_resources
