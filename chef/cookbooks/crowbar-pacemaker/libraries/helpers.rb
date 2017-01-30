@@ -367,7 +367,18 @@ module CrowbarPacemakerHelper
         /[\(\[](( sequential=[^ ]*)|( require-all=[^ ]*))* [\)\]]/,
         ""
       )
-      existing_resources = existing_resources_no_empty_set_str.split(" ")
+      # Replace sets with one item by the resource:
+      #  foo [ bar sequantial=true ] xyz
+      # should become:
+      #  foo bar xyz
+      # This matters as crm does this change internally, and this will trigger
+      # a diff when comparing our desired definition with the crm output.
+      existing_resources_cleaned_sets_str = existing_resources_no_empty_set_str.gsub(
+        /[\(\[] (?<resource>\S+)(( sequential=[^ ]*)|( require-all=[^ ]*))* [\)\]]/,
+        '\k<resource>'
+      )
+
+      existing_resources = existing_resources_cleaned_sets_str.strip.split(" ")
     end
 
     existing_resources
