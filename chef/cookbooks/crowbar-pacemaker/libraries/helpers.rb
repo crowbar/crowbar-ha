@@ -323,4 +323,64 @@ module CrowbarPacemakerHelper
       "interleave" => "true",
     }
   end
+
+  # Filter the list of resources passed as argument to only keep the ones that
+  # exist in the cluster.
+  #
+  # If a string is passed instead of a list, it will be parsed using the syntax
+  # allowed for ordering constraints.
+  def self.select_existing_resources(resources)
+    existing_resources = []
+
+    # evil command line; there must be a better way to fetch the list of resources
+    # unfortunately, "crm_resource --list-raw" doesn't list groups/clones/etc.
+    crm_out = `crm --display=plain configure show | awk '/^(primitive|group|clone|ms)/ {print $2}'`
+    all_resources = crm_out.split("\n")
+
+    case resources
+    when Array
+      existing_resources = resources.select { |r| all_resources.include?(r) }
+    when String
+      # Try to ensure the syntax makes sense
+      if resources =~ /\([^\)]*[\(\[\]]/ || resources =~ /\[[^\]]*[\[\(\)]/
+        raise "Sets in ordering cannot be nested."
+      end
+      # Only keep valid items, including what's valid in the crm syntax, which
+      # is:
+      # - foo ( bar foobar ) xyz
+      # - foo [ bar foobar ] xyz
+      # - foo [ bar foobar sequential=true ] xyz
+      # - foo [ bar foobar require-all=true ] xyz
+      resources_array = resources.split(" ")
+      existing_resources_array = resources_array.select do |r|
+        all_resources.include?(r) ||
+          ["(", ")", "[", "]"].include?(r) ||
+          r =~ /sequential=/ ||
+          r =~ /require-all=/
+      end
+      # Drop empty sets; we don't want something like:
+      #  order Mandatory: foo ( ) bar
+      # It should become:
+      #  order Mandatory: foo bar
+      existing_resources_str = existing_resources_array.join(" ")
+      existing_resources_no_empty_set_str = existing_resources_str.gsub(
+        /[\(\[](( sequential=[^ ]*)|( require-all=[^ ]*))* [\)\]]/,
+        ""
+      )
+      # Replace sets with one item by the resource:
+      #  foo [ bar sequantial=true ] xyz
+      # should become:
+      #  foo bar xyz
+      # This matters as crm does this change internally, and this will trigger
+      # a diff when comparing our desired definition with the crm output.
+      existing_resources_cleaned_sets_str = existing_resources_no_empty_set_str.gsub(
+        /[\(\[] (?<resource>\S+)(( sequential=[^ ]*)|( require-all=[^ ]*))* [\)\]]/,
+        '\k<resource>'
+      )
+
+      existing_resources = existing_resources_cleaned_sets_str.strip.split(" ")
+    end
+
+    existing_resources
+  end
 end
