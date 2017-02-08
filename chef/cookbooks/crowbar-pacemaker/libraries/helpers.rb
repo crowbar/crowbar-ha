@@ -33,7 +33,7 @@ module CrowbarPacemakerHelper
 
   # Check if the node is currently in some upgrade phase
   def self.being_upgraded?(node)
-    upgrade_step = node["crowbar_wall"]["crowbar_upgrade_step"] || "none"
+    upgrade_step = node["crowbar_upgrade_step"] || "none"
     ["prepare-os-upgrade", "done_os_upgrade"].include? upgrade_step
   end
 
