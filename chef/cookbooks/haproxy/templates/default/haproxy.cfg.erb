@@ -64,7 +64,8 @@ listen  admin-stats <%= node[:haproxy][:stats][:enabled] ? node[:haproxy][:stats
 
 	# Learn on response if server hello.
 	stick store-response payload_lv(43,1) if serverhello
-    <% elsif content[:mode] == "http" && content[:stick] && content[:stick][:cookie]
+    <% elsif content[:mode] == "http" && content[:stick] &&
+         content[:stick][:cookies] && !content[:stick][:cookies].empty?
        # There are various options here, described in:
        # http://stackoverflow.com/questions/27094501/haproxy-1-5-8-how-do-i-configure-cookie-based-stickiness
        # We go with the stick-table to avoid no-cache and exposing backends
@@ -73,8 +74,10 @@ listen  admin-stats <%= node[:haproxy][:stats][:enabled] ? node[:haproxy][:stats
        # http://serverfault.com/questions/550910/haproxy-appsession-vs-cookie-precedence
         -%>
 	stick-table type string len 64 size 100k expire <%= content[:stick][:expire] %>
-	stick store-response res.cook(<%= content[:stick][:cookie] %>)
-	stick match req.cook(<%= content[:stick][:cookie] %>)
+      <% content[:stick][:cookies].each do |cookie| -%>
+	stick store-response res.cook(<%= cookie %>)
+	stick match req.cook(<%= cookie %>)
+      <% end -%>
     <% end -%>
 
     <% content[:options].each do |option| -%>
