@@ -20,11 +20,6 @@
 #FIXME: delete group when it's not needed anymore
 #FIXME: need to find/write OCF for haproxy
 
-# Recommendation from the OpenStack HA guide is to use "source" as balance
-# algorithm. This obviously is less useful for load balancing, but we care more
-# about HA and things working than about load balancing.
-node.default["haproxy"]["defaults"]["balance"] = "source"
-
 # With the default bufsize, getting a keystone PKI token from its ID doesn't
 # work, because the URI path is too long for haproxy
 node.default["haproxy"]["global"]["bufsize"] = 32768
