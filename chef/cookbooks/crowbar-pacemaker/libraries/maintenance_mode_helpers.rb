@@ -56,5 +56,20 @@ module CrowbarPacemaker
       # to an empty Chef::Node::Attribute if not already set to true.
       node.default[:pacemaker][:maintenance_mode][$$][:via_chef] == true
     end
+
+    def set_maintenance_mode
+      if maintenance_mode_set_via_this_chef_run?
+        Chef::Log.info(
+          "chef-client run pid #$$ already placed this node in Pacemaker maintenance mode"
+        )
+      elsif maintenance_mode?
+        Chef::Log.info("Something else already placed this node in Pacemaker maintenance mode")
+      else
+        execute "crm --wait node maintenance" do
+          action :nothing
+        end.run_action(:run)
+        set_maintenance_mode_via_this_chef_run
+      end
+    end
   end
 end
