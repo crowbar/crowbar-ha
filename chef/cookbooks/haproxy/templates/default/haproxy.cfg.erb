@@ -9,6 +9,7 @@ global
 	user <%= node[:haproxy][:platform][:user] %>
 	group <%= node[:haproxy][:platform][:group] %>
 	daemon
+	stats socket /var/lib/haproxy/stats.sock user haproxy group haproxy mode 0640 level operator
 
 defaults
 	log     global
