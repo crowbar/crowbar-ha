@@ -28,6 +28,6 @@ service "drbd" do
   if node["drbd"]["rsc"].empty?
     action :nothing
   else
-    action [:enable, :start]
+    action [:disable, :start]
   end
 end
