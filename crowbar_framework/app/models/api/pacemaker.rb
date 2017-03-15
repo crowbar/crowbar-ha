@@ -53,12 +53,14 @@ module Api
         founders.each do |n|
           ssh_retval = n.run_ssh_cmd("crm status 2>&1")
           if (ssh_retval[:exit_code]).nonzero?
-            crm_failures[n.name] = ssh_retval[:stdout]
+            crm_failures[n.name] = "#{n.name}: #{ssh_retval[:stdout]}"
+            crm_failures[n.name] << " #{ssh_retval[:stderr]}" unless ssh_retval[:stderr].blank?
             next
           end
           ssh_retval = n.run_ssh_cmd('crm status | grep -A 2 "^Failed Actions:"')
           if (ssh_retval[:exit_code]).zero?
-            failed_actions[n.name] = ssh_retval[:stdout]
+            failed_actions[n.name] = "#{n.name}: #{ssh_retval[:stdout]}"
+            failed_actions[n.name] << " #{ssh_retval[:stderr]}" unless ssh_retval[:stderr].blank?
           end
         end
         ret["crm_failures"] = crm_failures unless crm_failures.empty?
