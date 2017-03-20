@@ -85,12 +85,12 @@ describe Pacemaker::CIBObject do
     end
 
     describe "#type" do
-      it "should raise an error without a valid definition" do
-        expect { ::Pacemaker::CIBObject.from_name(fixture.name) }.
-          to raise_error(
-            RuntimeError,
-            "Couldn't extract CIB object type from 'nonsense'"
-          )
+      it "should return nil without a valid definition" do
+        expect(Chef::Log).to receive(:warn).with(
+          "Failed to extract definition for #{fixture.name} from:\nnonsense"
+        )
+        result = ::Pacemaker::CIBObject.from_name(fixture.name)
+        expect(result).to be_nil
       end
     end
   end
