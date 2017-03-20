@@ -68,7 +68,7 @@ module CrowbarPacemaker
       elsif maintenance_mode?
         Chef::Log.info("Something else already placed this node in Pacemaker maintenance mode")
       else
-        execute "crm --wait node maintenance" do
+        execute "crm --wait node maintenance #{pacemaker_node_name}" do
           action :nothing
         end.run_action(:run)
         set_maintenance_mode_via_this_chef_run
