@@ -387,6 +387,13 @@ class PacemakerService < ServiceObject
     role.default_attributes["drbd"]["common"]["net"] ||= {}
     role.default_attributes["drbd"]["common"]["net"]["shared_secret"] = \
       role.default_attributes["pacemaker"]["drbd"]["shared_secret"]
+    # set node IDs for drbd metadata
+    member_nodes.each do |member_node|
+      member_node[:drbd] ||= {}
+      member_node[:drbd][:local_node_id] = member_node[:pacemaker][:founder] ? 0 : 1
+      member_node[:drbd][:remote_node_id] = member_node[:pacemaker][:founder] ? 1 : 0
+      member_node.save
+    end
 
     # translate crowbar-specific stonith methods to proper attributes
     prepare_stonith_attributes(role.default_attributes["pacemaker"],
