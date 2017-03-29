@@ -34,10 +34,21 @@ module Pacemaker
           end
 
           if lines_for_def.empty?
-            # in case our attempt to only extract the definition we're
-            # interested in failed, play it safe and return the output
+            # In case our attempt to only extract the definition we're
+            # interested in failed, return nil to indicate the object
+            # doesn't exist.  This is particularly important in the
+            # corner case where an object like
+            #
+            #    node remote-d52-54-77-77-77-03:remote
+            #
+            # exists but the corresponding
+            #
+            #    primitive remote-d52-54-77-77-77-03
+            #
+            # doesn't, because in this case, "crm configure show remote-d52-54-77-77-77-03"
+            # will show the node object, which is not the one we want.
             ::Chef::Log.warn "Failed to extract definition for #{name} from:\n#{cmd.stdout}"
-            cmd.stdout
+            nil
           else
             lines_for_def.join("")
           end
