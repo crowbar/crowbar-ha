@@ -26,6 +26,7 @@ if node[:corosync][:authkey].nil?
 end
 
 node[:corosync][:cluster_name] = CrowbarPacemakerHelper.cluster_name(node)
+node[:corosync][:bind_addr] = Barclamp::Inventory.get_network_by_type(node, "admin").address
 
 include_recipe "crowbar-pacemaker::quorum_policy"
 include_recipe "crowbar-pacemaker::stonith"

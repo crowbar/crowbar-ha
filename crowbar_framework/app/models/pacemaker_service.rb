@@ -361,7 +361,6 @@ class PacemakerService < ServiceObject
     admin_net = founder.get_network_by_type("admin")
 
     role.default_attributes["corosync"] ||= {}
-    role.default_attributes["corosync"]["bind_addr"] = admin_net["subnet"]
 
     role.default_attributes["corosync"]["mcast_addr"] = role.default_attributes["pacemaker"]["corosync"]["mcast_addr"]
     role.default_attributes["corosync"]["mcast_port"] = role.default_attributes["pacemaker"]["corosync"]["mcast_port"]
