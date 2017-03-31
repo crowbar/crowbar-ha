@@ -363,7 +363,6 @@ class PacemakerService < ServiceObject
     admin_net = Chef::DataBag.load("crowbar/admin_network") rescue nil
 
     role.default_attributes["corosync"] ||= {}
-    role.default_attributes["corosync"]["bind_addr"] = admin_net["network"]["subnet"]
 
     role.default_attributes["corosync"]["mcast_addr"] = role.default_attributes["pacemaker"]["corosync"]["mcast_addr"]
     role.default_attributes["corosync"]["mcast_port"] = role.default_attributes["pacemaker"]["corosync"]["mcast_port"]
