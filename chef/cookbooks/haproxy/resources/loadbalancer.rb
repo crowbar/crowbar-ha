@@ -20,12 +20,15 @@
 actions :create, :delete
 default_action :create
 
-attribute :name,    kind_of: String,  name_attribute: true
-attribute :type,    kind_of: String,  default: "listen", equal_to: ["listen", "backend", "frontend"]
-attribute :address, kind_of: String,  default: "0.0.0.0"
-attribute :port,    kind_of: Integer, default: 0
-attribute :mode,    kind_of: String,  default: "http", equal_to: ["http", "tcp", "health"]
-attribute :balance, kind_of: String,  default: "", equal_to: ["", "roundrobin", "static-rr", "leastconn", "first", "source"]
-attribute :use_ssl, kind_of: [TrueClass, FalseClass], default: false
-attribute :options, kind_of: Array,   default: []
-attribute :servers, kind_of: Array,   default: []
+attribute :name,            kind_of: String,  name_attribute: true
+attribute :type,            kind_of: String,  default: "listen", equal_to: ["listen", "backend", "frontend"]
+attribute :address,         kind_of: String,  default: "0.0.0.0"
+attribute :port,            kind_of: Integer, default: 0
+attribute :mode,            kind_of: String,  default: "http", equal_to: ["http", "tcp", "health"]
+attribute :balance,         kind_of: String,  default: "", equal_to: ["", "roundrobin", "static-rr", "leastconn", "first", "source"]
+attribute :use_ssl,         kind_of: [TrueClass, FalseClass], default: false
+attribute :options,         kind_of: Array,   default: []
+attribute :acls,            kind_of: Array,   default: []
+attribute :use_backends,    kind_of: Array,   default: []
+attribute :default_backend, kind_of: String,  default: ""
+attribute :servers,         kind_of: Array,   default: []

@@ -60,6 +60,11 @@ action :create do
       section["options"] = [["tcpka", "httplog", "forwardfor"], section["options"]].flatten
     end
   end
+  section["acls"] = new_resource.acls || []
+  section["use_backends"] = new_resource.use_backends || []
+  unless new_resource.default_backend.empty?
+    section["default_backend"] = new_resource.default_backend
+  end
   section["servers"] = new_resource.servers
 
   node["haproxy"]["sections"][new_resource.type] ||= {}

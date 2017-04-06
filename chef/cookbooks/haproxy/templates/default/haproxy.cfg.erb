@@ -55,6 +55,18 @@ listen  admin-stats <%= node[:haproxy][:stats][:enabled] ? node[:haproxy][:stats
 	option <%= option %>
     <% end -%>
 
+    <% content[:acls].each do |acl| -%>
+	acl <%= acl %>
+    <% end -%>
+
+    <% content[:use_backends].each do |use_backend| -%>
+	use_backend <%= use_backend %>
+    <% end -%>
+
+    <% unless content[:default_backend].nil? -%>
+	default_backend <%= content[:default_backend] %>
+    <% end -%>
+
     <% content[:servers].each do |server| -%>
       <% if content[:use_ssl] -%>
 	server <%= server[:name] %> <%= server[:address] %>:<%= server[:port] %> check-ssl verify none inter 2000 rise 2 fall 5
