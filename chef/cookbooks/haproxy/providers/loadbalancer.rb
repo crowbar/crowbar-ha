@@ -23,24 +23,28 @@ action :create do
   # While there is no way to have an include directive for haproxy
   # configuration file, this provider will only modify attributes !
 
-  if new_resource.port < 1 || new_resource.port > 65535
-    raise "Invalid port: #{new_resource.port}."
+  if !new_resource.port.zero? && new_resource.type == "backend"
+    if new_resource.port < 1 || new_resource.port > 65535
+      raise "Invalid port: #{new_resource.port}."
+    end
   end
 
   if new_resource.servers.empty?
-    raise "No server specified."
-  end
-
-  new_resource.servers.each do |server|
-    raise "One of the servers has no name." if server["name"].nil?
-    raise "Server #{server['name']} has no address." if server["address"].nil?
-    raise "Server #{server['name']} has no port." if server["port"].nil?
-    raise "Server #{server['name']} has invalid port." if (server["port"] < 1 || server["port"] > 65535)
+    raise "No server specified." if new_resource.type != "frontend"
+  else
+    new_resource.servers.each do |server|
+      raise "One of the servers has no name." if server["name"].nil?
+      raise "Server #{server["name"]} has no address." if server["address"].nil?
+      raise "Server #{server["name"]} has no port." if server["port"].nil?
+      if server["port"] < 1 || server["port"] > 65535
+        raise "Server #{server["name"]} has invalid port."
+      end
+    end
   end
 
   section = {}
-  section["address"] = new_resource.address
-  section["port"] = new_resource.port
+  section["address"] = new_resource.address unless new_resource.address.empty?
+  section["port"] = new_resource.port unless new_resource.port.zero?
   section["use_ssl"] = new_resource.use_ssl
   if new_resource.use_ssl
     section["mode"] = "tcp"
@@ -61,6 +65,9 @@ action :create do
       section["options"] = [["tcpka", "httplog", "forwardfor"], section["options"]].flatten
     end
   end
+  section["acls"] = new_resource.acls
+  section["use_backends"] = new_resource.use_backends
+  section["default_backend"] = new_resource.default_backend
   section["servers"] = new_resource.servers
 
   node["haproxy"]["sections"][new_resource.type] ||= {}
