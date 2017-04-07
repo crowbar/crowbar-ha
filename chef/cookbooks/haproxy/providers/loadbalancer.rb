@@ -23,8 +23,10 @@ action :create do
   # While there is no way to have an include directive for haproxy
   # configuration file, this provider will only modify attributes !
 
-  if new_resource.port < 1 || new_resource.port > 65535
-    raise "Invalid port: #{new_resource.port}."
+  if ! new_resource.port == 0 && new_resource.type == "backend"
+    if new_resource.port < 1 || new_resource.port > 65535
+      raise "Invalid port: #{new_resource.port}."
+    end
   end
 
   if new_resource.servers.empty?
@@ -41,8 +43,12 @@ action :create do
   end
 
   section = {}
-  section["address"] = new_resource.address
-  section["port"] = new_resource.port
+  unless new_resource.address.empty?
+    section["address"] = new_resource.address
+  end
+  unless new_resource.port == 0
+    section["port"] = new_resource.port
+  end
   section["use_ssl"] = new_resource.use_ssl
   if new_resource.use_ssl
     section["mode"] = "tcp"
