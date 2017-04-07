@@ -42,9 +42,11 @@ action :create do
       device: device,
       disk: disk,
       local_hostname: node.hostname,
+      local_node_id: node[:drbd][:local_node_id],
       local_ip: ip,
       port: port,
       remote_hostname: remote.hostname,
+      remote_node_id: node[:drbd][:remote_node_id],
       remote_ip: remote_ip
     )
     owner "root"

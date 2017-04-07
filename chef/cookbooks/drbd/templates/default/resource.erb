@@ -5,9 +5,18 @@ resource <%= @resource %> {
   disk      <%= @disk %>;
   meta-disk internal;
   on <%= @local_hostname %> {
+    node-id   <%= @local_node_id %>;
     address   <%= @local_ip %>:<%= @port %>;
   }
   on <%= @remote_hostname %> {
+    node-id   <%= @remote_node_id %>;
     address   <%= @remote_ip %>:<%= @port %>;
+  }
+  connection {
+    host <%= @local_hostname %>  port <%= @port %>;
+    host <%= @remote_hostname %> port <%= @port %>;
+    net {
+      protocol C;
+    }
   }
 }
