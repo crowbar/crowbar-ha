@@ -28,14 +28,16 @@ action :create do
   end
 
   if new_resource.servers.empty?
-    raise "No server specified."
-  end
-
-  new_resource.servers.each do |server|
-    raise "One of the servers has no name." if server["name"].nil?
-    raise "Server #{server['name']} has no address." if server["address"].nil?
-    raise "Server #{server['name']} has no port." if server["port"].nil?
-    raise "Server #{server['name']} has invalid port." if (server["port"] < 1 || server["port"] > 65535)
+    if new_resource.type != "frontend"
+      raise "No server specified."
+    end
+  else
+    new_resource.servers.each do |server|
+      raise "One of the servers has no name." if server["name"].nil?
+      raise "Server #{server['name']} has no address." if server["address"].nil?
+      raise "Server #{server['name']} has no port." if server["port"].nil?
+      raise "Server #{server['name']} has invalid port." if (server["port"] < 1 || server["port"] > 65535)
+    end
   end
 
   section = {}
@@ -65,7 +67,9 @@ action :create do
   unless new_resource.default_backend.empty?
     section["default_backend"] = new_resource.default_backend
   end
-  section["servers"] = new_resource.servers
+  unless new_resource.servers.empty?
+    section["servers"] = new_resource.servers
+  end
 
   node["haproxy"]["sections"][new_resource.type] ||= {}
   node["haproxy"]["sections"][new_resource.type][new_resource.name] = section
