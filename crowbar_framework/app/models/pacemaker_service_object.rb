@@ -162,7 +162,7 @@ class PacemakerServiceObject < ServiceObject
     def vhostname_to_vip(vhostname, net)
       # only support this for admin & public; it's not needed elsewhere, and
       # saves us some checks
-      return nil unless ["admin", "public"].include? net
+      return nil unless ["admin", "public", "monitoring"].include? net
 
       net_db = Chef::DataBagItem.load("crowbar", "#{net}_network").raw_data
       net_db["allocated_by_name"][vhostname]["address"]
