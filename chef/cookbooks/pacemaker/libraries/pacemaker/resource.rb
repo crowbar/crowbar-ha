@@ -11,6 +11,21 @@ module Pacemaker
       "#{type} resource"
     end
 
+    def exists?(name)
+      # Directly use crm_resource, as it's faster than crm. This cannot be done
+      # for all CIBObjects as this works only for resources, and not for
+      # constraints :/
+      cmd = Mixlib::ShellOut.new("crm_resource --resource #{name} --query-xml-raw")
+      cmd.environment["HOME"] = ENV.fetch("HOME", "/root")
+      cmd.run_command
+      begin
+        cmd.error!
+        true
+      rescue
+        false
+      end
+    end
+
     def running?
       cmd = shell_out! "crm", "resource", "status", name
       Chef::Log.info cmd.stdout
