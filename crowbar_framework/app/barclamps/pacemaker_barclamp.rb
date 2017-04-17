@@ -1,6 +1,6 @@
 #
 # Copyright 2011-2013, Dell
-# Copyright 2013-2014, SUSE LINUX Products GmbH
+# Copyright 2013-2015, SUSE Linux GmbH
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,18 +15,24 @@
 # limitations under the License.
 #
 
-barclamp:
-  name: 'pacemaker'
-  display: 'Pacemaker'
-  description: 'Deploy Pacemaker clusters'
-  version: 0
-  user_managed: true
-  member:
-    - 'openstack'
+class PacemakerBarclamp < Crowbar::Registry::Barclamp
+  name "pacemaker"
+  display "Pacemaker"
+  description "Deploy pacemaker clusters"
 
-crowbar:
-  layout: 1
-  order: 53
-  run_order: 53
-  chef_order: 53
-  proposal_schema_version: 3
+  member [
+    "openstack"
+  ]
+
+  requires [
+
+  ]
+
+  listed true
+
+  layout 1
+  version 0
+  schema 3
+
+  order 53
+end
