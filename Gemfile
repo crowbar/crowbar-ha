@@ -28,7 +28,7 @@ end
 
 unless ENV["PACKAGING"] && ENV["PACKAGING"] == "yes"
   group :test do
-    gem "rspec", "~> 3.1.0"
+    gem "rake", "~> 10.0"
     gem "simplecov", require: false
 
     if ENV["CODECLIMATE_REPO_TOKEN"]
