@@ -115,6 +115,35 @@ module Api
       def repocheck
         Api::Node.repocheck(addon: "ha")
       end
+
+      # Adapt DRBD information to possible changes of cluster founder
+      def adapt_drbd_settings(founder_name)
+        founder = NodeObject.find_node_by_name(founder_name)
+
+        # nothing to be done if there's no DRBD setup
+        return true unless founder[:drbd]
+
+        modified = false
+        founder[:drbd][:rsc].each do |_, resource|
+          unless resource[:master]
+            resource[:master] = true
+            modified = true
+          end
+        end
+        return true unless modified
+
+        founder.save
+
+        # adapt the info for remaining node
+        cluster_env = founder[:pacemaker][:config][:environment]
+        non_founder = NodeObject.find(
+          "pacemaker_founder:false AND pacemaker_config_environment:#{cluster_env}"
+        ).first
+        non_founder[:drbd][:rsc].each do |_, resource|
+          resource[:master] = false
+        end
+        non_founder.save
+      end
     end
   end
 end
