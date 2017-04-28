@@ -35,6 +35,18 @@ include_recipe "haproxy::setup"
 
 cluster_name = CrowbarPacemakerHelper.cluster_name(node)
 
+# Wait for all nodes to reach this point so we know that all nodes will have
+# all the required packages installed before we create the pacemaker
+# resources
+crowbar_pacemaker_sync_mark "sync-haproxy_before_ha" do
+  revision node[:pacemaker]["crowbar-revision"]
+end
+
+# Avoid races when creating pacemaker resources
+crowbar_pacemaker_sync_mark "wait-haproxy_ha_resources" do
+  revision node[:pacemaker]["crowbar-revision"]
+end
+
 if node[:pacemaker][:haproxy][:clusters].key?(cluster_name) && node[:pacemaker][:haproxy][:clusters][cluster_name][:enabled]
   service "haproxy" do
     supports restart: true, status: true, reload: true
@@ -95,4 +107,8 @@ if node[:pacemaker][:haproxy][:clusters].key?(cluster_name) && node[:pacemaker][
     action :commit_new
     only_if { CrowbarPacemakerHelper.is_cluster_founder?(node) }
   end
+end
+
+crowbar_pacemaker_sync_mark "create-haproxy_ha_resources" do
+  revision node[:pacemaker]["crowbar-revision"]
 end
