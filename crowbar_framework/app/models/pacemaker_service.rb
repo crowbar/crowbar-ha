@@ -777,7 +777,11 @@ class PacemakerService < ServiceObject
 
         # We need to know the domain to interact with for each cluster member; it
         # turns out the domain UUID is accessible via ohai
-        domain_id = cluster_node["crowbar_ohai"]["libvirt"]["guest_uuid"]
+        if cluster_node["crowbar_ohai"] && cluster_node["crowbar_ohai"]["libvirt"]
+          domain_id = cluster_node["crowbar_ohai"]["libvirt"]["guest_uuid"]
+        else
+          domain_id = cluster_node["dmi"]["system"]["uuid"]
+        end
 
         params = {}
         params["hostlist"] = "#{stonith_node_name}:#{domain_id}"
