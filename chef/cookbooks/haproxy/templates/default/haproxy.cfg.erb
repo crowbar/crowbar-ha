@@ -39,7 +39,9 @@ listen  admin-stats <%= node[:haproxy][:stats][:enabled] ? node[:haproxy][:stats
   <% node[:haproxy][:sections][type].keys.sort.each do |name| -%>
     <% content = node[:haproxy][:sections][type][name] -%>
 <%= type %> <%= name %>
+    <% unless content[:address].nil? || content[:port].nil? -%>
     bind <%= content[:address] %>:<%= content[:port] %>
+    <% end -%>
     <% if content[:use_ssl] -%>
        mode tcp
        balance source
@@ -47,15 +49,33 @@ listen  admin-stats <%= node[:haproxy][:stats][:enabled] ? node[:haproxy][:stats
 	mode <%= content[:mode] %>
     <% end -%>
 
+    <% unless content[:balance].nil? -%>
+	balance <%= content[:balance] %>
+    <% end -%>
+
     <% content[:options].each do |option| -%>
 	option <%= option %>
     <% end -%>
 
-    <% content[:servers].each do |server| -%>
-      <% if content[:use_ssl] -%>
+    <% content[:acls].each do |acl| -%>
+	acl <%= acl %>
+    <% end -%>
+
+    <% content[:use_backends].each do |use_backend| -%>
+	use_backend <%= use_backend %>
+    <% end -%>
+
+    <% unless content[:default_backend].nil? -%>
+	default_backend <%= content[:default_backend] %>
+    <% end -%>
+
+    <% unless content[:servers].nil? -%>
+      <% content[:servers].each do |server| -%>
+        <% if content[:use_ssl] -%>
 	server <%= server[:name] %> <%= server[:address] %>:<%= server[:port] %> check-ssl verify none inter 2000 rise 2 fall 5
-      <% else -%>
+        <% else -%>
 	server <%= server[:name] %> <%= server[:address] %>:<%= server[:port] %> check inter 2000 rise 2 fall 5
+        <% end -%>
       <% end -%>
     <% end -%>
 
