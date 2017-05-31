@@ -16,8 +16,8 @@
 #
 
 class PacemakerService < ServiceObject
-  def initialize(thelogger)
-    super(thelogger)
+  def initialize(thelogger = nil)
+    super(Rails.logger)
     @bc_name = "pacemaker"
   end
 
