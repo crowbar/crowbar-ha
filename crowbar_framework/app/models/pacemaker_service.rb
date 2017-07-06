@@ -757,6 +757,7 @@ class PacemakerService < ServiceObject
         params["ipaddr"] = bmc_net["address"]
         params["userid"] = cluster_node["ipmi"]["bmc_user"]
         params["passwd"] = cluster_node["ipmi"]["bmc_password"]
+        params["interface"] = cluster_node["ipmi"]["bmc_interface"]
 
         stonith_attributes["per_node"]["nodes"][stonith_node_name] ||= {}
         stonith_attributes["per_node"]["nodes"][stonith_node_name]["params"] = params
