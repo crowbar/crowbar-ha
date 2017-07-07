@@ -111,7 +111,13 @@ when "ipmi_barclamp"
 
     params = {}
     params["hostname"] = stonith_node_name
-    params["ipaddr"] = cluster_node[:crowbar][:network][:bmc][:address]
+    # If the bmc is using dhcp, we can't trust the crowbar bmc network to know it
+    params["ipaddr"] = if cluster_node[:ipmi][:use_dhcp]
+      cluster_node[:crowbar_wall][:ipmi][:address]
+    else
+      cluster_node[:crowbar][:network][:bmc][:address]
+    end
+
     params["userid"] = cluster_node[:ipmi][:bmc_user]
     params["passwd"] = cluster_node[:ipmi][:bmc_password]
 
