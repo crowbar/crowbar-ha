@@ -45,7 +45,7 @@ listen  admin-stats <%= node[:haproxy][:stats][:enabled] ? node[:haproxy][:stats
 	balance <%= content[:balance] %>
     <% end -%>
 
-    <% if content[:use_ssl] # http://blog.exceliance.fr/2011/07/04/maintain-affinity-based-on-ssl-session-id/ -%>
+    <% if content[:use_ssl] # http://www.haproxy.com/blog/maintain-affinity-based-on-ssl-session-id/ -%>
 	# maximum SSL session ID length is 32 bytes.
 	stick-table type binary len 32 size 30k expire <%= content[:stick][:expire] %>
 
