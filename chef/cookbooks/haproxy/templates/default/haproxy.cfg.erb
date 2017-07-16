@@ -40,11 +40,47 @@ listen  admin-stats <%= node[:haproxy][:stats][:enabled] ? node[:haproxy][:stats
     <% content = node[:haproxy][:sections][type][name] -%>
 <%= type %> <%= name %>
     bind <%= content[:address] %>:<%= content[:port] %>
-    <% if content[:use_ssl] -%>
-       mode tcp
-       balance source
-    <% else -%>
 	mode <%= content[:mode] %>
+    <% unless content[:balance].nil? -%>
+	balance <%= content[:balance] %>
+    <% end -%>
+
+    <% if content[:use_ssl] # http://www.haproxy.com/blog/maintain-affinity-based-on-ssl-session-id/ -%>
+	# maximum SSL session ID length is 32 bytes.
+	stick-table type binary len 32 size 30k expire <%= content[:stick][:expire] %>
+
+	acl clienthello req_ssl_hello_type 1
+	acl serverhello rep_ssl_hello_type 2
+
+	# use tcp content accepts to detects ssl client and server hello.
+	tcp-request inspect-delay 5s
+	tcp-request content accept if clienthello
+
+	# no timeout on response inspect delay by default.
+	tcp-response content accept if serverhello
+
+	# SSL session ID (SSLID) may be present on a client or server hello.
+	# Its length is coded on 1 byte at offset 43 and its value starts
+	# at offset 44.
+	# Match and learn on request if client hello.
+	stick on payload_lv(43,1) if clienthello
+
+	# Learn on response if server hello.
+	stick store-response payload_lv(43,1) if serverhello
+    <% elsif content[:mode] == "http" && content[:stick] &&
+         content[:stick][:cookies] && !content[:stick][:cookies].empty?
+       # There are various options here, described in:
+       # http://stackoverflow.com/questions/27094501/haproxy-1-5-8-how-do-i-configure-cookie-based-stickiness
+       # We go with the stick-table to avoid no-cache and exposing backends
+       # through cookies.
+       # Note that appsession is easier, but deprecated:
+       # http://serverfault.com/questions/550910/haproxy-appsession-vs-cookie-precedence
+        -%>
+	stick-table type string len 64 size 100k expire <%= content[:stick][:expire] %>
+      <% content[:stick][:cookies].each do |cookie| -%>
+	stick store-response res.cook(<%= cookie %>)
+	stick match req.cook(<%= cookie %>)
+      <% end -%>
     <% end -%>
 
     <% content[:options].each do |option| -%>
