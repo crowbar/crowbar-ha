@@ -56,7 +56,7 @@ action :create do
   if section["options"].empty? || section["options"].include?("defaults")
     section["options"].delete("defaults")
     if section["use_ssl"]
-      section["options"] = [["ssl-hello-chk", "tcpka", "tcplog"], section["options"]].flatten
+      section["options"] = [["tcpka", "tcplog"], section["options"]].flatten
     elsif section["mode"] == "http"
       section["options"] = [["tcpka", "httplog", "forwardfor"], section["options"]].flatten
     end
