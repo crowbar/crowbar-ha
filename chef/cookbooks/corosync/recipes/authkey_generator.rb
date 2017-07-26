@@ -56,8 +56,10 @@ ruby_block "Store authkey to Chef server" do
       contents << f
     end
     packed = Base64.encode64(contents)
-    node.set_unless[:corosync][:authkey] = packed
-    node.save
+    if node[:corosync][:authkey] != packed
+      node.set[:corosync][:authkey] = packed
+      node.save
+    end
   end
   # If we don't have the attribute, always read the key (even if it existed and
   # we didn't run corosync-keygen)

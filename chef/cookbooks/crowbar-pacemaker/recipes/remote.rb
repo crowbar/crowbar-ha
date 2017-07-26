@@ -34,8 +34,10 @@ include_recipe "pacemaker::remote"
 
 ruby_block "mark node as ready for pacemaker_remote" do
   block do
-    node[:pacemaker][:remote_setup] = true
-    node.save
+    unless node[:pacemaker][:remote_setup]
+      node.set[:pacemaker][:remote_setup] = true
+      node.save
+    end
   end
 end
 
