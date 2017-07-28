@@ -22,27 +22,26 @@
 # save them.  This is required so that hb_report can gather logs from
 # all cluster members.
 
-access_keys = {}
-
-node["provisioner"]["access_keys"].strip.split("\n").each do |key|
-  key.strip!
-  unless key.empty?
-    nodename = key.split(" ")[2]
-    access_keys[nodename] = key
-  end
-end
+cluster_access_keys = []
 
 CrowbarPacemakerHelper.cluster_nodes(node).each do |cluster_node|
   pkey = nil
   if cluster_node[:crowbar][:ssh]
     pkey = cluster_node[:crowbar][:ssh][:root_pub_key]
   end
-  if !pkey.nil? && cluster_node.name != node.name && !access_keys.values.include?(pkey)
-    access_keys[cluster_node.name] = pkey
+  if !pkey.nil? && cluster_node.name != node.name && !cluster_access_keys.include?(pkey)
+    cluster_access_keys.push(pkey)
   end
 end
 
-if access_keys.size > 0
-  node["provisioner"]["access_keys"] = access_keys.values.join("\n")
+return if cluster_access_keys.empty?
+
+access_keys = [
+  node.default["provisioner"]["access_keys"].strip,
+  cluster_access_keys
+].flatten.join("\n")
+
+if node["provisioner"]["access_keys"] != access_keys
+  node.set["provisioner"]["access_keys"] = access_keys
   node.save
 end
