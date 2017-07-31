@@ -11,7 +11,7 @@ def upgrade(ta, td, a, d)
   remotes = d["elements"]["pacemaker-remote"] || []
   remote_nodes = remotes.map { |n| NodeObject.find_node_by_name n }
 
-  service = PacemakerService.new Rails.logger
+  service = PacemakerService.new
   service.prepare_stonith_attributes(a, remote_nodes, member_nodes, remotes, members)
 
   return a, d

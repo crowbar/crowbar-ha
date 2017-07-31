@@ -19,7 +19,6 @@ class PacemakerController < BarclampController
   protected
 
   def initialize_service
-    @service_object = PacemakerService.new logger
+    @service_object = PacemakerService.new
   end
 end
-
