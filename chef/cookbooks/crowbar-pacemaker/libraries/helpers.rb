@@ -77,7 +77,12 @@ module CrowbarPacemakerHelper
     # substitute one with the other
     # Similar code is in the barclamp side:
     # allocate_virtual_ips_for_cluster_in_networks
-    "cluster-#{cluster_name(node)}".gsub("_", "-")
+    # However, database cluster has different name scheme.
+    if node[:database][:ha][:enabled]
+      "database-default-#{cluster_name(node)}"
+    else
+      "cluster-#{cluster_name(node)}".tr("_", "-")
+    end
   end
 
   # The virtual admin name for the cluster is a name picked by the operator as
