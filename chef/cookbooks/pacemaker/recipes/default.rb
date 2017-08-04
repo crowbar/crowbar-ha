@@ -26,6 +26,13 @@ node[:pacemaker][:platform][:packages].each do |pkg|
   package pkg
 end
 
+file "/etc/sysconfig/pacemaker" do
+  content "SYSTEMD_NO_WRAP=1"
+  owner "root"
+  mode "0644"
+  action :create
+end
+
 if Chef::Config[:solo]
   unless ENV["RSPEC_RUNNING"]
     Chef::Application.fatal! \
