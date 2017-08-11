@@ -82,16 +82,20 @@ listen  admin-stats <%= node[:haproxy][:stats][:enabled] ? node[:haproxy][:stats
 	stick match req.cook(<%= cookie %>)
       <% end -%>
     <% end -%>
-
+    <% if content[:stick][:on] -%>
+        stick-table type ip size 1
+        stick on <%= content[:stick][:on] %>
+    <% end -%>
     <% content[:options].each do |option| -%>
 	option <%= option %>
     <% end -%>
 
     <% content[:servers].each do |server| -%>
+      <% backup = server[:backup] ? "backup" : "" %>
       <% if content[:use_ssl] -%>
-	server <%= server[:name] %> <%= server[:address] %>:<%= server[:port] %> check check-ssl verify none inter 2000 rise 2 fall 5
+	server <%= server[:name] %> <%= server[:address] %>:<%= server[:port] %> check check-ssl verify none inter 2000 rise 2 fall 5 <%= backup %>
       <% else -%>
-	server <%= server[:name] %> <%= server[:address] %>:<%= server[:port] %> check inter 2000 rise 2 fall 5
+	server <%= server[:name] %> <%= server[:address] %>:<%= server[:port] %> check inter 2000 rise 2 fall 5 <%= backup %>
       <% end -%>
     <% end -%>
 
