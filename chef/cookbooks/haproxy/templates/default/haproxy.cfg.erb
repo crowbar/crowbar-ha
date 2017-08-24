@@ -91,12 +91,15 @@ listen  admin-stats <%= node[:haproxy][:stats][:enabled] ? node[:haproxy][:stats
     <% end -%>
 
     <% content[:servers].each do |server| -%>
-      <% backup = server[:backup] ? "backup" : "" %>
-      <% if content[:use_ssl] -%>
-	server <%= server[:name] %> <%= server[:address] %>:<%= server[:port] %> check check-ssl verify none inter 2000 rise 2 fall 5 <%= backup %>
-      <% else -%>
-	server <%= server[:name] %> <%= server[:address] %>:<%= server[:port] %> check inter 2000 rise 2 fall 5 <%= backup %>
-      <% end -%>
+      <%
+        ssl = content[:use_ssl] ? " check-ssl verify none" : ""
+        inter = " inter #{server[:inter] || 2000}"
+        fastinter = server[:fastinter] ? " fastinter #{server[:fastinter]}" : ""
+        rise = " rise #{server[:rise] || 2}"
+        fall = " fall #{server[:fall] || 5}"
+        backup = server[:backup] ? " backup" : ""
+      %>
+        server <%= server[:name] %> <%= server[:address] %>:<%= server[:port] %> check<%= ssl %><%= inter %><%= fastinter %><%= rise %><%= fall %><%= backup %>
     <% end -%>
 
   <% end -%>
