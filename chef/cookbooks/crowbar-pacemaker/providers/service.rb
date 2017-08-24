@@ -221,10 +221,14 @@ end
 def service_is_running?(name, use_crm_resource, pacemaker_resource)
   if use_crm_resource
     `crm_resource --force-check --resource #{pacemaker_resource}`
+    # For Master/Slave resources "monitor" will return OCF_RUNNING_MASTER (8)
+    # on nodes that are running the resource in Master role currently. We need
+    # to treat that as a successfully result as well.
+    $?.success? || $?.exitstatus == 8
   else
     `service #{name} status`
+    $?.success?
   end
-  $?.success?
 end
 
 def proxy_action(resource, service_action)
