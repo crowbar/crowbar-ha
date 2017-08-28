@@ -179,15 +179,17 @@ action :restart do
   use_crm_resource = new_resource.supports[:restart_crm_resource]
   no_maintenance_mode = new_resource.supports[:no_crm_maintenance_mode]
   pacemaker_resource = new_resource.supports[:pacemaker_resource_name] || service_name
+  resource_stop_cmd = new_resource.supports[:crm_resource_stop_cmd] || "force-stop"
+  resource_start_cmd = new_resource.supports[:crm_resource_start_cmd] || "force-start"
 
   if service_is_running?(service_name, use_crm_resource, pacemaker_resource)
     set_maintenance_mode unless no_maintenance_mode
 
     if use_crm_resource
-      bash "crm_resource --force-stop / --force-start  --resource #{pacemaker_resource}" do
+      bash "crm_resource --#{resource_stop_cmd} / --#{resource_start_cmd}  --resource #{pacemaker_resource}" do
         code <<-EOH
-          crm_resource --force-stop --resource #{pacemaker_resource} && \
-          crm_resource --force-start --resource #{pacemaker_resource}
+          crm_resource --#{resource_stop_cmd} --resource #{pacemaker_resource} && \
+          crm_resource --#{resource_start_cmd} --resource #{pacemaker_resource}
           EOH
         action :nothing
       end.run_action(:run)
@@ -221,10 +223,14 @@ end
 def service_is_running?(name, use_crm_resource, pacemaker_resource)
   if use_crm_resource
     `crm_resource --force-check --resource #{pacemaker_resource}`
+    # For Master/Slave resources "monitor" will return OCF_RUNNING_MASTER (8)
+    # on nodes that are running the resource in Master role currently. We need
+    # to treat that as a successfully result as well.
+    $?.success? || $?.exitstatus == 8
   else
     `service #{name} status`
+    $?.success?
   end
-  $?.success?
 end
 
 def proxy_action(resource, service_action)
