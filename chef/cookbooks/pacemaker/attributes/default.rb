@@ -52,7 +52,9 @@ default[:pacemaker][:founder] = nil
 default[:pacemaker][:is_remote] = false
 default[:pacemaker][:crm][:initial_config_file] = "/etc/corosync/crm-initial.conf"
 default[:pacemaker][:crm][:no_quorum_policy] = "ignore"
-default[:pacemaker][:crm][:op_default_timeout] = 60
+# Should be longer than the systemd timeouts (defaults to 90s) so that
+# pacemaker only reacts when systemd is not helping anymore
+default[:pacemaker][:crm][:op_default_timeout] = 120
 default[:pacemaker][:crm][:migration_threshold] = 3
 
 # acceptable CIB syntax version; if lower is detected, we must force its upgrade
