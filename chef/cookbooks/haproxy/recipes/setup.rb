@@ -24,4 +24,30 @@ template node[:haproxy][:platform][:config_file] do
   owner "root"
   group "root"
   mode 00644
+  variables(
+    lazy {
+      {
+        rate_limit_enabled: node[:haproxy][:sections].keys.each.any? {
+            |type| node[:haproxy][:sections][type].any? {
+              |service, values| !values["rate_limit"].nil? && !values["rate_limit"].to_i.zero?
+          }
+        }
+      }
+    }
+  )
+end
+
+directory node[:haproxy][:platform][:error_dir] do
+  action :create
+  owner "root"
+  group "root"
+  mode 0o644
+end
+
+cookbook_file "#{node[:haproxy][:platform][:error_dir]}/429.http" do
+  source "429.http"
+  action :create
+  owner "root"
+  group "root"
+  mode 0o644
 end
