@@ -25,3 +25,25 @@ template node[:haproxy][:platform][:config_file] do
   group "root"
   mode 00644
 end
+
+# Make sure that systemd kills haproxy services when restart action is requested.
+# It's possible haproxy is unable to close open connections during restart
+# so we make sure systemd kills it before we hit pacemaker service
+# timeout that would ultimately fence the haproxy node (bsc#1056371).
+
+systemd_override_dir = \
+  "/etc/systemd/system/#{node[:haproxy][:platform][:package]}.service.d"
+
+directory systemd_override_dir do
+  owner "root"
+  group "root"
+  mode "0755"
+  action :create
+end
+
+cookbook_file "#{systemd_override_dir}/10-timeout.conf" do
+  source "haproxy.service.override.conf"
+  owner "root"
+  group "root"
+  mode "0644"
+end
