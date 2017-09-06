@@ -238,7 +238,7 @@ module Pacemaker
     end
 
     def configure_command
-      "echo #{quoted_definition} | crm configure load update -"
+      "echo #{quoted_definition} | crm --wait configure load update -"
     end
 
     def reconfigure_command
@@ -246,7 +246,7 @@ module Pacemaker
     end
 
     def delete_command
-      "crm configure delete '#{name}'"
+      "crm --wait configure delete '#{name}'"
     end
   end
 

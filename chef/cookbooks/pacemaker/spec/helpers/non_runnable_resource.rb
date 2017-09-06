@@ -17,7 +17,7 @@ shared_examples "a non-runnable resource" do |fixture|
 
       provider.run_action :delete
 
-      cmd = "crm configure delete '#{fixture.name}'"
+      cmd = "crm --wait configure delete '#{fixture.name}'"
       expect(@chef_run).to run_execute(cmd)
       expect(@resource).to be_updated
     end
