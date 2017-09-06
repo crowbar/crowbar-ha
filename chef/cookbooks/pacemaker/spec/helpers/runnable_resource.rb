@@ -53,7 +53,7 @@ shared_examples "a runnable resource" do |fixture|
       expect { provider.run_action :delete }.to \
         raise_error(RuntimeError, expected_error)
 
-      cmd = "crm configure delete '#{fixture.name}'"
+      cmd = "crm --wait configure delete '#{fixture.name}'"
       expect(@chef_run).not_to run_execute(cmd)
       expect(@resource).not_to be_updated
     end
@@ -64,7 +64,7 @@ shared_examples "a runnable resource" do |fixture|
 
       provider.run_action :delete
 
-      cmd = "crm configure delete '#{fixture.name}'"
+      cmd = "crm --wait configure delete '#{fixture.name}'"
       expect(@chef_run).to run_execute(cmd)
       expect(@resource).to be_updated
     end
