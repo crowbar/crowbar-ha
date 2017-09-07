@@ -28,7 +28,7 @@ module CrowbarPacemakerHelper
   def self.is_cluster_founder?(node)
     return false unless cluster_enabled?(node)
 
-    node[:pacemaker][:founder]
+    node[:pacemaker][:founder] == node[:fqdn]
   end
 
   # Check if the node is currently in some upgrade phase
@@ -181,15 +181,29 @@ module CrowbarPacemakerHelper
     if is_cluster_founder? node
       node
     else
-      founders = []
-      Chef::Search::Query.new.search(:node, "pacemaker_founder:true AND pacemaker_config_environment:#{node[:pacemaker][:config][:environment]}") do |o|
-        founders << o if o.name != node.name
+      begin
+        Node.load(node[:pacemaker][:founder])
+      rescue Net::HTTPServerException => e
+        raise "No cluster founder found!" if e.response.code == "404"
+        raise e
       end
-      founders << node if (node[:pacemaker][:founder] rescue false) == true
-      raise "No cluster founders found!" if founders.empty?
-      raise "Multiple cluster founders found!" if founders.length > 1
-      founders.first
-    end
+  end
+
+  # Returns an Array of names matching each corosync node in the same cluster
+  # as the given node, or an empty array if the node isn't in a cluster.
+  def self.cluster_nodes_names(node)
+    return [] unless cluster_enabled?(node)
+
+    node[:pacemaker][:elements]["pacemaker-cluster-member"].map { |n| n.gsub(/\..*/, "") }
+  end
+
+  # Returns the founder name of the cluster the current node belongs to, or nil
+  # if the current node is not part of a cluster
+  def self.cluster_founder_name(node)
+    return nil unless cluster_enabled?(node)
+
+    # we want the short hostname
+    node[:pacemaker][:founder].gsub(/\..*/, "")
   end
 
   # Returns an Array with two elements:

@@ -217,30 +217,9 @@ class PacemakerServiceObject < ServiceObject
   # The goal is to only do this when applying a proposal, so that other
   # chef-client runs are not blocked waiting for sync marks.
   def self.reset_sync_marks_on_cluster_founder(founder, cluster)
-    return if founder.nil? ||
-        founder[:pacemaker].nil? ||
-        founder[:pacemaker][:sync_marks].nil? ||
-        founder[:pacemaker][:sync_marks][cluster].nil?
+    return if founder.nil? || founder[:pacemaker].nil?
 
-    founder[:pacemaker][:sync_marks][cluster].keys.each do |sync_mark|
-      # The pacemaker_setup sync mark (see the crowbar-pacemaker::default
-      # recipe) requires special handling: it is created by the founder in
-      # Chef's convergence phase, but waited for by all non-founders in Chef's
-      # compile phase, because they need it in order to copy the authkey
-      # attribute from the founder to themselves and then invoke the
-      # corosync::authkey_writer recipe.
-      #
-      # This is only required for initial pacemaker setup and running in
-      # compile phase, so we don't want to reset it.  If we were to reset it,
-      # then every time a proposal was applied, the non-founder nodes would be
-      # blocked in their compile phase until the founder reached the point in
-      # its convergence phase where it creates the pacemaker_setup sync mark,
-      # and this would be too long for the non-founders to wait when the run
-      # list is long.
-      next if sync_mark == "pacemaker_setup"
-      founder[:pacemaker][:sync_marks][cluster].delete(sync_mark)
-    end
-
+    founder[:pacemaker][:reset_sync_marks] = true
     founder.save
   end
 
