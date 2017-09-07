@@ -56,6 +56,19 @@ if node[:pacemaker][:haproxy][:clusters].key?(cluster_name) && node[:pacemaker][
   cluster_vhostname = CrowbarPacemakerHelper.cluster_vhostname(node)
   service_name = "haproxy"
 
+  # Make sure new pacemaker resources get created before before
+  # the group ("g-haproxy") is updated. Otherwise we run into ordering
+  # issue when subsequent chef-client runs need to create additional
+  # VIP resources and add them to the group.
+  pacemaker_transaction "haproxy service" do
+    # Use lazy evaluation here, as transaction_objects is populated
+    # further down in this recipe.
+    cib_objects lazy { transaction_objects }
+    # note that this will also automatically start the resources
+    action :commit_new
+    only_if { CrowbarPacemakerHelper.is_cluster_founder?(node) }
+  end
+
   # Create VIP for HAProxy
   node[:pacemaker][:haproxy][:clusters][cluster_name][:networks].each do |network, enabled|
     ip_addr = CrowbarPacemakerHelper.cluster_vip(node, network)
@@ -96,12 +109,6 @@ if node[:pacemaker][:haproxy][:clusters].key?(cluster_name) && node[:pacemaker][
     transaction_objects << "pacemaker_location[#{location_name}]"
   end
 
-  pacemaker_transaction "haproxy service" do
-    cib_objects transaction_objects
-    # note that this will also automatically start the resources
-    action :commit_new
-    only_if { CrowbarPacemakerHelper.is_cluster_founder?(node) }
-  end
 end
 
 crowbar_pacemaker_sync_mark "create-haproxy_ha_resources" do
