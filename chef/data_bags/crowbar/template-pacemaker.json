@@ -47,14 +47,15 @@
       "haproxy": {
         "admin_name": "",
         "public_name": ""
-      }
+      },
+      "clone_stateless_services": true
     }
   },
   "deployment": {
     "pacemaker": {
       "crowbar-revision": 0,
       "crowbar-applied": false,
-      "schema-revision": 100,
+      "schema-revision": 101,
       "element_states": {
         "pacemaker-cluster-member"    : [ "readying", "ready", "applying" ],
         "hawk-server"                 : [ "readying", "ready", "applying" ],
