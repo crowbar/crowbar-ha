@@ -39,7 +39,9 @@ listen  admin-stats <%= node[:haproxy][:stats][:enabled] ? node[:haproxy][:stats
   <% node[:haproxy][:sections][type].keys.sort.each do |name| -%>
     <% content = node[:haproxy][:sections][type][name] -%>
 <%= type %> <%= name %>
+    <% unless content[:address].nil? || content[:port].nil? -%>
     bind <%= content[:address] %>:<%= content[:port] %>
+    <% end -%>
 	mode <%= content[:mode] %>
     <% unless content[:balance].nil? -%>
 	balance <%= content[:balance] %>
@@ -88,6 +90,16 @@ listen  admin-stats <%= node[:haproxy][:stats][:enabled] ? node[:haproxy][:stats
     <% end -%>
     <% content[:options].each do |option| -%>
 	option <%= option %>
+    <% end -%>
+
+    <% content[:acls].each do |acl| -%>
+	acl <%= acl %>
+    <% end -%>
+    <% content[:use_backends].each do |use_backend| -%>
+	use_backend <%= use_backend %>
+    <% end -%>
+    <% unless content[:default_backend].empty? -%>
+	default_backend <%= content[:default_backend] %>
     <% end -%>
 
     <% content[:servers].each do |server| -%>
