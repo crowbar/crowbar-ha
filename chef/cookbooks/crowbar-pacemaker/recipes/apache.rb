@@ -17,6 +17,8 @@
 # limitations under the License.
 #
 
+return unless node[:pacemaker][:clone_stateless_services]
+
 # Define pacemaker primitive for apache service
 
 # This is required for the OCF resource agent
