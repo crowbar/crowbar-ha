@@ -55,6 +55,9 @@ require "timeout"
 #
 
 module CrowbarPacemakerSynchronization
+  def self.prefix
+    "crowbar_sync-"
+  end
 
   # See "Synchronization helpers" documentation
   def self.wait_for_mark_from_founder(node, mark, revision, fatal = false, timeout = 60)
@@ -66,31 +69,28 @@ module CrowbarPacemakerSynchronization
       return
     end
 
-    cluster_name = CrowbarPacemakerHelper.cluster_name(node)
+    Chef::Log.info("Checking if cluster founder has set #{mark}...")
 
-    Chef::Log.info("Checking if cluster founder has set #{mark} to #{revision}...")
+    founder_name = CrowbarPacemakerHelper.cluster_founder_name(node)
 
     begin
       Timeout.timeout(timeout) do
-        while true
-          founder = CrowbarPacemakerHelper.cluster_founder(node)
-
-          if !founder.nil? && (founder[:pacemaker][:sync_marks][cluster_name][mark] rescue nil) == revision
-            Chef::Log.info("Cluster founder has set #{mark} to #{revision}.")
+        loop do
+          if CrowbarPacemakerCIBAttribute.get(founder_name, "#{prefix}#{mark}", "0") != "0"
+            Chef::Log.info("Cluster founder has set #{mark}.")
             break
           end
-
-          Chef::Log.debug("Waiting for cluster founder to set #{mark} to #{revision}...")
+          Chef::Log.debug("Waiting for cluster founder to set #{mark}...")
           sleep(5)
-        end # while true
+        end # loop
       end # Timeout
     rescue Timeout::Error
       if fatal
-        message = "Cluster founder didn't set #{mark} to #{revision}!"
+        message = "Cluster founder didn't set #{mark}!"
         Chef::Log.fatal(message)
         raise message
       else
-        message = "Cluster founder didn't set #{mark} to #{revision}! Going on..."
+        message = "Cluster founder didn't set #{mark}! Going on..."
         Chef::Log.warn(message)
       end
     end
@@ -101,16 +101,13 @@ module CrowbarPacemakerSynchronization
     return unless CrowbarPacemakerHelper.cluster_enabled?(node)
     return unless CrowbarPacemakerHelper.is_cluster_founder?(node)
 
-    cluster_name = CrowbarPacemakerHelper.cluster_name(node)
+    attribute = "#{prefix}#{mark}"
 
-    node[:pacemaker][:sync_marks] ||= {}
-    node[:pacemaker][:sync_marks][cluster_name] ||= {}
-    if node[:pacemaker][:sync_marks][cluster_name][mark] != revision
-      node[:pacemaker][:sync_marks][cluster_name][mark] = revision
-      node.save
-      Chef::Log.info("Setting founder cluster mark #{mark} to #{revision}.")
+    if CrowbarPacemakerCIBAttribute.get(node[:hostname], attribute, "0") != "0"
+      Chef::Log.info("Synchronization cluster mark #{mark} already set.")
     else
-      Chef::Log.info("Founder cluster mark #{mark} already set to #{revision}.")
+      Chef::Log.info("Setting synchronization cluster mark #{mark}.")
+      CrowbarPacemakerCIBAttribute.set(node[:hostname], attribute, "1")
     end
   end
 
@@ -118,53 +115,85 @@ module CrowbarPacemakerSynchronization
   def self.synchronize_on_mark(node, mark, revision, fatal = false, timeout = 60)
     return unless CrowbarPacemakerHelper.cluster_enabled?(node)
 
-    cluster_name = CrowbarPacemakerHelper.cluster_name(node)
+    attribute = "#{prefix}#{mark}"
 
-    node[:pacemaker][:sync_marks] ||= {}
-    node[:pacemaker][:sync_marks][cluster_name] ||= {}
-    if node[:pacemaker][:sync_marks][cluster_name][mark] != revision
-      node[:pacemaker][:sync_marks][cluster_name][mark] = revision
-      node.save
-      Chef::Log.info("Setting synchronization cluster mark #{mark} to #{revision}.")
-    else
-      Chef::Log.info("Synchronization cluster mark #{mark} already set to #{revision}.")
+    # non-founders simply set the mark and then wait for the founder to set the
+    # mark
+    unless CrowbarPacemakerHelper.is_cluster_founder?(node)
+      Chef::Log.info("Setting synchronization cluster mark #{mark}.")
+      CrowbarPacemakerCIBAttribute.set(node[:hostname], attribute, "1")
+      return wait_for_mark_from_founder(node, mark, revision, fatal, timeout)
     end
 
-    node_count = CrowbarPacemakerHelper.cluster_nodes(node).length
-    raise "No member in the cluster!" if node_count == 0
+    # founder waits for the mark to be set on all non-founders, and then sets
+    # its mark; if the mark is already set, we can skip everything
+    if CrowbarPacemakerCIBAttribute.get(node[:hostname], attribute, "0") != "0"
+      Chef::Log.info("Synchronization cluster mark #{mark} already set.")
+      return
+    end
 
     if CrowbarPacemakerHelper.being_upgraded?(node)
       Chef::Log.debug("Node is being upgraded." \
         "Skipping wait loop for all other cluster nodes.")
       return
-    end
-
-    Chef::Log.info("Checking if all cluster nodes have set #{mark} to #{revision}...")
-
-    begin
-      Timeout.timeout(timeout) do
-        while true
-          search_result = []
-          Chef::Search::Query.new.search(:node, "pacemaker_config_environment:#{node[:pacemaker][:config][:environment]} AND pacemaker_sync_marks_#{cluster_name}_#{mark}:#{revision}") { |o| search_result << o }
-
-          if node_count <= search_result.length
-            Chef::Log.info("All cluster nodes have set #{mark} to #{revision}.")
-            break
-          end
-
-          Chef::Log.debug("Waiting for all cluster nodes to set #{mark} to #{revision}...")
-          sleep(5)
-        end # while true
-      end # Timeout
-    rescue Timeout::Error
+    elsif !CrowbarPacemakerCIBAttribute.cib_up_for_node?
       if fatal
-        message = "Some cluster nodes didn't set #{mark} to #{revision}!"
+        message = "Node #{node[:hostname]} does not have CIB connection"
         Chef::Log.fatal(message)
         raise message
       else
-        message = "Some cluster nodes didn't set #{mark} to #{revision}! Going on..."
-        Chef::Log.warn(message)
+        Chef::Log.warn("Node does not have CIB connection. " \
+          "Skipping wait loop for all other cluster nodes.")
+        # we don't return here: it's explicitly non-fatal, so we can set the
+        # sync mark for this node
       end
+    else
+      begin
+        Chef::Log.info("Checking if all other cluster nodes have set #{mark}...")
+
+        Timeout.timeout(timeout) do
+          CrowbarPacemakerHelper.cluster_nodes_names(node).each do |name|
+            next if name == node[:hostname]
+            loop do
+              break if CrowbarPacemakerCIBAttribute.get(name, attribute, "0") != "0"
+              Chef::Log.debug("Waiting for all other cluster nodes to set #{mark}...")
+              sleep(5)
+            end
+          end # each
+        end # Timeout
+      rescue Timeout::Error
+        if fatal
+          message = "Some cluster nodes didn't set #{mark}!"
+          Chef::Log.fatal(message)
+          raise message
+        else
+          message = "Some cluster nodes didn't set #{mark}! Going on..."
+          Chef::Log.warn(message)
+        end
+      end
+    end
+
+    Chef::Log.info("Setting synchronization cluster mark #{mark}.")
+    CrowbarPacemakerCIBAttribute.set(node[:hostname], attribute, "1")
+  end
+
+  def self.reset_marks(node)
+    attributes = CrowbarPacemakerCIBAttribute.list(node[:hostname])
+    attributes.select! { |k, v| k =~ /^#{prefix}/ }
+    attributes.each_key do |attribute|
+      CrowbarPacemakerCIBAttribute.unset(node[:hostname], attribute)
+    end
+  end
+
+  def self.migrate_sync_marks_v1(node)
+    return unless CrowbarPacemakerHelper.cluster_enabled?(node)
+
+    cluster_name = CrowbarPacemakerHelper.cluster_name(node)
+    sync_marks = node.fetch(":pacemaker", {}).fetch(":sync_marks", {}).fetch(cluster_name, nil)
+    return if sync_marks.nil?
+
+    sync_marks.each_key do |mark|
+      CrowbarPacemakerCIBAttribute.set(node[:hostname], "#{prefix}#{mark}", "1")
     end
   end
 end
