@@ -41,13 +41,8 @@ require "timeout"
 #    In this model, all nodes must call #synchronize_on_mark. Nodes will then
 #    block until this call has been done by all nodes.
 #
-# The synchronization is used through a mark. This mark is made unique
-# through the name of the cluster (automatically computed) and the name of
-# the mark (must be passed as argument).
-#
-# The mark will then be created with a revision; this way, on later runs, if
-# the methods are called with the same revision, then nothing will block as
-# we will know that the mark is already correct.
+# The synchronization is used through a mark, which uses a name to guarantee
+# its uniqueness.
 #
 # Calls to #wait_for_mark_from_founder and #synchronize_on_mark can fail if
 # synchronization failed. By default, a failure is not fatal, but the fatal
@@ -60,7 +55,7 @@ module CrowbarPacemakerSynchronization
   end
 
   # See "Synchronization helpers" documentation
-  def self.wait_for_mark_from_founder(node, mark, revision, fatal = false, timeout = 60)
+  def self.wait_for_mark_from_founder(node, mark, fatal = false, timeout = 60)
     return unless CrowbarPacemakerHelper.cluster_enabled?(node)
     return if CrowbarPacemakerHelper.is_cluster_founder?(node)
     if CrowbarPacemakerHelper.being_upgraded?(node)
@@ -97,7 +92,7 @@ module CrowbarPacemakerSynchronization
   end
 
   # See "Synchronization helpers" documentation
-  def self.set_mark_if_founder(node, mark, revision)
+  def self.set_mark_if_founder(node, mark)
     return unless CrowbarPacemakerHelper.cluster_enabled?(node)
     return unless CrowbarPacemakerHelper.is_cluster_founder?(node)
 
@@ -112,7 +107,7 @@ module CrowbarPacemakerSynchronization
   end
 
   # See "Synchronization helpers" documentation
-  def self.synchronize_on_mark(node, mark, revision, fatal = false, timeout = 60)
+  def self.synchronize_on_mark(node, mark, fatal = false, timeout = 60)
     return unless CrowbarPacemakerHelper.cluster_enabled?(node)
 
     attribute = "#{prefix}#{mark}"
@@ -121,8 +116,8 @@ module CrowbarPacemakerSynchronization
     # mark
     unless CrowbarPacemakerHelper.is_cluster_founder?(node)
       Chef::Log.info("Setting synchronization cluster mark #{mark}.")
-      CrowbarPacemakerCIBAttribute.set(node[:hostname], attribute, "1")
-      return wait_for_mark_from_founder(node, mark, revision, fatal, timeout)
+      CrowbarPacemakerCIBAttribute.set(node[:hostname], "#{prefix}#{mark}", "1")
+      return wait_for_mark_from_founder(node, mark, fatal, timeout)
     end
 
     # founder waits for the mark to be set on all non-founders, and then sets
