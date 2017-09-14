@@ -48,7 +48,7 @@ else
   default[:pacemaker][:platform][:sbd_packages] = nil
 end
 
-default[:pacemaker][:founder] = false
+default[:pacemaker][:founder] = nil
 default[:pacemaker][:is_remote] = false
 default[:pacemaker][:crm][:initial_config_file] = "/etc/corosync/crm-initial.conf"
 default[:pacemaker][:crm][:no_quorum_policy] = "ignore"

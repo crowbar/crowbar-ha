@@ -109,7 +109,7 @@ class PacemakerService < ServiceObject
     end
 
     # Do not keep deleted nodes
-    all_nodes_for_cluster_role_expanded = all_nodes_for_cluster_role_expanded & node_object_all.map{ |n| n.name }
+    all_nodes_for_cluster_role_expanded &= node_object_all.map(&:name)
 
     all_nodes_for_cluster_role_expanded
   end
@@ -296,9 +296,12 @@ class PacemakerService < ServiceObject
   def apply_role_pre_chef_call(old_role, role, all_nodes)
     @logger.debug("Pacemaker apply_role_pre_chef_call: entering #{all_nodes.inspect}")
 
-    members = role.override_attributes[@bc_name]["elements"]["pacemaker-cluster-member"] || []
+    attributes = role.override_attributes[@bc_name]
+    old_attributes = old_role.override_attributes[@bc_name] unless old_role.nil?
+
+    members = attributes["elements"]["pacemaker-cluster-member"] || []
     member_nodes = members.map { |n| NodeObject.find_node_by_name n }
-    remotes = role.override_attributes[@bc_name]["elements"]["pacemaker-remote"] || []
+    remotes = attributes["elements"]["pacemaker-remote"] || []
     remote_nodes = remotes.map { |n| NodeObject.find_node_by_name n }
 
     founder_name = nil
@@ -316,7 +319,7 @@ class PacemakerService < ServiceObject
         # the founder from the old role is not there anymore; let's promote
         # another node to founder, so we get the same authkey
         if founder_name.nil?
-          old_members = old_role.override_attributes[@bc_name]["elements"]["pacemaker-cluster-member"]
+          old_members = old_attributes["elements"]["pacemaker-cluster-member"]
           old_members = old_members.select { |n| members.include? n }
           founder_name = old_members.first
         end
@@ -328,9 +331,7 @@ class PacemakerService < ServiceObject
       #  - the proposal was deactivated (in which case we lost the info on
       #    which node was the founder, but that's no big issue)
       # Let's just take the first node as founder
-      if founder_name.nil?
-        founder_name = members.first
-      end
+      founder_name = members.first if founder_name.nil?
 
       founder = member_nodes.find { |n| n.name == founder_name }
 
@@ -370,9 +371,10 @@ class PacemakerService < ServiceObject
       role.default_attributes["pacemaker"]["drbd"]["shared_secret"]
     # set node IDs for drbd metadata
     member_nodes.each do |member_node|
+      is_founder = (member_node.name == founder_name)
       member_node[:drbd] ||= {}
-      member_node[:drbd][:local_node_id] = member_node[:pacemaker][:founder] ? 0 : 1
-      member_node[:drbd][:remote_node_id] = member_node[:pacemaker][:founder] ? 1 : 0
+      member_node[:drbd][:local_node_id] = is_founder ? 0 : 1
+      member_node[:drbd][:remote_node_id] = is_founder ? 1 : 0
       member_node.save
     end
 
