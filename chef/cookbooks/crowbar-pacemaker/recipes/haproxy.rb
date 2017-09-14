@@ -84,6 +84,8 @@ if node[:pacemaker][:haproxy][:clusters].key?(cluster_name) && node[:pacemaker][
     end
     vip_primitives << vip_primitive
     transaction_objects << "pacemaker_primitive[#{vip_primitive}]"
+    location_name = openstack_pacemaker_controller_only_location_for vip_primitive
+    transaction_objects << "pacemaker_location[#{location_name}]"
   end
 
   pacemaker_primitive service_name do
