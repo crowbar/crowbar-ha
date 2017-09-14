@@ -23,6 +23,7 @@ class Chef
         ]
         KEYSTONE_PRIMITIVE.op = [
           ["monitor", { "timeout" =>  "60", "interval" => "10s" }],
+          ["promote", { "timeout" => "150", "interval" => "10s" }],
           ["start",   { "timeout" => "240", "interval" => "10s" }]
         ]
         KEYSTONE_PRIMITIVE.attrs_authoritative
@@ -30,7 +31,7 @@ class Chef
 primitive keystone ocf:openstack:keystone \
          params os_auth_url="http://node1:5000/v2.0" os_password="ad\"min$pa&ss'wo%rd" os_tenant_name="openstack" os_username="admin" user="openstack-keystone" \
          meta is-managed="true" \
-         op monitor interval="10s" timeout="60" op start interval="10s" timeout="240"
+         op monitor interval="10s" timeout="60" op promote interval="10s" timeout="150" op start interval="10s" timeout="240"
 EOF
       end
     end
