@@ -108,5 +108,11 @@ EOF
     it "should parse the agent" do
       expect(@parsed.agent).to eq(fixture.agent)
     end
+
+    it "should parse all ops" do
+      fixture.op.each do |op, param|
+        expect(@parsed.op[op]).not_to be_nil
+      end
+    end
   end
 end
