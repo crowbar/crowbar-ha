@@ -30,5 +30,6 @@ attribute :balance, kind_of: String,  default: "",
 attribute :use_ssl, kind_of: [TrueClass, FalseClass], default: false
 attribute :stick,   kind_of: Hash,    default: {}
 attribute :options, kind_of: Array,   default: []
+attribute :default_server, kind_of: String,  default: ""
 attribute :servers, kind_of: Array,   default: []
 attribute :rate_limit, kind_of: Integer, default: nil
