@@ -120,7 +120,7 @@ module CrowbarPacemakerHelper
     return nil unless cluster_enabled?(node)
     # only support this for admin & public; it's not needed elsewhere, and
     # saves us some checks
-    return nil unless ["admin", "public"].include? net
+    return nil unless ["admin", "public", "monitoring"].include? net
 
     vhostname = cluster_vhostname(node) if vhostname.nil?
 

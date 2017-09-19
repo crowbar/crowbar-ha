@@ -46,7 +46,8 @@
       },
       "haproxy": {
         "admin_name": "",
-        "public_name": ""
+        "public_name": "",
+        "monitoring_name": ""
       }
     }
   },
@@ -76,4 +77,3 @@
     }
   }
 }
-
