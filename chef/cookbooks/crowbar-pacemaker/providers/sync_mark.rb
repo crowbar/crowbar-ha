@@ -17,7 +17,6 @@
 def get_options resource
   action = nil
   mark = nil
-  revision = nil
 
   if new_resource.name.start_with? "wait-"
     mark = new_resource.name.gsub("wait-", "")
@@ -34,44 +33,47 @@ def get_options resource
     mark = new_resource.mark
   end
 
-  if new_resource.revision.nil? && node.key?(cookbook_name)
-    # Shortcut for integration in Crowbar; in the worst case, this is nil and
-    # we'll hit the check a few lines later
-    revision = node[cookbook_name]["crowbar-revision"]
-  else
-    revision = new_resource.revision
-  end
-
   raise "Missing mark attribute" if mark.nil?
-  raise "Missing revision attribute" if revision.nil?
 
-  [action, mark, revision]
+  [action, mark]
 end
 
 action :wait do
-  action, mark, revision = get_options(new_resource)
-  CrowbarPacemakerSynchronization.wait_for_mark_from_founder(node, mark, revision, new_resource.fatal, new_resource.timeout)
+  _, mark = get_options(new_resource)
+  CrowbarPacemakerSynchronization.wait_for_mark_from_founder(
+    node, mark, new_resource.fatal, new_resource.timeout
+  )
 end
 
 action :create do
-  action, mark, revision = get_options(new_resource)
-  CrowbarPacemakerSynchronization.set_mark_if_founder(node, mark, revision)
+  _, mark = get_options(new_resource)
+  CrowbarPacemakerSynchronization.set_mark_if_founder(
+    node, mark
+  )
 end
 
 action :sync do
-  action, mark, revision = get_options(new_resource)
-  CrowbarPacemakerSynchronization.synchronize_on_mark(node, mark, revision, new_resource.fatal, new_resource.timeout)
+  _, mark = get_options(new_resource)
+  CrowbarPacemakerSynchronization.synchronize_on_mark(
+    node, mark, new_resource.fatal, new_resource.timeout
+  )
 end
 
 action :guess do
-  action, mark, revision = get_options(new_resource)
+  action, mark = get_options(new_resource)
   raise "Cannot guess action based on resource name" if action.nil?
 
   if action == :wait
-    CrowbarPacemakerSynchronization.wait_for_mark_from_founder(node, mark, revision, new_resource.fatal, new_resource.timeout)
+    CrowbarPacemakerSynchronization.wait_for_mark_from_founder(
+      node, mark, new_resource.fatal, new_resource.timeout
+    )
   elsif action == :create
-    CrowbarPacemakerSynchronization.set_mark_if_founder(node, mark, revision)
+    CrowbarPacemakerSynchronization.set_mark_if_founder(
+      node, mark
+    )
   elsif action == :sync
-    CrowbarPacemakerSynchronization.synchronize_on_mark(node, mark, revision, new_resource.fatal, new_resource.timeout)
+    CrowbarPacemakerSynchronization.synchronize_on_mark(
+      node, mark, new_resource.fatal, new_resource.timeout
+    )
   end
 end

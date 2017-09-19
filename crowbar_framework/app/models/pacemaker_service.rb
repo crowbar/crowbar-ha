@@ -109,7 +109,7 @@ class PacemakerService < ServiceObject
     end
 
     # Do not keep deleted nodes
-    all_nodes_for_cluster_role_expanded = all_nodes_for_cluster_role_expanded & node_object_all.map{ |n| n.name }
+    all_nodes_for_cluster_role_expanded &= node_object_all.map(&:name)
 
     all_nodes_for_cluster_role_expanded
   end
@@ -296,66 +296,49 @@ class PacemakerService < ServiceObject
   def apply_role_pre_chef_call(old_role, role, all_nodes)
     @logger.debug("Pacemaker apply_role_pre_chef_call: entering #{all_nodes.inspect}")
 
-    members = role.override_attributes[@bc_name]["elements"]["pacemaker-cluster-member"] || []
+    attributes = role.override_attributes[@bc_name]
+    old_attributes = old_role.override_attributes[@bc_name] unless old_role.nil?
+
+    members = attributes["elements"]["pacemaker-cluster-member"] || []
     member_nodes = members.map { |n| NodeObject.find_node_by_name n }
-    remotes = role.override_attributes[@bc_name]["elements"]["pacemaker-remote"] || []
+    remotes = attributes["elements"]["pacemaker-remote"] || []
     remote_nodes = remotes.map { |n| NodeObject.find_node_by_name n }
+
+    founder_name = nil
+    founder = nil
 
     # elect a founder
     unless members.empty?
-      founder = nil
-
       # try to re-use founder that was part of old role, or if missing, another
       # node part of the old role (since it's already part of the pacemaker
       # cluster)
       unless old_role.nil?
-        old_members = old_role.override_attributes[@bc_name]["elements"]["pacemaker-cluster-member"]
-        old_members = old_members.select { |n| members.include? n }
-        old_nodes = old_members.map { |n| NodeObject.find_node_by_name n }
-        old_nodes.each do |old_node|
-          if (old_node[:pacemaker][:founder] rescue false) == true
-            founder = old_node
-            break
-          end
-        end
+        old_founder_name = old_role.default_attributes["pacemaker"]["founder"]
+        founder_name = old_founder_name if members.include?(old_founder_name)
 
         # the founder from the old role is not there anymore; let's promote
         # another node to founder, so we get the same authkey
-        if founder.nil?
-          founder = old_nodes.first
+        if founder_name.nil?
+          old_members = old_attributes["elements"]["pacemaker-cluster-member"]
+          old_members = old_members.select { |n| members.include? n }
+          founder_name = old_members.first
         end
       end
 
       # Still nothing, there are two options:
       #  - there was nothing in common with the old role (we will want to just
       #    take one node)
-      #  - the proposal was deactivated (but we still had a founder before that
-      #    we want to keep)
-      if founder.nil?
-        member_nodes.each do |member_node|
-          if (member_node[:pacemaker][:founder] rescue false) == true
-            founder = member_node
-            break
-          end
-        end
-      end
+      #  - the proposal was deactivated (in which case we lost the info on
+      #    which node was the founder, but that's no big issue)
+      # Let's just take the first node as founder
+      founder_name = members.first if founder_name.nil?
 
-      # nothing worked; just take the first node as founder
-      if founder.nil?
-        founder = member_nodes.first
-      end
-
-      member_nodes.each do |member_node|
-        member_node[:pacemaker] ||= {}
-        is_founder = (member_node.name == founder.name)
-        if is_founder != member_node[:pacemaker][:founder]
-          member_node[:pacemaker][:founder] = is_founder
-          member_node.save
-        end
-      end
+      founder = member_nodes.find { |n| n.name == founder_name }
 
       PacemakerServiceObject.reset_sync_marks_on_cluster_founder(founder, role.inst)
     end
+
+    role.default_attributes["pacemaker"]["founder"] = founder_name
 
     # set corosync attributes based on what we got in the proposal
     admin_net = founder.get_network_by_type("admin")
@@ -388,9 +371,10 @@ class PacemakerService < ServiceObject
       role.default_attributes["pacemaker"]["drbd"]["shared_secret"]
     # set node IDs for drbd metadata
     member_nodes.each do |member_node|
+      is_founder = (member_node.name == founder_name)
       member_node[:drbd] ||= {}
-      member_node[:drbd][:local_node_id] = member_node[:pacemaker][:founder] ? 0 : 1
-      member_node[:drbd][:remote_node_id] = member_node[:pacemaker][:founder] ? 1 : 0
+      member_node[:drbd][:local_node_id] = is_founder ? 0 : 1
+      member_node[:drbd][:remote_node_id] = is_founder ? 1 : 0
       member_node.save
     end
 

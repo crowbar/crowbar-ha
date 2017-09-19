@@ -24,26 +24,7 @@
 # achieves this by first running it via the pacemaker-cluster-member
 # role, and then later by the pacemaker-remote role.
 
-if Chef::Config[:solo]
-  Chef::Application.fatal! "This recipe uses search. Chef Solo does not support search."
-  return
-end
-
-# FIXME: deduplicate code with corosync::authkey recipe
-
-cluster_name = node[:corosync][:cluster_name]
-if cluster_name.nil? || cluster_name.empty?
-  Chef::Application.fatal! "Couldn't figure out corosync cluster name"
-  return
-end
-
-# Find pre-existing authkey on other node(s)
-query  = "chef_environment:#{node.chef_environment}"
-query += " AND corosync_cluster_name:#{cluster_name}"
-
-authkey_node = nil
-
-if node[:pacemaker][:founder]
+if CrowbarPacemakerHelper.is_cluster_founder?(node)
   if node[:pacemaker][:authkey].nil?
     include_recipe "pacemaker::authkey_generator"
   else
@@ -51,16 +32,8 @@ if node[:pacemaker][:founder]
     include_recipe "pacemaker::authkey_writer"
   end
 else
-  query +=
-    " AND pacemaker_founder:true " \
-    " AND pacemaker_config_environment:#{node[:pacemaker][:config][:environment]}"
-  founder_nodes = search(:node, query)
-  raise "No founder node found!" if founder_nodes.length == 0
-  raise "Multiple founder nodes found!" if founder_nodes.length > 1
-  authkey_node = founder_nodes[0]
-end
+  authkey_node = CrowbarPacemakerHelper.cluster_founder(node)
 
-unless authkey_node.nil?
   log("Using pacemaker authkey from node: #{authkey_node.name}")
   authkey = authkey_node[:pacemaker][:authkey]
 
