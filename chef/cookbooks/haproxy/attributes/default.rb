@@ -21,6 +21,7 @@ default[:haproxy][:platform][:package] = "haproxy"
 default[:haproxy][:platform][:user] = "haproxy"
 default[:haproxy][:platform][:group] = "haproxy"
 default[:haproxy][:platform][:config_file] = "/etc/haproxy/haproxy.cfg"
+default[:haproxy][:platform][:error_dir] = "/etc/haproxy/errorfiles"
 
 default[:haproxy][:global][:maxconn] = 4096
 default[:haproxy][:global][:bufsize] = 16384

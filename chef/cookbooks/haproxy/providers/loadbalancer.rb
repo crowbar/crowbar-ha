@@ -63,6 +63,10 @@ action :create do
   end
   section["servers"] = new_resource.servers
 
+  if new_resource.rate_limit && new_resource.rate_limit.to_i != 0
+    section["rate_limit"] = new_resource.rate_limit
+  end
+
   node["haproxy"]["sections"][new_resource.type] ||= {}
   node["haproxy"]["sections"][new_resource.type][new_resource.name] = section
 end
