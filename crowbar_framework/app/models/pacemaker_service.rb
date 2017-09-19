@@ -754,8 +754,11 @@ class PacemakerService < ServiceObject
 
         params = {}
         params["hostname"] = stonith_node_name
-        # If the bmc is using dhcp, we can't trust the crowbar bmc network to know it
-        params["ipaddr"] = if cluster_node["ipmi"]["use_dhcp"]
+        # If bmc is in read-only mode or is using dhcp, we can't trust the
+        # crowbar bmc network to know the correct address
+        use_discovered_ip = !cluster_node["ipmi"]["bmc_reconfigure"] ||
+          cluster_node["ipmi"]["use_dhcp"]
+        params["ipaddr"] = if use_discovered_ip
           cluster_node["crowbar_wall"]["ipmi"]["address"]
         else
           bmc_net["address"]
