@@ -47,7 +47,8 @@
       "haproxy": {
         "admin_name": "",
         "public_name": ""
-      }
+      },
+      "clone_stateless_services": true
     }
   },
   "deployment": {
