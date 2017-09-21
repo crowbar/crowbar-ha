@@ -18,7 +18,7 @@ require "rexml/document"
 
 module CrowbarPacemakerCIBAttribute
   def self.cib_up_for_node?
-    system "crm_node -q"
+    system "crm_node -q &>/dev/null"
   end
 
   def self.validate_simple(string, type)
