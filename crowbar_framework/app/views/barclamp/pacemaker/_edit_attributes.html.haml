@@ -9,6 +9,10 @@
     %span.help-block
       = t('.crm.no_quorum_policy_hint_html')
 
+    = boolean_field %w(clone_stateless_services)
+    %span.help-block
+      = t('.clone_stateless_services_hint')
+
     %fieldset
       %legend
         = t(".stonith_header")

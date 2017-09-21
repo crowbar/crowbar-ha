@@ -128,7 +128,8 @@
                 "admin_name": { "type": "str", "required": true },
                 "public_name": { "type": "str", "required": true }
               }
-            }
+            },
+            "clone_stateless_services": { "type": "bool", "required": true }
           }
         }
       }
