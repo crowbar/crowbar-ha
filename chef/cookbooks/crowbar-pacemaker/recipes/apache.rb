@@ -103,3 +103,7 @@ end
 # Override service provider for apache2 resource defined in apache2 cookbook
 resource = resources(service: "apache2")
 resource.provider(Chef::Provider::CrowbarPacemakerService)
+
+# Override setting to not use systemd restart, as this would interact badly with pacemaker
+resource = resources(utils_systemd_service_restart: "apache2")
+resource.action(:disable)

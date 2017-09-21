@@ -24,4 +24,4 @@ service "hawk" do
   supports status: true, restart: true
   action [:enable, :start]
 end
-
+utils_systemd_service_restart "hawk"
