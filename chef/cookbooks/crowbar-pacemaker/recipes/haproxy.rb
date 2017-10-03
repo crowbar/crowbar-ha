@@ -96,11 +96,14 @@ if node[:pacemaker][:haproxy][:clusters].key?(cluster_name) && node[:pacemaker][
   end
   transaction_objects << "pacemaker_primitive[#{service_name}]"
 
+  unless node[:pacemaker][:haproxy].key?("additional_members")
+    node[:pacemaker][:haproxy][:additional_members] = []
+  end
   group_name = "g-#{service_name}"
   pacemaker_group group_name do
     # Membership order *is* significant; VIPs should come first so
     # that they are available for the haproxy service to bind to.
-    members vip_primitives.sort + [service_name]
+    members vip_primitives.sort + node[:pacemaker][:haproxy][:additional_members] + [service_name]
     action :update
     only_if { CrowbarPacemakerHelper.is_cluster_founder?(node) }
   end
