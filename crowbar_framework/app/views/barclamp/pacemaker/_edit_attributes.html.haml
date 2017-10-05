@@ -3,7 +3,43 @@
     = header show_raw_deployment?, true
 
   .panel-body
-    = select_field %w(corosync transport), :collection => :transport_for_pacemaker
+    = select_field %w(corosync transport), :collection => :transport_for_pacemaker, "data-showit" => ["udp", "udpu"].join(";"), "data-showit-target" => ".ring_udp_container;.ring_udpu_container", "data-showit-direct" => "true"
+
+    %script#ring-entries{ :type => "text/x-handlebars-template" }
+      #corosync-rings
+        {{#each entries}}
+        %ul.list-group{ :id => "ring-index-{{@index}}" }
+          %li.list-group-item.active
+            %fieldset
+              %legend
+                = t('.corosync.parameters', :index => "{{inc @index}}")
+              {{#if ../at_min_entries }}
+              {{else}}
+              = link_to icon_tag("trash"), "#", :class => "corosync-ring-delete pull-right delete", "data-ringid" => "{{@index}}"
+              {{/if}}
+              = string_field %w(corosync rings {{@index}} network)
+              %div{ :class => "ring_udp_container" }
+                = string_field %w(corosync rings {{@index}} mcast_addr)
+        {{/each}}
+
+    %fieldset
+      %legend
+        = t(".corosync.listheader")
+
+      #corosync-rings
+        = t(".corosync.loading_text")
+
+      %ul.list-group{ :id => "ring-add" }
+        %fieldset
+          %legend
+            = t(".corosync.addheader")
+
+          = string_field %w(corosync rings index network)
+          %div{ :class => "ring_udp_container" }
+            = string_field %w(corosync rings index mcast_addr)
+
+          .form-group.pull-left
+            %input{ :id => "add-ring-button", :class => "form-control", :type => "button", :value => "Add Ring" }
 
     = select_field %w(crm no_quorum_policy), :collection => :no_quorum_policy_for_pacemaker
     %span.help-block

@@ -5,10 +5,15 @@
     "pacemaker": {
       "corosync": {
         "transport": "udpu",
-        "mcast_addr": "239.255.0.1",
-        "mcast_port": 5405,
         "password": "crowbar",
-        "require_clean_for_autostart_wrapper": "auto"
+        "require_clean_for_autostart_wrapper": "auto",
+        "rings": [
+          {
+            "network": "admin",
+            "mcast_addr": "",
+            "mcast_port": 5405
+          }
+        ]
       },
       "crm": {
         "no_quorum_policy": "stop"
@@ -55,7 +60,7 @@
     "pacemaker": {
       "crowbar-revision": 0,
       "crowbar-applied": false,
-      "schema-revision": 101,
+      "schema-revision": 102,
       "element_states": {
         "pacemaker-cluster-member"    : [ "readying", "ready", "applying" ],
         "hawk-server"                 : [ "readying", "ready", "applying" ],

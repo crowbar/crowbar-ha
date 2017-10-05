@@ -56,37 +56,47 @@ class PacemakerService < ServiceObject
     end
   end
 
+  def build_used_mcast_addrs(proposal_id, role_name)
+    used_mcast_addrs = {}
+
+    # iterate proposals, skip current proposal by ID
+    proposals_raw.each do |p|
+      next if p["id"] == proposal_id
+      p["attributes"][@bc_name]["corosync"]["rings"].each do |ring|
+        used_mcast_addrs[ring["mcast_addr"]] = true
+      end
+    end
+
+    # iterate roles, skip current role by name
+    RoleObject.find_roles_by_name("pacemaker-config-*").each do |r|
+      next if r.name == role_name
+      r.default_attributes["pacemaker"]["corosync"]["rings"].each do |ring|
+        used_mcast_addrs[ring["mcast_addr"]] = true
+      end
+    end
+
+    used_mcast_addrs
+  end
+
+  def next_available_mcast_addr(used_addrs)
+    (0..255).each do |mcast_third|
+      (1..254).each do |mcast_fourth|
+        addr = "239.255.#{mcast_third}.#{mcast_fourth}"
+        return addr unless used_addrs.key? addr
+      end
+    end
+
+    nil
+  end
+
   def create_proposal
     @logger.debug("Pacemaker create_proposal: entering")
     base = super
 
-    used_mcast_addrs = {}
-
-    proposals_raw.each do |p|
-      mcast_addr = p["attributes"][@bc_name]["corosync"]["mcast_addr"]
-      used_mcast_addrs[mcast_addr] = true
-    end
-    RoleObject.find_roles_by_name("pacemaker-config-*").each do |r|
-      mcast_addr = r.default_attributes["pacemaker"]["corosync"]["mcast_addr"]
-      used_mcast_addrs[mcast_addr] = true
-    end
-
-    free_mcast_addr_found = false
-    (0..255).each do |mcast_third|
-      (1..254).each do |mcast_fourth|
-        mcast_addr = "239.255.#{mcast_third}.#{mcast_fourth}"
-        unless used_mcast_addrs.key? mcast_addr
-          base["attributes"][@bc_name]["corosync"]["mcast_addr"] = mcast_addr
-          free_mcast_addr_found = true
-          break
-        end
-      end
-      break if free_mcast_addr_found
-    end
-
-    raise "Cannot find an available multicast address!" unless free_mcast_addr_found
-
     base["attributes"][@bc_name]["drbd"]["shared_secret"] = random_password
+    free_addr = next_available_mcast_addr(build_used_mcast_addrs(nil, nil))
+    raise "Cannot find an available multicast address!" if free_addr.nil?
+    base["attributes"][@bc_name]["corosync"]["rings"][0]["mcast_addr"] = free_addr
 
     @logger.debug("Pacemaker create_proposal: exiting")
     base
@@ -293,6 +303,77 @@ class PacemakerService < ServiceObject
     super
   end
 
+  def validate_mcast_addr(used_addrs, ring_index, curr_addr)
+    # compare current address to used addresses
+    curr_addr_used = (curr_addr != "") && (used_addrs.key? curr_addr)
+
+    # if address is used or empty, find an available address
+    if curr_addr_used || curr_addr == ""
+      free_addr = next_available_mcast_addr(used_addrs)
+      if free_addr
+        if curr_addr_used
+          validation_error I18n.t(
+            "barclamp.#{bc_name}.validation.mcast_addr_used_free",
+            ring_index: ring_index + 1,
+            used_addr: curr_addr,
+            free_addr: free_addr
+          )
+        else
+          validation_error I18n.t(
+            "barclamp.#{bc_name}.validation.mcast_addr_empty_free",
+            ring_index: ring_index + 1,
+            free_addr: free_addr
+          )
+        end
+        return free_addr
+      elsif curr_addr_used
+        validation_error I18n.t(
+          "barclamp.#{bc_name}.validation.mcast_addr_used_none_avail",
+          used_addr: curr_addr
+        )
+      else
+        validation_error I18n.t(
+          "barclamp.#{bc_name}.validation.mcast_addr_none_avail"
+        )
+      end
+    end
+
+    curr_addr
+  end
+
+  def allocate_member_addresses(nodes, network)
+    members = []
+
+    net_svc = NetworkService.new @logger
+    nodes.each_with_index do |node, node_index|
+      addr = node.get_network_by_type(network)
+      if addr
+        addr = addr["address"]
+      else
+        # save node before allocate_ip updates db directly
+        node.save
+
+        # allocate address
+        result = net_svc.allocate_ip "default", network, "host", node.name
+        if result[0] == 200
+          addr = result[1]["address"]
+        else
+          raise I18n.t(
+            "barclamp.#{bc_name}.validation.allocate_ip",
+            node: node.name,
+            network: network,
+            retcode: result[0]
+          )
+        end
+
+        # reload node after allocate_ip
+        nodes[node_index] = NodeObject.find_node_by_name(node.name)
+      end
+      members.push(addr)
+    end
+    members
+  end
+
   def apply_role_pre_chef_call(old_role, role, all_nodes)
     @logger.debug("Pacemaker apply_role_pre_chef_call: entering #{all_nodes.inspect}")
 
@@ -341,14 +422,20 @@ class PacemakerService < ServiceObject
     role.default_attributes["pacemaker"]["founder"] = founder_name
 
     # set corosync attributes based on what we got in the proposal
-    admin_net = founder.get_network_by_type("admin")
-
     role.default_attributes["corosync"] ||= {}
 
-    role.default_attributes["corosync"]["mcast_addr"] = role.default_attributes["pacemaker"]["corosync"]["mcast_addr"]
-    role.default_attributes["corosync"]["mcast_port"] = role.default_attributes["pacemaker"]["corosync"]["mcast_port"]
-    role.default_attributes["corosync"]["members"] = member_nodes.map{ |n| n.get_network_by_type("admin")["address"] }
-    role.default_attributes["corosync"]["transport"] = role.default_attributes["pacemaker"]["corosync"]["transport"]
+    role.default_attributes["corosync"]["transport"] =
+      role.default_attributes["pacemaker"]["corosync"]["transport"]
+
+    rings = role.default_attributes["pacemaker"]["corosync"]["rings"]
+    rings.each_with_index do |ring, ring_index|
+      # allocate member addresses
+      ring["members"] = allocate_member_addresses(member_nodes, ring["network"])
+    end
+
+    role.override_attributes["corosync"] ||= {}
+    role.override_attributes["corosync"]["rings"] =
+      role.default_attributes["pacemaker"]["corosync"]["rings"]
 
     case role.default_attributes["pacemaker"]["corosync"]["require_clean_for_autostart_wrapper"]
     when "auto"
@@ -574,11 +661,32 @@ class PacemakerService < ServiceObject
     end
   end
 
+  def validate_proposal_network(nodes, network, ring_ordinal)
+    # check for unspecified network
+    if network == ""
+      return validation_error I18n.t(
+        "barclamp.#{bc_name}.validation.ring_network_empty",
+        ring_ordinal: ring_ordinal
+      )
+    end
+
+    # validate existence of network
+    if !nodes.nil? && !nodes.empty? && !nodes[0][:network][:networks].key?(network)
+      return validation_error I18n.t(
+        "barclamp.#{bc_name}.validation.ring_network_notfound",
+        ring_network: network,
+        ring_ordinal: ring_ordinal
+      )
+    end
+  end
+
   def validate_proposal_after_save proposal
     validate_at_least_n_for_role proposal, "pacemaker-cluster-member", 1
 
-    elements = proposal["deployment"]["pacemaker"]["elements"]
+    role_name = proposal["deployment"][@bc_name]["config"]["environment"]
+    elements = proposal["deployment"][@bc_name]["elements"]
     members = elements["pacemaker-cluster-member"] || []
+    member_nodes = members.map { |n| NodeObject.find_node_by_name n }
     remotes = elements["pacemaker-remote"] || []
 
     if elements.key?("hawk-server")
@@ -635,6 +743,45 @@ class PacemakerService < ServiceObject
       )
     end
 
+    ring_ordinals = [
+      "first",
+      "second"
+    ]
+
+    rings = proposal["attributes"][@bc_name]["corosync"]["rings"]
+    if rings.length > 2
+      validation_error I18n.t(
+        "barclamp.#{bc_name}.validation.ring_network_too_many"
+      )
+    end
+
+    used_networks = {}
+    used_mcast_addrs = nil
+    rings.each_with_index do |ring, index|
+      network = ring["network"]
+
+      if used_networks.key? network
+        next validation_error I18n.t(
+          "barclamp.#{bc_name}.validation.ring_network_notunique",
+          ring_network: network
+        )
+      end
+      used_networks[network] = true
+
+      validate_proposal_network(member_nodes, network, ring_ordinals[index])
+
+      next unless proposal["attributes"][@bc_name]["corosync"]["transport"] == "udp"
+
+      # build a hash of used mcast_addrs
+      used_mcast_addrs = build_used_mcast_addrs(proposal["id"], role_name) if used_mcast_addrs.nil?
+
+      # validate mcast_addr
+      curr_addr = validate_mcast_addr(used_mcast_addrs, index, ring["mcast_addr"])
+
+      # flag current address (or suggested address) as in use
+      used_mcast_addrs[curr_addr] = true
+    end
+
     no_quorum_policy = proposal["attributes"][@bc_name]["crm"]["no_quorum_policy"]
     unless %w(ignore freeze stop suicide).include?(no_quorum_policy)
       validation_error I18n.t(
@@ -678,6 +825,15 @@ class PacemakerService < ServiceObject
           p_name: p_name
         )
       end
+    end
+
+    # release unused multicast addresses
+    unless proposal["attributes"][@bc_name]["corosync"]["transport"] == "udp"
+      p = Proposal.find_by(barclamp: @bc_name, name: proposal["id"].sub(/^#{@bc_name}-/, ""))
+      p["attributes"][@bc_name]["corosync"]["rings"].each do |ring|
+        ring["mcast_addr"] = ""
+      end
+      p.save
     end
 
     super
