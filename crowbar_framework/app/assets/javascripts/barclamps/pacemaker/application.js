@@ -276,6 +276,78 @@ function update_drbd_enabled(evt, init) {
   }
 }
 
+function cb_corosync_ring_delete()
+{
+  ring_index = $(this).data("ringid");
+
+  // delete the ring entry from the attributes JSON
+  rings = $('#proposal_attributes').readJsonAttribute('corosync/rings', {});
+  rings.splice(ring_index, 1);
+  $('#proposal_attributes').writeJsonAttribute('corosync/rings', rings);
+
+  $('#ring-index-' + ring_index).hide('slow', function() {
+    redisplay_rings();
+  });
+
+  return false;
+}
+
+function attach_events()
+{
+  $('#corosync-rings [data-change]').updateAttribute();
+
+  $('.corosync-ring-delete').on('click', cb_corosync_ring_delete);
+  $('#corosync-rings [data-hideit]').trigger('change');
+  $('#corosync-rings [data-showit]').trigger('change');
+}
+
+function detach_events()
+{
+  $('#corosync-rings [data-change]').off('change keyup');
+  $('.corosync-ring-delete').off('click');
+}
+
+var corosync_ring_template;
+var max_corosync_rings = 2;
+function redisplay_rings()
+{
+  if (!corosync_ring_template) {
+    corosync_ring_template = Handlebars.compile(
+      $('#ring-entries').html()
+    );
+
+    Handlebars.registerHelper("inc", function(value) {
+      return parseInt(value) + 1;
+    });
+  }
+
+  rings = $('#proposal_attributes').readJsonAttribute('corosync/rings', {});
+
+  // Render forms for ring list
+  $('#corosync-rings').replaceWith(
+    corosync_ring_template({
+      "entries": rings,
+      "at_min_entries": rings.length == 1
+    })
+  );
+
+  $.map($('#corosync_transport option'), function(option) {
+    if (!option.selected) {
+      $('.ring_{0}_container'.format(option.value)).hide();
+    }
+  });
+
+  if (rings.length >= max_corosync_rings) {
+    $('#ring-add').hide('slow');
+  } else {
+    $('#ring-add').show('slow');
+  }
+
+  // refresh data-change handlers
+  detach_events();
+  attach_events();
+}
+
 $(document).ready(function($) {
   $('#stonith_per_node_container').stonithNodeAgents();
   $('#stonith_sbd_container').stonithNodeAgents({
@@ -299,4 +371,26 @@ $(document).ready(function($) {
 
   update_no_quorum_policy(undefined, true)
   update_drbd_enabled(undefined, true)
+
+  if ($.queryString.attr_raw != "true") {
+    redisplay_rings();
+  }
+
+  $('#add-ring-button').click(function() {
+    var new_ring = {
+      'network': $('#corosync_rings_index_network').val(),
+      'mcast_addr': $('#corosync_rings_index_mcast_addr').val(),
+      'mcast_port': 5405
+    };
+
+    rings = $('#proposal_attributes').readJsonAttribute('corosync/rings', {});
+    rings.push(new_ring);
+    $('#proposal_attributes').writeJsonAttribute('corosync/rings', rings);
+
+    // Reset field entries
+    $('#corosync_rings_index_network').val('');
+    $('#corosync_rings_index_mcast_addr').val('');
+
+    redisplay_rings();
+  });
 });
