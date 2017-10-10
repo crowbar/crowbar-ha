@@ -182,17 +182,28 @@ action :restart do
   resource_stop_cmd = new_resource.supports[:crm_resource_stop_cmd] || "force-stop"
   resource_start_cmd = new_resource.supports[:crm_resource_start_cmd] || "force-start"
 
+  restart_manager = ServiceRestart::RestartManager.new(
+    cookbook_name, node, new_resource, true
+  )
+
   if service_is_running?(service_name, use_crm_resource, pacemaker_resource)
     set_maintenance_mode unless no_maintenance_mode
 
     if use_crm_resource
-      bash "crm_resource --#{resource_stop_cmd} / --#{resource_start_cmd}  --resource #{pacemaker_resource}" do
-        code <<-EOH
+      if restart_manager.disallow_restart?
+        Chef::Log.info("Disallowing restart for #{resource} due to flag")
+        restart_manager.register_restart_request
+      else
+        bash "crm_resource --#{resource_stop_cmd} / --#{resource_start_cmd}  --resource #{pacemaker_resource}" do
+          code <<-EOH
           crm_resource --#{resource_stop_cmd} --resource #{pacemaker_resource} && \
           crm_resource --#{resource_start_cmd} --resource #{pacemaker_resource}
           EOH
-        action :nothing
-      end.run_action(:run)
+          action :nothing
+        end.run_action(:run)
+        # we have restarted the service so we clear pending restart requests
+        restart_manager.clear_restart_requests
+      end
     else
       proxy_action(new_resource, :restart)
     end
