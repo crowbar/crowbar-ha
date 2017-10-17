@@ -54,7 +54,12 @@
         "admin_name": "",
         "public_name": ""
       },
-      "clone_stateless_services": true
+      "clone_stateless_services": true,
+      "op_defaults": {
+        "monitor": {
+          "on-fail": ""
+        }
+      }
     }
   },
   "deployment": {
