@@ -187,13 +187,12 @@ action :restart do
   )
 
   if service_is_running?(service_name, use_crm_resource, pacemaker_resource)
-    set_maintenance_mode unless no_maintenance_mode
-
-    if use_crm_resource
-      if restart_manager.disallow_restart?
-        Chef::Log.info("Disallowing restart for #{resource} due to flag")
-        restart_manager.register_restart_request
-      else
+    if restart_manager.disallow_restart?
+      Chef::Log.info("Disallowing restart for #{resource} due to flag")
+      restart_manager.register_restart_request
+    else
+      set_maintenance_mode unless no_maintenance_mode
+      if use_crm_resource
         bash "crm_resource --#{resource_stop_cmd} / --#{resource_start_cmd}  --resource #{pacemaker_resource}" do
           code <<-EOH
           crm_resource --#{resource_stop_cmd} --resource #{pacemaker_resource} && \
@@ -201,11 +200,11 @@ action :restart do
           EOH
           action :nothing
         end.run_action(:run)
-        # we have restarted the service so we clear pending restart requests
-        restart_manager.clear_restart_requests
+      else
+        proxy_action(new_resource, :restart)
       end
-    else
-      proxy_action(new_resource, :restart)
+      # we have restarted the service so we clear pending restart requests
+      restart_manager.clear_restart_requests
     end
   else
     Chef::Log.info("Ignoring restart action for #{resource} service since not running on this node (#{this_node})")
