@@ -27,7 +27,8 @@
               "type": "map",
               "required": true,
               "mapping": {
-                "no_quorum_policy": { "type": "str", "required": true }
+                "no_quorum_policy": { "type": "str", "required": true },
+                "migration_threshold": { "type": "int", "required": true }
               }
             },
             "stonith": {
