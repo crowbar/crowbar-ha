@@ -53,6 +53,7 @@ default[:pacemaker][:is_remote] = false
 default[:pacemaker][:crm][:initial_config_file] = "/etc/corosync/crm-initial.conf"
 default[:pacemaker][:crm][:no_quorum_policy] = "ignore"
 default[:pacemaker][:crm][:op_default_timeout] = 60
+default[:pacemaker][:crm][:migration_threshold] = 3
 
 # acceptable CIB syntax version; if lower is detected, we must force its upgrade
 default[:pacemaker][:cib_syntax_version] = "2.4"
