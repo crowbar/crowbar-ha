@@ -20,7 +20,12 @@
 require "timeout"
 
 node.normal[:corosync][:cluster_name] = CrowbarPacemakerHelper.cluster_name(node)
-node.normal[:corosync][:bind_addr] = Barclamp::Inventory.get_network_by_type(node, "admin").address
+
+# set bindnetaddr per node, use host address rather than network subnet
+# in case multiple interfaces are configured on the same subnet
+node[:corosync][:rings].each_with_index do |ring, index|
+  ring[:bind_addr] = Barclamp::Inventory.get_network_by_type(node, ring[:network]).address
+end
 
 include_recipe "crowbar-pacemaker::quorum_policy"
 include_recipe "crowbar-pacemaker::stonith"

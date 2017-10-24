@@ -17,10 +17,21 @@
               "required": true,
               "mapping": {
                 "transport": { "type": "str", "required": true },
-                "mcast_addr": { "type": "str", "required": true },
-                "mcast_port": { "type": "int", "required": true },
                 "password": { "type": "str", "required": true },
-                "require_clean_for_autostart_wrapper": { "type": "str", "required": true, "pattern": "/^true$|^false$|^auto$/" }
+                "require_clean_for_autostart_wrapper": { "type": "str", "required": true, "pattern": "/^true$|^false$|^auto$/" },
+                "rings": {
+                  "type": "seq",
+                  "required": true,
+                  "sequence": [ {
+                    "type": "map",
+                    "required": true,
+                    "mapping": {
+                      "network": { "type": "str", "required": true },
+                      "mcast_addr": { "type": "str", "required": true },
+                      "mcast_port": { "type": "int", "required": true }
+                    }
+                  } ]
+                }
               }
             },
             "crm": {

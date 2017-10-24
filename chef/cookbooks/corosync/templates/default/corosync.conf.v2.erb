@@ -44,15 +44,19 @@ totem {
 	# interface: define at least one interface to communicate
 	# over. If you define more than one interface stanza, you must
 	# also set rrp_mode.
+<% if @rings.length > 1 -%>
+	rrp_mode: passive
+<% end -%>
+<% @rings.each.with_index do |ring, ring_index| -%>
 	interface {
 		# Rings must be consecutively numbered, starting at 0.
-		ringnumber: 0
+		ringnumber: <%= ring_index %>
 		# This is normally the *network* address of the
 		# interface to bind to. This ensures that you can use
 		# identical instances of this configuration file
 		# across all your cluster nodes, without having to
 		# modify this option.
-		bindnetaddr: <%= @bind_addr  %>
+		bindnetaddr: <%= ring[:bind_addr]  %>
 		# However, if you have multiple physical network
 		# interfaces configured for the same subnet, then the
 		# network address alone is not sufficient to identify
@@ -67,19 +71,20 @@ totem {
 		# addresses across multiple Corosync clusters sharing
 		# the same network.
 <% if @transport == 'udp' -%>
-		mcastaddr: <%= @mcast_addr %>
+		mcastaddr: <%= ring[:mcast_addr] %>
 <% end -%>
 		# Corosync uses the port you specify here for UDP
 		# messaging, and also the immediately preceding
 		# port. Thus if you set this to 5405, Corosync sends
 		# messages over UDP ports 5405 and 5404.
-		mcastport: <%= @mcast_port %>
+		mcastport: <%= ring[:mcast_port] %>
 		# Time-to-live for cluster communication packets. The
 		# number of hops (routers) that this ring will allow
 		# itself to pass. Note that multicast routing must be
 		# specifically enabled on most network routers.
 		ttl: 1
 	}
+<% end -%>
 
 	transport: <%= @transport %>
 }
@@ -110,15 +115,15 @@ logging {
 	}
 }
 
-<% if @transport == 'udpu' -%>
 nodelist {
-  <% @members.sort.each do |memberaddr| -%>
+  <% @members_v2.each do |ring_addrs| -%>
 	node {
-		ring0_addr: <%= memberaddr %>
+    <% ring_addrs.each.with_index do |ring_addr, ring_index| -%>
+		ring<%= ring_index %>_addr: <%= ring_addr %>
+    <% end -%>
 	}
   <% end -%>
 }
-<% end -%>
 
 quorum {
 	# Enable and configure quorum subsystem (default: off)

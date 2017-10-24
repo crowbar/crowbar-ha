@@ -15,11 +15,14 @@
 
 default[:corosync][:cluster_name] = "hacluster"
 
-default[:corosync][:bind_addr]   = "192.168.124.0"
-default[:corosync][:mcast_addr]   = "239.1.2.3"
-default[:corosync][:mcast_port]   = 5405
-default[:corosync][:members]      = []
-default[:corosync][:transport]    = "udp"
+default[:corosync][:transport] = "udpu"
+default[:corosync][:rings] = [{
+  "network" => "admin",
+  "bind_addr" => "192.168.124.0",
+  "mcast_addr" => "239.1.2.3",
+  "mcast_port" => 5405,
+  "members" => ["192.168.124.0"]
+}]
 
 case node[:platform_family]
 when "suse"

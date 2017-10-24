@@ -64,6 +64,15 @@ en:
             down or rebooted; you will have to manually start it after having
             fixed the issue. "Automatic" means that this setting will be set to
             "true" for two-nodes cluster, and to "false" otherwise.'
+          loading_text: 'Loading rings...'
+          listheader: 'Corosync Rings'
+          parameters: 'Ring %{index} Parameters'
+          addheader: 'Add new Corosync Ring'
+          rings:
+            index:
+              network: 'Network'
+              mcast_addr: 'Multicast Address'
+              mcast_port: 'Multicast Port'
         clone_stateless_services: 'Manage stateless active/active services with Pacemaker'
         clone_stateless_services_hint:
           'Stateless active/active services can be managed by Pacemaker, or can
@@ -137,6 +146,15 @@ en:
         drbd: 'Setting up DRBD requires a cluster of two nodes.'
         ha_repo: 'The SLE HA repositories have not been setup.'
         transport_value: 'Invalid transport value: %{transport}.'
+        ring_network_too_many: 'Too many rings specified. Only two rings are allowed.'
+        ring_network_empty: 'A network must be specified for the %{ring_ordinal} corosync ring.'
+        ring_network_notfound: 'Network "%{ring_network}" not found for the %{ring_ordinal} corosync ring.'
+        ring_network_notunique: 'The network "%{ring_network}" has been specified more than once.'
+        allocate_ip: 'Failed to allocate address for node "%{node}" on network "%{network}" (Error %{retcode}).'
+        mcast_addr_empty_free: 'A multicast address for ring %{ring_index} is required. Multicast address %{free_addr} is available.'
+        mcast_addr_used_free: 'The specified multicast address %{used_addr} for ring %{ring_index} is in use but %{free_addr} is available.'
+        mcast_addr_used_none_avail: 'All multicast addresses are in use, including %{used_addr}.'
+        mcast_addr_none_avail: 'All multicast addresses are in use.'
         quorum_policy: 'Invalid no-quorum-policy value: %{no_quorum_policy}.'
         platform: 'All nodes in proposal must have the same platform.'
         pacemaker_proposal: 'Nodes cannot be part of multiple Pacemaker proposals, but %{other_member} is already part of proposal \"%{p_name}\".'
