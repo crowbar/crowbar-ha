@@ -28,7 +28,8 @@ template crm_conf do
   variables(
     stonith_enabled: (node[:pacemaker][:stonith][:mode] != "disabled"),
     no_quorum_policy: node[:pacemaker][:crm][:no_quorum_policy],
-    op_default_timeout: node[:pacemaker][:crm][:op_default_timeout]
+    op_default_timeout: node[:pacemaker][:crm][:op_default_timeout],
+    migration_threshold: node[:pacemaker][:crm][:migration_threshold]
   )
 end
 

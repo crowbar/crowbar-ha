@@ -8,4 +8,4 @@ op_defaults $id="op-options" \
         record-pending="true"
 rsc_defaults $id="rsc-options" \
         resource-stickiness="1" \
-        migration-threshold="3"
+        migration-threshold="<%= @migration_threshold %>"

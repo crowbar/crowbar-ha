@@ -11,7 +11,8 @@
         "require_clean_for_autostart_wrapper": "auto"
       },
       "crm": {
-        "no_quorum_policy": "stop"
+        "no_quorum_policy": "stop",
+        "migration_threshold": 3
       },
       "stonith": {
         "mode": "per_node",
@@ -38,7 +39,7 @@
           "from": "",
           "server": "",
           "prefix": ""
-	}
+        }
       },
       "drbd": {
         "enabled": false,
@@ -55,7 +56,7 @@
     "pacemaker": {
       "crowbar-revision": 0,
       "crowbar-applied": false,
-      "schema-revision": 101,
+      "schema-revision": 102,
       "element_states": {
         "pacemaker-cluster-member"    : [ "readying", "ready", "applying" ],
         "hawk-server"                 : [ "readying", "ready", "applying" ],
@@ -77,4 +78,3 @@
     }
   }
 }
-
