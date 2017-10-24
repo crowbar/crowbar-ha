@@ -17,6 +17,15 @@
 # limitations under the License.
 #
 
+mcast_ports = node[:corosync][:rings].map { |n| n["mcast_port"] }
+if node[:corosync][:transport] == "udp"
+  # Corosync uses the port you specify for UDP messaging, and also the
+  # immediately preceding port. Thus if you specify 5405, Corosync
+  # sends messages from UDP port 5404 to UDP port 5405.
+  mcast_ports += mcast_ports.map { |n| n - 1 }
+end
+mcast_ports = mcast_ports.uniq.sort
+
 case node[:platform_family]
 when "suse"
   template "/etc/sysconfig/SuSEfirewall2.d/services/cluster" do
@@ -24,7 +33,7 @@ when "suse"
     mode "0640"
     owner "root"
     variables(
-      mcast_port: node[:corosync][:mcast_port]
+      mcast_ports: mcast_ports
     )
 
     # FIXME: where do I get the name for this from?

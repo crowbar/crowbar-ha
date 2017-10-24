@@ -45,21 +45,23 @@ totem {
         # This specifies the mode of redundant ring, which may be none, active, or passive.
         rrp_mode: none
 
+<% @rings.each.with_index do |ring, ring_index| -%>
         interface {
-                ringnumber:     0
-                bindnetaddr:    <%= @bind_addr  %>
+                ringnumber:     <%= ring_index %>
+                bindnetaddr:    <%= ring[:bind_addr]  %>
 <% if @transport == 'udp' -%>
-                mcastaddr:      <%= @mcast_addr %>
+                mcastaddr:      <%= ring[:mcast_addr] %>
 <% elsif @transport == 'udpu' -%>
-  <% @members.sort.each do |memberaddr| -%>
+  <% ring[:members].each do |memberaddr| -%>
                 member {
                         memberaddr:     <%= memberaddr %>
                 }
   <% end -%>
 <% end -%>
-                mcastport:      <%= @mcast_port %>
+                mcastport:      <%= ring[:mcast_port] %>
                 ttl:            1
         }
+<% end -%>
 
         transport: <%= @transport %>
 }

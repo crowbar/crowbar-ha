@@ -5,10 +5,15 @@
     "pacemaker": {
       "corosync": {
         "transport": "udpu",
-        "mcast_addr": "239.255.0.1",
-        "mcast_port": 5405,
         "password": "crowbar",
-        "require_clean_for_autostart_wrapper": "auto"
+        "require_clean_for_autostart_wrapper": "auto",
+        "rings": [
+          {
+            "network": "admin",
+            "mcast_addr": "",
+            "mcast_port": 5405
+          }
+        ]
       },
       "crm": {
         "no_quorum_policy": "stop",
