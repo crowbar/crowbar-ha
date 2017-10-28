@@ -1,24 +1,30 @@
-def upgrade(ta, td, a, d)
+def upgrade_to_multi_ring(corosync)
+  # skip if already upgraded
+  return if corosync["rings"]
+
+  # initialize ring with prior, hard-coded network
   ring = {
     "network" => "admin"
   }
-  if a["corosync"]["bind_addr"]
-    ring["bind_addr"] = a["corosync"]["bind_addr"]
-    a["corosync"].delete "bind_addr"
+
+  # move flat list of attributes into first ring
+  ring_attributes = [
+    "bind_addr",
+    "mcast_addr",
+    "mcast_port",
+    "members"
+  ]
+  ring_attributes.each do |attr|
+    ring[attr] = corosync[attr] if corosync[attr]
+    corosync.delete attr
   end
-  if a["corosync"]["mcast_addr"]
-    ring["mcast_addr"] = a["corosync"]["mcast_addr"]
-    a["corosync"].delete "mcast_addr"
-  end
-  if a["corosync"]["mcast_port"]
-    ring["mcast_port"] = a["corosync"]["mcast_port"]
-    a["corosync"].delete "mcast_port"
-  end
-  if a["corosync"]["members"]
-    ring["members"] = a["corosync"]["members"]
-    a["corosync"].delete "members"
-  end
-  a["corosync"]["rings"] = [ring]
+
+  # save ring
+  corosync["rings"] = [ring]
+end
+
+def upgrade(ta, td, a, d)
+  upgrade_to_multi_ring(a["corosync"])
 
   # Are we a proposal? If yes, then look for the applied role if it exists and modify it
   # (the pacemaker barclamp adds an required_post_chef_calls attribute to the
@@ -30,7 +36,7 @@ def upgrade(ta, td, a, d)
   unless d.key?("required_post_chef_calls")
     begin
       role = Chef::Role.load(d["config"]["environment"])
-      role[:corosync][:rings] = [ring]
+      upgrade_to_multi_ring(role.default_attributes["corosync"])
       role.save
     rescue Net::HTTPServerException => e # role does not exist on the chef server
       raise e if e.response.code != "404"
@@ -40,14 +46,37 @@ def upgrade(ta, td, a, d)
   return a, d
 end
 
-def downgrade(ta, td, a, d)
-  if a["corosync"]["rings"] && !a["corosync"]["rings"].empty?
-    ring = a["corosync"]["rings"][0]
-    a["corosync"]["bind_addr"] = ring["bind_addr"] if ring["bind_addr"]
-    a["corosync"]["mcast_addr"] = ring["mcast_addr"] if ring["mcast_addr"]
-    a["corosync"]["mcast_port"] = ring["mcast_port"] if ring["mcast_port"]
-    a["corosync"]["members"] = ring["members"] if ring["members"]
+def downgrade_to_single_ring(corosync)
+  # skip if already downgraded
+  return unless corosync["rings"]
+
+  # move values from first ring to a flat list
+  ring_attributes = [
+    "bind_addr",
+    "mcast_addr",
+    "mcast_port",
+    "members"
+  ]
+  if corosync["rings"] && !corosync["rings"].empty?
+    # downgrade to a single ring
+    ring = corosync["rings"][0]
+    ring_attributes.each { |attr| corosync[attr] = ring[attr] if ring[attr] }
   end
-  a["corosync"].delete "rings"
+  corosync.delete "rings"
+end
+
+def downgrade(ta, td, a, d)
+  downgrade_to_single_ring(a["corosync"])
+
+  unless d.key?("required_post_chef_calls")
+    begin
+      role = Chef::Role.load(d["config"]["environment"])
+      downgrade_to_single_ring(role.default_attributes["corosync"])
+      role.save
+    rescue Net::HTTPServerException => e # role does not exist on the chef server
+      raise e if e.response.code != "404"
+    end
+  end
+
   return a, d
 end
