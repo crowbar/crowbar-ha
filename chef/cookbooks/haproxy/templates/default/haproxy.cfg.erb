@@ -104,8 +104,8 @@ listen  admin-stats <%= node[:haproxy][:stats][:enabled] ? node[:haproxy][:stats
         inter = " inter #{server[:inter] || 2000}"
         fastinter = server[:fastinter] ? " fastinter #{server[:fastinter]}" : ""
         downinter = server[:downinter] ? " downinter #{server[:downinter]}" : ""
-        rise = " rise #{server[:rise] || 2}"
-        fall = " fall #{server[:fall] || 5}"
+        rise = " rise #{server[:rise] || 5}"
+        fall = " fall #{server[:fall] || 2}"
         backup = server[:backup] ? " backup" : ""
       %>
         server <%= server[:name] %> <%= server[:address] %>:<%= server[:port] %> check<%= ssl %><%= inter %><%= fastinter %><%= downinter %><%= rise %><%= fall %><%= backup %>
