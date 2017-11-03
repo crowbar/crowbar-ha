@@ -79,7 +79,11 @@ end
 
 if CrowbarPacemakerHelper.is_cluster_founder?(node) && node[:pacemaker][:reset_sync_marks]
   # we can't reset sync marks if the pacemaker stack is not set up...
-  CrowbarPacemakerSynchronization.reset_marks(node) if node[:pacemaker][:setup]
+  if node[:pacemaker][:setup]
+    CrowbarPacemakerHelper.cluster_nodes(node).each do |cluster_node|
+      CrowbarPacemakerSynchronization.reset_marks(cluster_node)
+    end
+  end
   # ... but we don't want to block the other nodes forever
   node.set[:pacemaker][:reset_sync_marks] = false
   dirty = true
