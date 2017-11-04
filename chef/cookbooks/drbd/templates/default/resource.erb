@@ -19,4 +19,9 @@ resource <%= @resource %> {
       protocol C;
     }
   }
+  net {
+    after-sb-0pri discard-zero-changes;
+    after-sb-1pri discard-secondary;
+    after-sb-2pri disconnect;
+  }
 }
