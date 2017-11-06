@@ -16,13 +16,7 @@
 default[:corosync][:cluster_name] = "hacluster"
 
 default[:corosync][:transport] = "udpu"
-default[:corosync][:rings] = [{
-  "network" => "admin",
-  "bind_addr" => "192.168.124.0",
-  "mcast_addr" => "239.1.2.3",
-  "mcast_port" => 5405,
-  "members" => ["192.168.124.0"]
-}]
+default[:corosync][:rings] = []
 
 case node[:platform_family]
 when "suse"
