@@ -46,6 +46,7 @@ en:
             registering public endpoints, for instance). Any name specified
             here should already exist in the upstream DNS zones.'
         gui_header: 'Pacemaker GUI'
+        corosync_rings_header: 'Corosync Rings'
         corosync:
           password: 'Password for hacluster user in Hawk'
           transport: 'Transport for Communication'
@@ -65,14 +66,16 @@ en:
             fixed the issue. "Automatic" means that this setting will be set to
             "true" for two-nodes cluster, and to "false" otherwise.'
           loading_text: 'Loading rings...'
-          listheader: 'Corosync Rings'
-          parameters: 'Ring %{index} Parameters'
-          addheader: 'Add new Corosync Ring'
+          ring_header: 'Ring %{index}'
+          add_header: 'Ring 2'
+          add_button: 'Add Second Ring'
           rings:
             index:
               network: 'Network'
               mcast_addr: 'Multicast Address'
-              mcast_port: 'Multicast Port'
+            network_placeholder: 'A network defined in the network barclamp (admin, storage, etc.)'
+            mcast_placeholder: 'An address in the multicast range, such as 239.255.0.1; it must be unique accross Pacemaker proposals'
+        pacemaker_header: 'Pacemaker Parameters'
         clone_stateless_services: 'Manage stateless active/active services with Pacemaker'
         clone_stateless_services_hint:
           'Stateless active/active services can be managed by Pacemaker, or can
