@@ -3,51 +3,54 @@
     = header show_raw_deployment?, true
 
   .panel-body
-    = select_field %w(corosync transport), :collection => :transport_for_pacemaker, "data-showit" => ["udp", "udpu"].join(";"), "data-showit-target" => ".ring_udp_container;.ring_udpu_container", "data-showit-direct" => "true"
-
-    %script#ring-entries{ :type => "text/x-handlebars-template" }
-      #corosync-rings
-        {{#each entries}}
-        %ul.list-group{ :id => "ring-index-{{@index}}" }
-          %li.list-group-item.active
-            %fieldset
-              %legend
-                = t('.corosync.parameters', :index => "{{inc @index}}")
-              {{#if ../at_min_entries }}
-              {{else}}
-              = link_to icon_tag("trash"), "#", :class => "corosync-ring-delete pull-right delete", "data-ringid" => "{{@index}}"
-              {{/if}}
-              = string_field %w(corosync rings {{@index}} network)
-              %div{ :class => "ring_udp_container" }
-                = string_field %w(corosync rings {{@index}} mcast_addr)
-        {{/each}}
-
     %fieldset
       %legend
-        = t(".corosync.listheader")
+        = t(".corosync_rings_header")
+
+      = select_field %w(corosync transport), :collection => :transport_for_pacemaker, "data-showit" => ["udp", "udpu"].join(";"), "data-showit-target" => ".ring_udp_container;.ring_udpu_container", "data-showit-direct" => "true"
+
+      %script#ring-entries{ :type => "text/x-handlebars-template" }
+        #corosync-rings
+          {{#each entries}}
+          %ul.list-group{ :id => "ring-index-{{@index}}" }
+            %li.list-group-item.active
+              %h3.list-group-item-heading
+                = t('.corosync.ring_header', :index => "{{inc @index}}")
+                {{#if ../at_min_entries }}
+                {{else}}
+                = link_to icon_tag("trash"), "#", :class => "corosync-ring-delete pull-right delete", "data-ringid" => "{{@index}}"
+                {{/if}}
+            %li.list-group-item
+              = string_field %w(corosync rings {{@index}} network), :placeholder => t(".corosync.rings.network_placeholder")
+              %div{ :class => "ring_udp_container" }
+                = string_field %w(corosync rings {{@index}} mcast_addr), :placeholder => t(".corosync.rings.mcast_placeholder")
+          {{/each}}
 
       #corosync-rings
         = t(".corosync.loading_text")
 
       %ul.list-group{ :id => "ring-add" }
-        %fieldset
-          %legend
-            = t(".corosync.addheader")
-
-          = string_field %w(corosync rings index network)
+        %li.list-group-item.active
+          %h3.list-group-item-heading
+            = t('.corosync.add_header', :index => "{{inc @index}}")
+            .form-group.pull-right
+              %input{ :id => "add-ring-button", :class => "form-control btn-default", :type => "button", :value => t('.corosync.add_button') }
+        %li.list-group-item
+          = string_field %w(corosync rings index network), :placeholder => t(".corosync.rings.network_placeholder")
           %div{ :class => "ring_udp_container" }
-            = string_field %w(corosync rings index mcast_addr)
+            = string_field %w(corosync rings index mcast_addr), :placeholder => t(".corosync.rings.mcast_placeholder")
 
-          .form-group.pull-left
-            %input{ :id => "add-ring-button", :class => "form-control", :type => "button", :value => "Add Ring" }
+    %fieldset
+      %legend
+        = t(".pacemaker_header")
 
-    = select_field %w(crm no_quorum_policy), :collection => :no_quorum_policy_for_pacemaker
-    %span.help-block
-      = t('.crm.no_quorum_policy_hint_html')
+      = select_field %w(crm no_quorum_policy), :collection => :no_quorum_policy_for_pacemaker
+      %span.help-block
+        = t('.crm.no_quorum_policy_hint_html')
 
-    = boolean_field %w(clone_stateless_services)
-    %span.help-block
-      = t('.clone_stateless_services_hint')
+      = boolean_field %w(clone_stateless_services)
+      %span.help-block
+        = t('.clone_stateless_services_hint')
 
     %fieldset
       %legend
