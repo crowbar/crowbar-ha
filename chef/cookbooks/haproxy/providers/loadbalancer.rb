@@ -61,6 +61,7 @@ action :create do
       section["options"] = [["tcpka", "httplog", "forwardfor"], section["options"]].flatten
     end
   end
+  section["default_server"] = new_resource.default_server unless new_resource.default_server.empty?
   section["servers"] = new_resource.servers
 
   if new_resource.rate_limit && new_resource.rate_limit.to_i != 0
