@@ -74,7 +74,7 @@ class Pacemaker::Resource::Primitive < Pacemaker::Resource
   def self.op_string(ops)
     return "" if !ops || ops.empty?
     ops.sort.map do |op, attrs|
-      if attrs.empty?
+      if attrs.nil? || attrs.empty?
         nil
       else
         # crm seems to append interval=0 when there are attributes, but no
