@@ -71,26 +71,37 @@ class Pacemaker::Resource::Primitive < Pacemaker::Resource
     end.join(" ")
   end
 
+  def self.one_op_string(op, attrs)
+    if attrs.nil? || attrs.empty?
+      nil
+    else
+      # crm seems to append interval=0 when there are attributes, but no
+      # interval defined, so let's copy that to avoid creating a diff in the
+      # definition
+      unless attrs.key? "interval"
+        attrs = attrs.clone
+        attrs["interval"] = "0"
+      end
+      "op #{op} " + \
+        attrs.sort.map do |key, value|
+          # Shouldn't be necessary to escape " here since we don't
+          # expect any arbitrary string values, but better to be safe.
+          safe = value.is_a?(String) ? value.gsub('"', '\\"') : value.to_s
+          %'#{key}="#{safe}"'
+        end.join(" ")
+    end
+  end
+
   def self.op_string(ops)
     return "" if !ops || ops.empty?
     ops.sort.map do |op, attrs|
-      if attrs.nil? || attrs.empty?
-        nil
+      # we may have a list of ops of a specific type
+      if attrs.is_a?(Array)
+        attrs.map do |real_attrs|
+          one_op_string(op, real_attrs)
+        end.compact.join(" ")
       else
-        # crm seems to append interval=0 when there are attributes, but no
-        # interval defined, so let's copy that to avoid creating a diff in the
-        # definition
-        unless attrs.key? "interval"
-          attrs = attrs.clone
-          attrs["interval"] = "0"
-        end
-        "op #{op} " + \
-          attrs.sort.map do |key, value|
-            # Shouldn't be necessary to escape " here since we don't
-            # expect any arbitrary string values, but better to be safe.
-            safe = value.is_a?(String) ? value.gsub('"', '\\"') : value.to_s
-            %'#{key}="#{safe}"'
-          end.join(" ")
+        one_op_string(op, attrs)
       end
     end.compact.join(" ")
   end

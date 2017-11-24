@@ -65,6 +65,24 @@ describe Pacemaker::Resource::Primitive do
       }
       expect(fixture.op_string).to eq(%'op monitor baz="qux" foo="bar" interval="0"')
     end
+
+    it "should return a resource op string with multiple monitors" do
+      fixture.op = {
+        "monitor" => [
+          {
+            "foo" => "bar",
+            "baz" => "qux"
+          },
+          {
+            "oof" => "rab",
+            "zab" => "xuq"
+          }
+        ]
+      }
+      expect(fixture.op_string).to eq(
+        %'op monitor baz="qux" foo="bar" interval="0" op monitor interval="0" oof="rab" zab="xuq"'
+      )
+    end
   end
 
   it_should_behave_like "with meta attributes"
