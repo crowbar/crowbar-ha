@@ -63,7 +63,7 @@ describe Pacemaker::Resource::Primitive do
           "baz" => "qux"
         }
       }
-      expect(fixture.op_string).to eq(%'op monitor baz="qux" foo="bar" interval="0"')
+      expect(fixture.op_string).to eq(%(op monitor baz="qux" foo="bar" interval="0"))
     end
 
     it "should return a resource op string with multiple monitors" do
@@ -80,7 +80,7 @@ describe Pacemaker::Resource::Primitive do
         ]
       }
       expect(fixture.op_string).to eq(
-        %'op monitor baz="qux" foo="bar" interval="0" op monitor interval="0" oof="rab" zab="xuq"'
+        %(op monitor baz="qux" foo="bar" interval="0" op monitor interval="0" oof="rab" zab="xuq")
       )
     end
   end
