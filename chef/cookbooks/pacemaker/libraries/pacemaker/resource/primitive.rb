@@ -35,7 +35,7 @@ class Pacemaker::Resource::Primitive < Pacemaker::Resource
     end
 
     self.op = {}
-    %w(start stop monitor promote demote).each do |op|
+    %w(start stop monitor promote demote notify probe migrate_to migrate_from).each do |op|
       h = self.class.extract_hash(@definition, "op #{op}")
       self.op[op] = h unless h.empty?
     end
