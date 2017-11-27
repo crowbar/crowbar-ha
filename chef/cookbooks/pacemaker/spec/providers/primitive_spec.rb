@@ -2,6 +2,8 @@ require "spec_helper"
 
 require_relative "../helpers/runnable_resource"
 require_relative "../fixtures/keystone_primitive"
+require_relative "../../../crowbar-pacemaker/libraries/helpers.rb"
+
 
 describe "Chef::Provider::PacemakerPrimitive" do
   # for use inside examples:
