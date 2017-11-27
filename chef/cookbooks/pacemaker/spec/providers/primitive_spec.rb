@@ -102,13 +102,13 @@ EOF
 
     it "should modify the primitive if it has different op values" do
       expected_configure_cmd_args = [
-        fixture.reconfigure_command.gsub("60", "120")
+        fixture.reconfigure_command.gsub("240", "120")
       ]
       test_modify(expected_configure_cmd_args) do
         new_op = Hash[fixture.op]
         # Ensure we're not modifying our expectation as well as the input
-        new_op["monitor"] = new_op["monitor"].dup
-        new_op["monitor"]["timeout"] = "120"
+        new_op["start"] = new_op["start"].dup
+        new_op["start"]["timeout"] = "120"
         @resource.op new_op
       end
     end
