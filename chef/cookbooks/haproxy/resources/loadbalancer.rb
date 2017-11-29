@@ -24,6 +24,7 @@ attribute :name,    kind_of: String,  name_attribute: true
 attribute :type,    kind_of: String,  default: "listen", equal_to: ["listen", "backend", "frontend"]
 attribute :address, kind_of: String,  default: "0.0.0.0"
 attribute :port,    kind_of: Integer, default: 0
+attribute :max_connections, kind_of: Integer, default: nil
 attribute :mode,    kind_of: String,  default: "http", equal_to: ["http", "tcp", "health"]
 attribute :balance, kind_of: String,  default: "",
           equal_to: ["", "roundrobin", "static-rr", "leastconn", "first", "source"]
