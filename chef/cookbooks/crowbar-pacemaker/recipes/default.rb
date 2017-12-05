@@ -91,6 +91,10 @@ end
 
 node.save if dirty
 
+# make sure all ssh keys are deployed before joining the cluster to allow
+# alert handlers to ssh to this node if needed.
+include_recipe "provisioner::keys"
+
 include_recipe "pacemaker::default"
 
 # Set up authkey for pacemaker remotes (different to corosync authkey)
