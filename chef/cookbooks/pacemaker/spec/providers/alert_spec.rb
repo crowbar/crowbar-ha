@@ -5,9 +5,9 @@ require_relative "../fixtures/alert"
 
 describe "Chef::Provider::PacemakerAlert" do
   # for use inside examples:
-  let(:fixture) { Chef::RSpec::Pacemaker::Config::ALERT.dup }
+  let(:fixture) { Chef::RSpec::Pacemaker::Config::ALERT_WITH_TO.dup }
   # for use outside examples (e.g. when invoking shared_examples)
-  fixture = Chef::RSpec::Pacemaker::Config::ALERT.dup
+  fixture = Chef::RSpec::Pacemaker::Config::ALERT_WITH_TO.dup
 
   def lwrp_name
     "alert"
@@ -29,7 +29,7 @@ describe "Chef::Provider::PacemakerAlert" do
 
     it "should modify the alert if the resource is changed" do
       expected = fixture.dup
-      expected.handler = "handler2.sh"
+      expected.handler = "handlernew.sh"
       expected_configure_cmd_args = [expected.reconfigure_command]
       test_modify(expected_configure_cmd_args) do
         @resource.handler expected.handler
