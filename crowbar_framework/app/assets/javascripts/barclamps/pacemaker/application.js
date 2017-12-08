@@ -225,7 +225,7 @@ function update_no_quorum_policy(evt, init) {
     if (evt.type == 'nodeListNodeUnallocated') { members -= 1; }
   }
 
-  if (members > 2) {
+  if (members > 1) {
     if (was_forced_policy) {
       no_quorum_policy_el.val(non_forced_policy);
       no_quorum_policy_el.removeData('non-forced');
