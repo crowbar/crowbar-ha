@@ -129,4 +129,10 @@ quorum {
 	# Enable and configure quorum subsystem (default: off)
 	# see also corosync.conf.5 and votequorum.5
 	provider: corosync_votequorum
+  <% if @members_v2.length <= 2 -%>
+	expected_votes: <%= @members_v2.length %>
+    <% if @members_v2.length == 2 -%>
+	two_node: 1
+    <% end -%>
+  <% end -%>
 }
