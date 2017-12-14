@@ -13,7 +13,7 @@ module Pacemaker
     end
 
     def parse_definition
-      unless @definition =~ /\A#{self.class.object_type} (\S+) (\S+)[\\\s]+to (\S+)/
+      unless @definition =~ /\A#{self.class.object_type} (\S+) (\S+)(?:[\\\s]+to (\S+))?/
         raise Pacemaker::CIBObject::DefinitionParseError, \
               "Couldn't parse definition '#{@definition}'"
       end
@@ -26,7 +26,8 @@ module Pacemaker
 
     def definition_from_attributes
       str = "#{self.class.object_type} #{name} #{handler}"
-      str << continuation_line("to #{receiver}") unless receiver.empty?
+      str << continuation_line("to #{receiver}") unless receiver.nil? || receiver.empty?
+      str
     end
 
     def self.description
