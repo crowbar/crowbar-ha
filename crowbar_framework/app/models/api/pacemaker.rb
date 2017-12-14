@@ -22,7 +22,7 @@ module Api
         unless repocheck["ha"]["available"]
           return { errors: [I18n.t("api.pacemaker.ha_not_installed")] }
         end
-        founders = NodeObject.find("pacemaker_founder:true AND pacemaker_config_environment:*")
+        founders = NodeObject.find("pacemaker_config_environment:*")
         founders.empty? ? { errors: [I18n.t("api.pacemaker.ha_not_configured")] } : {}
       end
 
@@ -44,7 +44,13 @@ module Api
         crm_failures = {}
         failed_actions = {}
 
-        founders = NodeObject.find("pacemaker_founder:true AND pacemaker_config_environment:*")
+        # get unique list of founder names across all clusters
+        cluster_founders_names = NodeObject.find(
+          "run_list_map:pacemaker-cluster-member"
+        ).map! do |node|
+          node[:pacemaker][:founder]
+        end.uniq
+        founders = cluster_founders_names.map { |name| NodeObject.find_by_name(name) }
         return ret if founders.empty?
 
         service_object = CrowbarService.new(Rails.logger)
@@ -79,37 +85,32 @@ module Api
           Rails.logger.error("Node #{name} does not have pacemaker setup")
           return false
         end
-        if new_founder[:pacemaker][:founder]
+        if new_founder[:pacemaker][:founder] == new_founder[:fqdn]
           Rails.logger.debug("Node #{name} is already the cluster founder.")
-          return true
         end
 
-        # 2. find the current cluster founder in the same cluster
+        # 2. find the role for this cluster and change the founder
         cluster_env = new_founder[:pacemaker][:config][:environment]
-        old_founder = NodeObject.find(
-          "pacemaker_founder:true AND pacemaker_config_environment:#{cluster_env}"
-        ).first
+        cluster_role = RoleObject.find_role_by_name(cluster_env)
 
-        if old_founder.nil?
-          Rails.logger.warning("No cluster founder found. Making #{name} the new founder anyway.")
-        else
-          old_founder[:pacemaker][:founder] = false
-          if old_founder[:drbd] && old_founder[:drbd][:rsc]
-            old_founder[:drbd][:rsc].each do |res, _|
-              old_founder[:drbd][:rsc][res][:master] = false
+        cluster_role.default_attributes["pacemaker"]["founder"] = new_founder[:fqdn]
+        cluster_role.save
+
+        # 3. change drdb master in all nodes from this cluster
+        ::Node.find("pacemaker_config_environment:#{cluster_env}").each do |node|
+          # we need to set the new founder on the cluster nodes anyway. This is because
+          # even if we have the new founder on the role, that will only be applied to the
+          # node during a chef run, but could lead to issues on node searches before that chef-run
+          # so for peace of mind, we update it on all nodes always.
+          node["pacemaker"]["founder"] = new_founder[:fqdn]
+          if node[:drbd] && node[:drbd][:rsc]
+            node[:drbd][:rsc].each_key do |res|
+              # if this is the new founder set master to true, false if its any other node
+              node[:drbd][:rsc][res][:master] = (node[:fqdn] == new_founder[:fqdn])
             end
           end
-          old_founder.save
+          node.save
         end
-
-        # 3. mark given node as founder
-        new_founder[:pacemaker][:founder] = true
-        if new_founder[:drbd] && new_founder[:drbd][:rsc]
-          new_founder[:drbd][:rsc].each do |res, _|
-            new_founder[:drbd][:rsc][res][:master] = true
-          end
-        end
-        new_founder.save
       end
 
       def repocheck
