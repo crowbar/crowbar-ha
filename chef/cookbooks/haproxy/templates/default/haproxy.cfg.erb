@@ -90,6 +90,10 @@ listen  admin-stats <%= node[:haproxy][:stats][:enabled] ? node[:haproxy][:stats
 	option <%= option %>
     <% end -%>
 
+    <% unless content[:max_connections].nil? -%>
+	maxconn <%= content[:max_connections] %>
+    <% end -%>
+
     <% unless content[:default_server].nil? -%>
 	default-server <%= content[:default_server] %>
     <% end -%>
