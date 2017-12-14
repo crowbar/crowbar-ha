@@ -89,6 +89,18 @@ listen  admin-stats <%= node[:haproxy][:stats][:enabled] ? node[:haproxy][:stats
 	stick on <%= content[:stick][:on] %>
 
     <% end -%>
+    <% unless content[:rate_limit].nil? || content[:rate_limit].to_i.zero? -%>
+	# Rate limiting config options
+	tcp-request inspect-delay 5s
+	acl too_many_reqs_by_user sc0_gpc0_rate() gt <%= content[:rate_limit] %>
+	acl mark_seen sc0_inc_gpc0 gt 0
+	stick-table type string size 100k expire 60s store gpc0_rate(60s)
+	tcp-request content track-sc0 src
+
+	use_backend be_429_slow_down if mark_seen too_many_reqs_by_user
+	# End Rate limiting config options
+
+    <% end -%>
     <% content[:options].each do |option| -%>
 	option <%= option %>
     <% end -%>
@@ -112,17 +124,6 @@ listen  admin-stats <%= node[:haproxy][:stats][:enabled] ? node[:haproxy][:stats
         backup = server[:backup] ? " backup" : ""
       %>
 	server <%= server[:name] %> <%= server[:address] %>:<%= server[:port] %> check<%= ssl %><%= inter %><%= fastinter %><%= downinter %><%= rise %><%= fall %><%= backup %>
-    <% end -%>
-    <% unless content[:rate_limit].nil? || content[:rate_limit].to_i.zero? -%>
-	# Rate limiting config options
-	tcp-request inspect-delay 5s
-	acl too_many_reqs_by_user sc0_gpc0_rate() gt <%= content[:rate_limit] %>
-	acl mark_seen sc0_inc_gpc0 gt 0
-	stick-table type string size 100k expire 60s store gpc0_rate(60s)
-	tcp-request content track-sc0 src
-
-	use_backend be_429_slow_down if mark_seen too_many_reqs_by_user
-	# End Rate limiting config options
     <% end -%>
   <% end -%>
 <% end -%>
