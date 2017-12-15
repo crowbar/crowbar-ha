@@ -54,14 +54,19 @@
         "admin_name": "",
         "public_name": ""
       },
-      "clone_stateless_services": true
+      "clone_stateless_services": true,
+      "op_defaults": {
+        "monitor": {
+          "on-fail": ""
+        }
+      }
     }
   },
   "deployment": {
     "pacemaker": {
       "crowbar-revision": 0,
       "crowbar-applied": false,
-      "schema-revision": 104,
+      "schema-revision": 105,
       "element_states": {
         "pacemaker-cluster-member"    : [ "readying", "ready", "applying" ],
         "hawk-server"                 : [ "readying", "ready", "applying" ],

@@ -141,7 +141,20 @@
                 "public_name": { "type": "str", "required": true }
               }
             },
-            "clone_stateless_services": { "type": "bool", "required": true }
+            "clone_stateless_services": { "type": "bool", "required": true },
+            "op_defaults": {
+              "type": "map",
+              "required": true,
+              "mapping": {
+                "monitor": {
+                  "type": "map",
+                  "required": true,
+                  "mapping": {
+                    "on-fail": { "type": "str", "required": true, "pattern": "/^ignore$|^block$|^stop$|^restart$|^fence$|^standby$|^$/"}
+                  }
+                }
+              }
+            }
           }
         }
       }
