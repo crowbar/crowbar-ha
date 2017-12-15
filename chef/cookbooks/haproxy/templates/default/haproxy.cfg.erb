@@ -26,17 +26,17 @@ defaults
 	timeout server 3h
 	timeout check 5s
 	balance <%= node[:haproxy][:defaults][:balance] %>
-
 <% # if stats are not enabled, but there's no configured section, we setup stats on 127.0.0.1 to generate a valid config file (it needs at least one section) -%>
 <% if node[:haproxy][:stats][:enabled] || node[:haproxy][:sections].empty? -%>
+
 listen  admin-stats <%= node[:haproxy][:stats][:enabled] ? node[:haproxy][:stats][:address] : "127.0.0.1" %>:<%= node[:haproxy][:stats][:port] %>
 	mode http
 	option httplog
 	stats uri /
-
 <% end -%>
 <% node[:haproxy][:sections].keys.sort.each do |type| -%>
   <% node[:haproxy][:sections][type].keys.sort.each do |name| -%>
+
     <% content = node[:haproxy][:sections][type][name] -%>
 <%= type %> <%= name %>
 	bind <%= content[:address] %>:<%= content[:port] %>
@@ -67,6 +67,7 @@ listen  admin-stats <%= node[:haproxy][:stats][:enabled] ? node[:haproxy][:stats
 
 	# Learn on response if server hello.
 	stick store-response payload_lv(43,1) if serverhello
+
     <% elsif content[:mode] == "http" && content[:stick] &&
          content[:stick][:cookies] && !content[:stick][:cookies].empty?
        # There are various options here, described in:
@@ -81,10 +82,24 @@ listen  admin-stats <%= node[:haproxy][:stats][:enabled] ? node[:haproxy][:stats
 	stick store-response res.cook(<%= cookie %>)
 	stick match req.cook(<%= cookie %>)
       <% end -%>
+
     <% end -%>
     <% if content[:stick] && content[:stick][:on] && !content[:stick][:on].empty? -%>
-        stick-table type ip size 1
-        stick on <%= content[:stick][:on] %>
+	stick-table type ip size 1
+	stick on <%= content[:stick][:on] %>
+
+    <% end -%>
+    <% unless content[:rate_limit].nil? || content[:rate_limit].to_i.zero? -%>
+	# Rate limiting config options
+	tcp-request inspect-delay 5s
+	acl too_many_reqs_by_user sc0_gpc0_rate() gt <%= content[:rate_limit] %>
+	acl mark_seen sc0_inc_gpc0 gt 0
+	stick-table type string size 100k expire 60s store gpc0_rate(60s)
+	tcp-request content track-sc0 src
+
+	use_backend be_429_slow_down if mark_seen too_many_reqs_by_user
+	# End Rate limiting config options
+
     <% end -%>
     <% content[:options].each do |option| -%>
 	option <%= option %>
@@ -92,12 +107,12 @@ listen  admin-stats <%= node[:haproxy][:stats][:enabled] ? node[:haproxy][:stats
 
     <% unless content[:max_connections].nil? -%>
 	maxconn <%= content[:max_connections] %>
-    <% end -%>
 
+    <% end -%>
     <% unless content[:default_server].nil? -%>
 	default-server <%= content[:default_server] %>
-    <% end -%>
 
+    <% end -%>
     <% content[:servers].each do |server| -%>
       <%
         ssl = content[:use_ssl] ? " check-ssl verify none" : ""
@@ -108,24 +123,12 @@ listen  admin-stats <%= node[:haproxy][:stats][:enabled] ? node[:haproxy][:stats
         fall = " fall #{server[:fall] || 2}"
         backup = server[:backup] ? " backup" : ""
       %>
-        server <%= server[:name] %> <%= server[:address] %>:<%= server[:port] %> check<%= ssl %><%= inter %><%= fastinter %><%= downinter %><%= rise %><%= fall %><%= backup %>
+	server <%= server[:name] %> <%= server[:address] %>:<%= server[:port] %> check<%= ssl %><%= inter %><%= fastinter %><%= downinter %><%= rise %><%= fall %><%= backup %>
     <% end -%>
-	<% unless content[:rate_limit].nil? || content[:rate_limit].to_i.zero? -%>
-	# Rate limiting config options
-	tcp-request inspect-delay 5s
-	acl too_many_reqs_by_user sc0_gpc0_rate() gt <%= content[:rate_limit] %>
-	acl mark_seen sc0_inc_gpc0 gt 0
-	stick-table type string size 100k expire 60s store gpc0_rate(60s)
-	tcp-request content track-sc0 src
-
-	use_backend be_429_slow_down if mark_seen too_many_reqs_by_user
-	# End Rate limiting config options
-	<% end -%>
-
   <% end -%>
 <% end -%>
-
 <% if @rate_limit_enabled -%>
+
 backend be_429_slow_down
 	mode http
 	timeout tarpit 2s
