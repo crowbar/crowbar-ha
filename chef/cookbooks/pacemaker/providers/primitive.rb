@@ -69,6 +69,12 @@ def create_resource(name)
   standard_create_resource
 end
 
+def get_cluster_op_defaults(node)
+  return nil unless !node[:pacemaker].nil? && !node[:pacemaker][:op_defaults].nil?
+
+  node[:pacemaker][:op_defaults].to_hash
+end
+
 def update_resource(name)
   current_agent = @current_resource.agent
   unless current_agent.include? ":"
@@ -90,12 +96,56 @@ def update_resource(name)
   maybe_modify_resource(name)
 end
 
+# Merge in op defaults from barclamp to those from pacemaker
+# Returns a *single* Hash with merged ops for 'monitor'. Should 'monitor' be
+# an array of hashes, it has to be dealt externally to this function.
+def merge_cluster_op_monitor_defaults(op_monitor, op_defaults)
+  op_defaults ||= {}
+  op_defaults["monitor"] ||= {}
+  op_defaults["monitor"]["on-fail"] ||= ""
+
+  if !op_defaults["monitor"]["on-fail"].empty?
+    # Merge defined 'on-fail' default with already existing ops
+    default_op_monitor = { "on-fail" => op_defaults["monitor"]["on-fail"] }
+    default_op_monitor.merge(op_monitor)
+  else
+    # 'on-fail' default not defined, return original ops
+    op_monitor
+  end
+end
+
 def maybe_modify_resource(name)
   deprecate_target_role
 
   Chef::Log.info "Checking existing #{@current_cib_object} for modifications"
 
   cmds = []
+
+  # We don't want to modify data from the recipe, so ensure we have a copy as a hash
+  if new_resource.op.nil?
+    ops = {}
+  elsif new_resource.op.is_a? Hash
+    ops = new_resource.op.clone
+  else
+    ops = new_resource.op.to_hash
+  end
+
+  cluster_op_defaults = get_cluster_op_defaults(node)
+
+  ops["monitor"] ||= {}
+
+  # The ops["monitor"] section is presented in two flavors:
+  # - Single op value: Hash
+  # - Multiple op values (i.e. for master vs slave): Array of Hashes
+  if ops["monitor"].is_a?(Array)
+    ops["monitor"].map! do |op_monitor|
+      merge_cluster_op_monitor_defaults(op_monitor, cluster_op_defaults)
+    end
+  elsif ops["monitor"].is_a?(Hash)
+    ops["monitor"] = merge_cluster_op_monitor_defaults(ops["monitor"], cluster_op_defaults)
+  end
+
+  new_resource.op(ops)
 
   desired_primitive = cib_object_class.from_chef_resource(new_resource)
 
