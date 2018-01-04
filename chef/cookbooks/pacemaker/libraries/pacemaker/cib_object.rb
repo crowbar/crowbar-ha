@@ -288,7 +288,7 @@ module Pacemaker
       hash_string = string.gsub(/\\([^"])/) { |m| '\\' + m }
 
       Shellwords.split(hash_string).each do |kvpair|
-        break if kvpair == "op"
+        break if kvpair =~ /^(op|to)$/
         unless kvpair =~ /^(.+?)=(.*)$/
           raise "Couldn't understand '#{kvpair}' for '#{data_type}' section "\
             "of #{name} resource (definition was [#{string}])"
@@ -312,7 +312,7 @@ module Pacemaker
       elsif results.length == 1
         results[0]
       else
-        if data_type !~ /^op (.*)$/
+        unless data_type =~ /^op (.*)$/
           raise "Many results when extracting hash for #{data_type} from "\
               "#{obj_definition} while this is not an op!"
         end
