@@ -718,9 +718,17 @@ class PacemakerService < ServiceObject
     end
 
     if proposal["attributes"][@bc_name]["drbd"]["enabled"]
-      validation_error I18n.t(
-        "barclamp.#{bc_name}.validation.drbd"
-      ) if members.length != 2
+      proposal_id = proposal["id"].gsub("#{@bc_name}-", "")
+      proposal_object = Proposal.where(barclamp: @bc_name, name: proposal_id).first
+      if proposal_object.nil? || !proposal_object.active_status?
+        validation_error I18n.t(
+          "barclamp.#{@bc_name}.validation.no_new_drbd"
+        )
+      else
+        validation_error I18n.t(
+          "barclamp.#{bc_name}.validation.drbd"
+        ) if members.length != 2
+      end
     end
 
     nodes = NodeObject.find("roles:provisioner-server")

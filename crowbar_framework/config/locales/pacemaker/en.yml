@@ -146,6 +146,7 @@ en:
         smtp_server: 'Invalid SMTP server for mail notifications.'
         sender_address: 'Invalid sender address for mail notifications.'
         recipient_address: 'Invalid recipient address for mail notifications.'
+        no_new_drbd: 'DRBD is not allowed for new deployments since services can not be configured to use it anymore.'
         drbd: 'Setting up DRBD requires a cluster of two nodes.'
         ha_repo: 'The SLE HA repositories have not been setup.'
         transport_value: 'Invalid transport value: %{transport}.'
