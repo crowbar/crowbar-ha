@@ -25,10 +25,6 @@ en:
   barclamp:
     pacemaker:
       edit_attributes:
-        drbd_header: 'DRBD'
-        drbd:
-          info: 'Using DRBD for replicated storage is an alternative to using shared storage for high availability of services like database and RabbitMQ. This requires the cluster to have two nodes only, as well as one dedicated disk on each cluster member.'
-          enabled: 'Prepare cluster for DRBD'
         haproxy_header: 'HAProxy'
         haproxy:
           ssl_info:
