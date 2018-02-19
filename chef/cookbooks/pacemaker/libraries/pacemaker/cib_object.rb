@@ -291,7 +291,7 @@ module Pacemaker
         break if kvpair == "op"
         unless kvpair =~ /^(.+?)=(.*)$/
           raise "Couldn't understand '#{kvpair}' for '#{data_type}' section "\
-            "of #{name} resource (definition was [#{obj_definition}])"
+            "of #{name} resource (definition was [#{string}])"
         end
         k, v = $1, $2
         h[k] = v.sub(/^"(.*)"$/, "\1")
