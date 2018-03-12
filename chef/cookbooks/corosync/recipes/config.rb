@@ -86,6 +86,14 @@ template "/etc/corosync/corosync.conf" do
   # via corosync-cfgtool -R.
 end
 
+corosync_action = :delayed
+
+if node[:crowbar_wall][:cluster_size_changed]
+  corosync_action = :immediately
+  node.set[:crowbar_wall][:cluster_size_changed] = false
+  node.save
+end
+
 execute "reload corosync.conf" do
   # corosync-cfgtool -R reloads the configuration across ALL the nodes in the
   # cluster - each reloading its own local configuration file. This means that
@@ -101,5 +109,5 @@ execute "reload corosync.conf" do
   user "root"
   group "root"
   action :nothing
-  subscribes :run, "template[/etc/corosync/corosync.conf]", :delayed
+  subscribes :run, "template[/etc/corosync/corosync.conf]", corosync_action
 end
