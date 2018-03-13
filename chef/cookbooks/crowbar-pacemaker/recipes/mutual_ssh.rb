@@ -24,7 +24,8 @@
 
 cluster_access_keys = []
 
-CrowbarPacemakerHelper.cluster_nodes(node).each do |cluster_node|
+node[:pacemaker][:elements]["pacemaker-cluster-member"].each do |node_name|
+  cluster_node = search(:node, "name:#{node_name}").first
   pkey = nil
   if cluster_node[:crowbar][:ssh]
     pkey = cluster_node[:crowbar][:ssh][:root_pub_key]
