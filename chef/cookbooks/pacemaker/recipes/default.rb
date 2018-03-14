@@ -53,13 +53,36 @@ if (platform_family?("suse") && node.platform_version.to_f >= 12.0) || platform_
   end
 end
 
+cluster_size = node[:pacemaker][:elements]["pacemaker-cluster-member"].length
+nodes_names = node[:pacemaker][:elements]["pacemaker-cluster-member"].map do |n|
+  n.gsub(/\..*/, "")
+end
+
 ruby_block "wait for cluster to be online" do
   block do
     require "timeout"
     begin
       Timeout.timeout(60) do
-        cmd = "crm_mon -1 | grep -qi online"
-        while ! ::Kernel.system(cmd)
+        loop do
+          # example of 'crm_node -l' output:
+          # 1084813649 d52-54-77-77-01-02 member
+          # 1084813652 d52-54-77-77-01-01 member
+          crm_node_cmd = Mixlib::ShellOut.new("crm_node -l").run_command
+          if crm_node_cmd.exitstatus != 0
+            Chef::Log.warn("Problems when executing 'crm_node -l': #{crm_node_cmd.stderr}")
+            next
+          end
+          crm_nodes = crm_node_cmd.stdout
+          crm_names = crm_nodes.split("\n").map { |l| l.split(" ")[1] }
+          crm_mon_cmd = Mixlib::ShellOut.new("crm_mon -1").run_command
+          if crm_mon_cmd.exitstatus != 0
+            Chef::Log.warn("Problems when executing 'crm_mon -1': #{crm_mon_cmd.stderr}")
+            next
+          end
+          crm_mon = crm_mon_cmd.stdout
+          break if crm_mon.include?("#{cluster_size} nodes configured") &&
+              crm_mon.include?("Online:") &&
+              crm_names.sort == nodes_names.sort
           Chef::Log.debug("cluster not online yet")
           sleep(5)
         end
