@@ -15,6 +15,9 @@ shared_context "a Pacemaker LWRP" do
     }
     @chef_run = ::ChefSpec::Runner.new(runner_opts)
     @node = @chef_run.node
+    @node.normal[:pacemaker] ||= {}
+    @node.normal[:pacemaker][:elements] ||= {}
+    @node.normal[:pacemaker][:elements]["pacemaker-cluster-member"] = {}
   end
 
   def converge
