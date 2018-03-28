@@ -25,10 +25,6 @@ en:
   barclamp:
     pacemaker:
       edit_attributes:
-        drbd_header: 'DRBD'
-        drbd:
-          info: 'Using DRBD for replicated storage is an alternative to using shared storage for high availability of services like database and RabbitMQ. This requires the cluster to have two nodes only, as well as one dedicated disk on each cluster member.'
-          enabled: 'Prepare cluster for DRBD'
         haproxy_header: 'HAProxy'
         haproxy:
           ssl_info:
@@ -146,6 +142,7 @@ en:
         smtp_server: 'Invalid SMTP server for mail notifications.'
         sender_address: 'Invalid sender address for mail notifications.'
         recipient_address: 'Invalid recipient address for mail notifications.'
+        no_new_drbd: 'DRBD is not allowed for new deployments since services can not be configured to use it anymore.'
         drbd: 'Setting up DRBD requires a cluster of two nodes.'
         ha_repo: 'The SLE HA repositories have not been setup.'
         transport_value: 'Invalid transport value: %{transport}.'
