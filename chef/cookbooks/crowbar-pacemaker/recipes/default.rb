@@ -93,6 +93,7 @@ node.save if dirty
 
 # make sure all ssh keys are deployed before joining the cluster to allow
 # alert handlers to ssh to this node if needed.
+include_recipe "crowbar-pacemaker::mutual_ssh"
 include_recipe "provisioner::keys"
 
 include_recipe "pacemaker::default"
@@ -113,9 +114,30 @@ ruby_block "mark node as ready for pacemaker" do
   end
 end
 
+ruby_block "wait for corosync to be up at each node" do
+  block do
+    require "timeout"
+    begin
+      Timeout.timeout(60) do
+
+        CrowbarPacemakerHelper.cluster_nodes_names(node).each do |name|
+          next if name == node[:hostname]
+          until ::Kernel.system("ssh #{name} systemctl status corosync >/dev/null")
+            Chef::Log.debug("corosync at #{name} not running")
+            sleep(5)
+          end
+        end
+
+      end
+    rescue Timeout::Error
+      message = "Corosync at some cluster node not yet running"
+      Chef::Log.warn(message)
+    end
+  end
+end
+
 include_recipe "crowbar-pacemaker::attributes"
 include_recipe "crowbar-pacemaker::maintenance-mode"
-include_recipe "crowbar-pacemaker::mutual_ssh"
 
 include_recipe "crowbar-pacemaker::openstack"
 

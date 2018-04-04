@@ -384,9 +384,11 @@ class PacemakerService < ServiceObject
     member_nodes = members.map { |n| NodeObject.find_node_by_name n }
     remotes = attributes["elements"]["pacemaker-remote"] || []
     remote_nodes = remotes.map { |n| NodeObject.find_node_by_name n }
+    old_members = []
 
     founder_name = nil
     founder = nil
+    cluster_size_changed = false
 
     # elect a founder
     unless members.empty?
@@ -397,13 +399,16 @@ class PacemakerService < ServiceObject
         old_founder_name = old_role.default_attributes["pacemaker"]["founder"]
         founder_name = old_founder_name if members.include?(old_founder_name)
 
+        old_members = old_attributes["elements"]["pacemaker-cluster-member"]
+
         # the founder from the old role is not there anymore; let's promote
         # another node to founder, so we get the same authkey
         if founder_name.nil?
-          old_members = old_attributes["elements"]["pacemaker-cluster-member"]
           old_members = old_members.select { |n| members.include? n }
           founder_name = old_members.first
         end
+
+        cluster_size_changed = members.sort != old_members.sort
       end
 
       # Still nothing, there are two options:
@@ -462,6 +467,8 @@ class PacemakerService < ServiceObject
       member_node[:drbd] ||= {}
       member_node[:drbd][:local_node_id] = is_founder ? 0 : 1
       member_node[:drbd][:remote_node_id] = is_founder ? 1 : 0
+      member_node[:crowbar_wall][:cluster_size_changed] =
+        cluster_size_changed && old_members.include?(member_node.name)
       member_node.save
     end
 
