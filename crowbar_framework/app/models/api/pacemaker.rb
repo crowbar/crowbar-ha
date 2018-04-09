@@ -22,8 +22,8 @@ module Api
         unless repocheck["ha"]["available"]
           return { errors: [I18n.t("api.pacemaker.ha_not_installed")] }
         end
-        founders = NodeObject.find("pacemaker_founder:true AND pacemaker_config_environment:*")
-        founders.empty? ? { errors: [I18n.t("api.pacemaker.ha_not_configured")] } : {}
+        members = Node.find("pacemaker_config_environment:*")
+        members.empty? ? { errors: [I18n.t("api.pacemaker.ha_not_configured")] } : {}
       end
 
       # Simple check if HA clusters report some problems
@@ -44,7 +44,13 @@ module Api
         crm_failures = {}
         failed_actions = {}
 
-        founders = NodeObject.find("pacemaker_founder:true AND pacemaker_config_environment:*")
+        # get unique list of founder names across all clusters
+        cluster_founders_names = Node.find(
+          "run_list_map:pacemaker-cluster-member"
+        ).map! do |node|
+          node[:pacemaker][:founder]
+        end.uniq
+        founders = cluster_founders_names.map { |name| Node.find_by_name(name) }
         return ret if founders.empty?
 
         service_object = CrowbarService.new(Rails.logger)
