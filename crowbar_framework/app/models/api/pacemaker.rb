@@ -22,7 +22,7 @@ module Api
         unless repocheck["ha"]["available"]
           return { errors: [I18n.t("api.pacemaker.ha_not_installed")] }
         end
-        members = Node.find("pacemaker_config_environment:*")
+        members = ::Node.find("pacemaker_config_environment:*")
         members.empty? ? { errors: [I18n.t("api.pacemaker.ha_not_configured")] } : {}
       end
 
@@ -45,12 +45,12 @@ module Api
         failed_actions = {}
 
         # get unique list of founder names across all clusters
-        cluster_founders_names = Node.find(
+        cluster_founders_names = ::Node.find(
           "run_list_map:pacemaker-cluster-member"
         ).map! do |node|
           node[:pacemaker][:founder]
         end.uniq
-        founders = cluster_founders_names.map { |name| Node.find_by_name(name) }
+        founders = cluster_founders_names.map { |name| ::Node.find_by_name(name) }
         return ret if founders.empty?
 
         service_object = CrowbarService.new(Rails.logger)
