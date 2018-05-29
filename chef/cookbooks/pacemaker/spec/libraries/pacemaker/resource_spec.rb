@@ -56,5 +56,27 @@ describe Pacemaker::Resource do
       no_meta = fixture.definition.gsub(/\bmeta .*\\$/, "meta \\")
       expect(fixture.class.extract_hash(no_meta, "meta")).to eq({})
     end
+
+    it "should extract multiple joined meta" do
+      multi_meta = fixture.definition.gsub(
+        /\bmeta .*\\$/,
+        "meta is-managed=\"true\" target-role=\"Started\" \\"
+      )
+      expect(fixture.class.extract_hash(multi_meta, "meta")).to eq(
+        "is-managed" => "true",
+        "target-role" => "Started"
+      )
+    end
+
+    it "should extract multiple separated meta" do
+      multi_meta = fixture.definition.gsub(
+        /\bmeta .*\\$/,
+        "meta is-managed=\"true\" \\\nmeta target-role=\"Started\" \\"
+      )
+      expect(fixture.class.extract_hash(multi_meta, "meta")).to eq(
+        "is-managed" => "true",
+        "target-role" => "Started"
+      )
+    end
   end
 end
