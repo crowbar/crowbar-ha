@@ -53,7 +53,8 @@ if (platform_family?("suse") && node.platform_version.to_f >= 12.0) || platform_
   end
 end
 
-cluster_size = node[:pacemaker][:elements]["pacemaker-cluster-member"].length
+cluster_size = node[:pacemaker][:elements]["pacemaker-cluster-member"].length + \
+               (node[:pacemaker][:elements]["pacemaker-remote"] || []).length
 nodes_names = node[:pacemaker][:elements]["pacemaker-cluster-member"].map do |n|
   n.gsub(/\..*/, "")
 end
