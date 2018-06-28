@@ -301,7 +301,7 @@ module Pacemaker
 
     # This method extracts the list of Hash from the params / meta / op
     # matching the requested data_type. This should never return more than one
-    # result, unless we're looking for an op.
+    # result, unless we're looking for an op or meta.
     def self.extract_hash(obj_definition, data_type)
       results = find_all_to_extract(obj_definition, data_type).map do |string|
         extract_hash_from_one(string, data_type)
@@ -311,6 +311,8 @@ module Pacemaker
         {}
       elsif results.length == 1
         results[0]
+      elsif data_type =~ /^meta$/
+        results.reduce({}, :merge)
       else
         unless data_type =~ /^op (.*)$/
           raise "Many results when extracting hash for #{data_type} from "\
