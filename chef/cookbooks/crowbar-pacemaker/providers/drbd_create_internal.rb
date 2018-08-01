@@ -45,7 +45,7 @@ action :create do
       end.run_action(:install)
     end
 
-    next if resource["configured"]
+    next if resource["configured"] == node.crowbar.state_debug.installed
 
     lvm_logical_volume resource_name do
       group new_resource.lvm_group
@@ -64,7 +64,7 @@ action :create do
     end.run_action(:create)
 
     # we know we have to save due to the "next" earlier on
-    node.set["drbd"]["rsc"][resource_name]["configured"] = true
+    node.set["drbd"]["rsc"][resource_name]["configured"] = node.crowbar.state_debug.installed
     node.save
   end
 
