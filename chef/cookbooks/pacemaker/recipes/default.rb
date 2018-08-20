@@ -53,7 +53,8 @@ if (platform_family?("suse") && node.platform_version.to_f >= 12.0) || platform_
   end
 end
 
-cluster_size = node[:pacemaker][:elements]["pacemaker-cluster-member"].length
+cluster_size = node[:pacemaker][:elements]["pacemaker-cluster-member"].length + \
+               (node[:pacemaker][:elements]["pacemaker-remote"] || []).length
 nodes_names = node[:pacemaker][:elements]["pacemaker-cluster-member"].map do |n|
   n.gsub(/\..*/, "")
 end
@@ -80,10 +81,20 @@ ruby_block "wait for cluster to be online" do
             next
           end
           crm_mon = crm_mon_cmd.stdout
-          break if crm_mon.include?("#{cluster_size} nodes configured") &&
-              crm_mon.include?("Online:") &&
-              crm_names.sort == nodes_names.sort
-          Chef::Log.debug("cluster not online yet")
+          ready = true
+          if !crm_mon.include?("#{cluster_size} nodes configured")
+            ready = false
+            Chef::Log.warn("cluster doesn't have #{cluster_size} nodes configured yet")
+          elsif !crm_mon.include?("Online:")
+            ready = false
+            Chef::Log.warn("cluster doesn't have nodes online yet")
+          elsif crm_names.sort != nodes_names.sort
+            ready = false
+            Chef::Log.warn("crm_node -l listed nodes #{crm_names.sort}, " \
+                           "not #{nodes_names.sort} as expected")
+          end
+          break if ready
+          Chef::Log.warn("cluster not online yet")
           sleep(5)
         end
       end
