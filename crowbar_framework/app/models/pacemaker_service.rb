@@ -724,7 +724,8 @@ class PacemakerService < ServiceObject
       ) if smtp_settings["to"].blank?
     end
 
-    if proposal["attributes"][@bc_name]["drbd"]["enabled"]
+    drbd_attrs = proposal["attributes"][@bc_name]["drbd"]
+    if drbd_attrs["enabled"] && !drbd_attrs["allow_larger_cluster"]
       validation_error I18n.t(
         "barclamp.#{bc_name}.validation.drbd"
       ) if members.length != 2
