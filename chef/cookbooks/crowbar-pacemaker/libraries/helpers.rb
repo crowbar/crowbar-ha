@@ -128,31 +128,19 @@ module CrowbarPacemakerHelper
     net_db["allocated_by_name"]["#{vhostname}.#{node[:domain]}"]["address"]
   end
 
-  # Performs a Chef search and returns an Array of Node objects for
-  # all nodes in the same cluster as the given node, or an empty array
-  # if the node isn't in a cluster.  Can optionally filter by role.
+  # Returns an Array of Node objects for all nodes in the same cluster as
+  # the given node, or an empty array if the node isn't in a cluster.
+  # Can optionally filter by role.
   #
   # This call signature only makes sense because it is not possible
   # for a node to be in multiple clusters.
   def self.cluster_nodes(node, role = nil)
     return [] unless cluster_enabled?(node)
 
-    role ||= "pacemaker-cluster-member"
-    server_nodes = []
-    env = node[:pacemaker][:config][:environment]
-    # Sometimes, chef-server is a little bit outdated and doesn't have the
-    # latest information, including the fact that the current node is
-    # actually part of the cluster; we also want to make sure that we include
-    # the latest bits with latest attributes for this node, so we always
-    # manually add it, instead of relying on the search for this one.
-    Chef::Search::Query.new.search(
-      :node,
-      "roles:#{role} AND pacemaker_config_environment:#{env}"
-    ) do |o|
-      server_nodes << o if o.name != node.name
-    end
-    server_nodes << node if (role.nil? || role == "*" || node.roles.include?(role))
-    server_nodes.sort_by! { |n| n[:hostname] }
+    node_names = node[:pacemaker][:elements]["pacemaker-cluster-member"]
+    cluster_nodes = node_names.map { |n| Chef::Node.load(n) }
+    filtered_nodes = cluster_nodes.select { |n| role.nil? || role == "*" || n.roles.include?(role) }
+    filtered_nodes.sort_by! { |n| n[:hostname] }
   end
 
   # Performs a Chef search and returns an Array of Node objects for
