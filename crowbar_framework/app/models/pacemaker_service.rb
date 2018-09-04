@@ -477,6 +477,9 @@ class PacemakerService < ServiceObject
       member_node[:pacemaker] ||= {}
       member_node[:pacemaker][:drbd] ||= {}
       member_node[:pacemaker][:drbd][:nodes] = drbd_nodes
+      member_node[:pacemaker][:attributes] ||= {}
+      member_node[:pacemaker][:attributes]["drbd-controller"] =
+        drbd_nodes.include?(member_node.name)
       member_node[:crowbar_wall][:cluster_members_changed] =
         cluster_members_changed && old_members.include?(member_node.name)
       member_node.save
