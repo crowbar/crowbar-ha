@@ -11,6 +11,12 @@ global
 	daemon
 	stats socket /var/lib/haproxy/stats.sock user haproxy group haproxy mode 0640 level operator
 
+	tune.ssl.default-dh-param 2048
+	ssl-default-bind-options no-sslv3 no-tlsv10
+	ssl-default-server-options no-sslv3 no-tlsv10
+	ssl-default-bind-ciphers DEFAULT_SUSE
+	ssl-default-server-ciphers DEFAULT_SUSE
+
 defaults
 	log     global
 	mode    tcp
