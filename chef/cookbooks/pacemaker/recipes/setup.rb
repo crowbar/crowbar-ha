@@ -49,7 +49,10 @@ execute "upgrade CIB syntax" do
   command "crm configure upgrade force"
   not_if do
     cib_meta = Mixlib::ShellOut.new(cib_cmd).run_command.stdout.chomp
-    cib_meta.gsub(/.*validate-with="[^"]*-([^-"]*)".*/, "\\1") >=
-      node[:pacemaker][:cib_syntax_version]
+    cib_version = cib_meta.gsub(/.*validate-with="[^"]*-([^-"]*)".*/, "\\1")
+    min_cib_version = node[:pacemaker][:cib_syntax_version]
+
+    # avoid a string based comparison which would result in 2.10 < 2.9
+    Gem::Version.create(cib_version) >= Gem::Version.create(min_cib_version)
   end
 end
