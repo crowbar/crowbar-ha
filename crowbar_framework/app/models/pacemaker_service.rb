@@ -461,12 +461,25 @@ class PacemakerService < ServiceObject
     role.default_attributes["drbd"]["common"]["net"] ||= {}
     role.default_attributes["drbd"]["common"]["net"]["shared_secret"] = \
       role.default_attributes["pacemaker"]["drbd"]["shared_secret"]
+    if member_nodes.length == 2
+      drbd_nodes = member_nodes.map(&:name)
+    elsif founder[:pacemaker].key?("drbd") && founder[:pacemaker][:drbd].key?("nodes")
+      drbd_nodes = founder[:pacemaker][:drbd][:nodes]
+    else
+      drbd_nodes = []
+    end
     # set node IDs for drbd metadata
     member_nodes.each do |member_node|
       is_founder = (member_node.name == founder_name)
       member_node[:drbd] ||= {}
       member_node[:drbd][:local_node_id] = is_founder ? 0 : 1
       member_node[:drbd][:remote_node_id] = is_founder ? 1 : 0
+      member_node[:pacemaker] ||= {}
+      member_node[:pacemaker][:drbd] ||= {}
+      member_node[:pacemaker][:drbd][:nodes] = drbd_nodes
+      member_node[:pacemaker][:attributes] ||= {}
+      member_node[:pacemaker][:attributes]["drbd-controller"] =
+        drbd_nodes.include?(member_node.name)
       member_node[:crowbar_wall][:cluster_members_changed] =
         cluster_members_changed && old_members.include?(member_node.name)
       member_node.save

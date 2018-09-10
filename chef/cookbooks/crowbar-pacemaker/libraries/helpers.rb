@@ -37,6 +37,13 @@ module CrowbarPacemakerHelper
     ["prepare-os-upgrade", "done_os_upgrade"].include? upgrade_step
   end
 
+  # Does the node have DRBD setup? This is needed when we want to find out
+  # if a node in drbd-enabled cluster has really DRBD nor not.
+  def self.drbd_node?(node)
+    return false unless cluster_enabled?(node)
+    node[:pacemaker][:drbd] && node[:pacemaker][:drbd][:nodes] && node[:pacemaker][:drbd][:nodes].include?(node[:fqdn])
+  end
+
   # Returns the number of corosync (or non-remote) nodes in the cluster.
   def self.num_corosync_nodes(node)
     return 0 unless cluster_enabled?(node)

@@ -131,7 +131,8 @@
               "mapping": {
                 "enabled": { "type": "bool", "required": true },
                 "shared_secret": { "type": "str", "required": true },
-                "allow_larger_cluster": { "type": "bool", "required": true }
+                "allow_larger_cluster": { "type": "bool", "required": true },
+                "nodes": { "type": "seq", "sequence": [ { "type": "str" } ] }
               }
             },
             "haproxy": {

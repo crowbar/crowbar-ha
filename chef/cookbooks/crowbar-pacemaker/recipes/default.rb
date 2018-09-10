@@ -121,5 +121,9 @@ include_recipe "crowbar-pacemaker::maintenance-mode"
 include_recipe "crowbar-pacemaker::openstack"
 
 if node[:pacemaker][:drbd][:enabled]
-  include_recipe "crowbar-pacemaker::drbd_setup"
+  if CrowbarPacemakerHelper.drbd_node?(node)
+    include_recipe "crowbar-pacemaker::drbd_setup"
+  else
+    Chef::Log.info("Not creating DRBD setup for this node")
+  end
 end
