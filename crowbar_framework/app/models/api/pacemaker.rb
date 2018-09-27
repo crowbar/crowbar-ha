@@ -43,6 +43,7 @@ module Api
         ret = {}
         crm_failures = {}
         failed_actions = {}
+        unready_nodes = {}
 
         # get unique list of founder names across all clusters
         cluster_founders_names = ::Node.find(
@@ -68,9 +69,12 @@ module Api
             failed_actions[n.name] = "#{n.name}: #{ssh_retval[:stdout]}"
             failed_actions[n.name] << " #{ssh_retval[:stderr]}" unless ssh_retval[:stderr].blank?
           end
+          ssh_retval = n.run_ssh_cmd('crm status | grep "^Node" | grep -E "maintenance|standby"')
+          unready_nodes[n.name] = ssh_retval[:stdout].chomp if ssh_retval[:exit_code].zero?
         end
         ret["crm_failures"] = crm_failures unless crm_failures.empty?
         ret["failed_actions"] = failed_actions unless failed_actions.empty?
+        ret["unready_nodes"] = unready_nodes unless unready_nodes.empty?
         ret
       end
 
