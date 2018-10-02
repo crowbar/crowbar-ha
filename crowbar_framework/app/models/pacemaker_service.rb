@@ -483,6 +483,7 @@ class PacemakerService < ServiceObject
         drbd_nodes.include?(member_node.name)
       member_node[:crowbar_wall][:cluster_members_changed] =
         cluster_members_changed && old_members.include?(member_node.name)
+      member_node[:pacemaker][:setup] = false if cluster_members_changed
       member_node.save
     end
 

@@ -30,6 +30,12 @@ end
 include_recipe "crowbar-pacemaker::quorum_policy"
 include_recipe "crowbar-pacemaker::stonith"
 
+# make sure all ssh keys are deployed before joining the cluster to allow
+# alert handlers to ssh to this node if needed.
+# Also include each member of the cluster so they can communitcate or rsync if necessary.
+include_recipe "crowbar-pacemaker::mutual_ssh"
+include_recipe "provisioner::keys"
+
 # We let the founder go first, so it can generate the authkey and some other
 # initial pacemaker configuration bits; we do it in the compile phase of the
 # chef run because the non-founder nodes will look during the compile phase for
@@ -90,12 +96,6 @@ if CrowbarPacemakerHelper.is_cluster_founder?(node) && node[:pacemaker][:reset_s
 end
 
 node.save if dirty
-
-# make sure all ssh keys are deployed before joining the cluster to allow
-# alert handlers to ssh to this node if needed.
-# Also include each member of the cluster so they can communitcate or rsync if necessary.
-include_recipe "crowbar-pacemaker::mutual_ssh"
-include_recipe "provisioner::keys"
 
 include_recipe "pacemaker::default"
 
