@@ -108,10 +108,16 @@ include_recipe "crowbar-pacemaker::pacemaker_authkey"
 # nodes) -- see the corosync::authkey_generator recipe.
 ruby_block "mark node as ready for pacemaker" do
   block do
+    dirty = false
     unless node[:pacemaker][:setup]
       node.set[:pacemaker][:setup] = true
-      node.save
+      dirty = true
     end
+    if node[:crowbar_wall][:cluster_node_added]
+      node.set[:crowbar_wall][:cluster_node_added] = false
+      dirty = true
+    end
+    node.save if dirty
   end
 end
 
