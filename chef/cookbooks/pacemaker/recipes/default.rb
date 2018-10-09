@@ -58,11 +58,19 @@ nodes_names = node[:pacemaker][:elements]["pacemaker-cluster-member"].map do |n|
   n.gsub(/\..*/, "")
 end
 
+# When newly added node is faster than the old nodes, it can finish the default timeout
+# here and continue chef-client run before the cluster is fully (re)configured.
+# If it reaches any syncmark it can get: "Could not map name=<nodename> to a UUID" error.
+# Waiting a bit more gives the rest of the cluster some time to recognize the new member.
+# Extending this timeout unconditionally would cause a deadlock with the "Waiting for
+# cluster founder to be set up" loop in crowbar-pacemaker cookbook.
+online_timeout = node.fetch("crowbar_wall", {})[:cluster_node_added] ? 120 : 60
+
 ruby_block "wait for cluster to be online" do
   block do
     require "timeout"
     begin
-      Timeout.timeout(60) do
+      Timeout.timeout(online_timeout) do
         loop do
           # example of 'crm_node -l' output:
           # 1084813649 d52-54-77-77-01-02 member
