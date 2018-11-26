@@ -64,28 +64,36 @@ module CrowbarPacemakerSynchronization
       return
     end
 
-    Chef::Log.info("Checking if cluster founder has set #{mark}...")
-
     founder_name = CrowbarPacemakerHelper.cluster_founder_name(node)
+    cluster_name = CrowbarPacemakerHelper.cluster_name(node)
 
+    Chef::Log.info("Checking if #{cluster_name} cluster founder #{founder_name} has set #{mark}...")
     begin
       Timeout.timeout(timeout) do
         loop do
           if CrowbarPacemakerCIBAttribute.get(founder_name, "#{prefix}#{mark}", "0") != "0"
-            Chef::Log.info("Cluster founder has set #{mark}.")
+            Chef::Log.info("Cluster founder #{founder_name} has set #{mark} on cluster " \
+              "#{cluster_name}.")
             break
           end
-          Chef::Log.debug("Waiting for cluster founder to set #{mark}...")
+          Chef::Log.debug("Waiting for cluster founder #{founder_name} to set #{mark} " \
+            "on cluster #{cluster_name}...")
           sleep(5)
         end # loop
       end # Timeout
     rescue Timeout::Error
       if fatal
-        message = "Cluster founder didn't set #{mark}!"
+        message = \
+          "Cluster founder #{founder_name} didn't set #{mark} on cluster #{cluster_name}! " \
+          "Timed out while waiting for the founder; please check either " \
+          "'/var/log/crowbar/chef-client/#{founder_name}.#{node[:domain]}.log' " \
+          "on the admin node or '/var/log/chef/client.log' on #{founder_name} to see " \
+          "what went wrong."
         Chef::Log.fatal(message)
         raise message
       else
-        message = "Cluster founder didn't set #{mark}! Going on..."
+        message = "Cluster founder #{founder_name} didn't set #{mark} on cluster " \
+          "#{cluster_name}! Going on..."
         Chef::Log.warn(message)
       end
     end
@@ -97,11 +105,12 @@ module CrowbarPacemakerSynchronization
     return unless CrowbarPacemakerHelper.is_cluster_founder?(node)
 
     attribute = "#{prefix}#{mark}"
+    founder_name = CrowbarPacemakerHelper.cluster_founder_name(node)
 
     if CrowbarPacemakerCIBAttribute.get(node[:hostname], attribute, "0") != "0"
-      Chef::Log.info("Synchronization cluster mark #{mark} already set.")
+      Chef::Log.info("Synchronization cluster mark #{mark} already set on #{founder_name}.")
     else
-      Chef::Log.info("Setting synchronization cluster mark #{mark}.")
+      Chef::Log.info("Setting synchronization cluster mark #{mark} on #{founder_name}.")
       CrowbarPacemakerCIBAttribute.set(node[:hostname], attribute, "1")
     end
   end
@@ -111,25 +120,30 @@ module CrowbarPacemakerSynchronization
     return unless CrowbarPacemakerHelper.cluster_enabled?(node)
 
     attribute = "#{prefix}#{mark}"
+    cluster_name = CrowbarPacemakerHelper.cluster_name(node)
+    cluster_nodes = CrowbarPacemakerHelper.cluster_nodes_names(node)
+    nodes_with_mark_set = []
 
     # non-founders simply set the mark and then wait for the founder to set the
     # mark
     unless CrowbarPacemakerHelper.is_cluster_founder?(node)
-      Chef::Log.info("Setting synchronization cluster mark #{mark}.")
-      CrowbarPacemakerCIBAttribute.set(node[:hostname], "#{prefix}#{mark}", "1")
+      Chef::Log.info("Setting synchronization cluster mark #{mark} on #{node[:hostname]} " \
+        "for cluster #{cluster_name}.")
+      CrowbarPacemakerCIBAttribute.set(node[:hostname], attribute, "1")
       return wait_for_mark_from_founder(node, mark, fatal, timeout)
     end
 
     # founder waits for the mark to be set on all non-founders, and then sets
     # its mark; if the mark is already set, we can skip everything
     if CrowbarPacemakerCIBAttribute.get(node[:hostname], attribute, "0") != "0"
-      Chef::Log.info("Synchronization cluster mark #{mark} already set.")
+      Chef::Log.info("Synchronization cluster mark #{mark} already set on #{node[:hostname]} " \
+        "for cluster #{cluster_name}.")
       return
     end
 
     if CrowbarPacemakerHelper.being_upgraded?(node)
       Chef::Log.debug("Node is being upgraded." \
-        "Skipping wait loop for all other cluster nodes.")
+        "Skipping wait loop for all other cluster nodes for cluster #{cluster_name}.")
       return
     elsif !CrowbarPacemakerCIBAttribute.cib_up_for_node?
       if fatal
@@ -144,25 +158,38 @@ module CrowbarPacemakerSynchronization
       end
     else
       begin
-        Chef::Log.info("Checking if all other cluster nodes have set #{mark}...")
+        Chef::Log.info("Checking if all other cluster nodes have set #{mark} " \
+          "on cluster #{cluster_name}...")
 
         Timeout.timeout(timeout) do
-          CrowbarPacemakerHelper.cluster_nodes_names(node).each do |name|
-            next if name == node[:hostname]
+          cluster_nodes.each do |name|
+            if name == node[:hostname]
+              nodes_with_mark_set << name
+              next
+            end
             loop do
-              break if CrowbarPacemakerCIBAttribute.get(name, attribute, "0") != "0"
-              Chef::Log.debug("Waiting for all other cluster nodes to set #{mark}...")
+              if CrowbarPacemakerCIBAttribute.get(name, attribute, "0") != "0"
+                nodes_with_mark_set << name
+                break
+              end
+              Chef::Log.debug("Currently waiting for cluster node #{name} to set #{mark} " \
+                "on cluster #{cluster_name}...")
               sleep(5)
             end
           end # each
         end # Timeout
       rescue Timeout::Error
+        remaining = cluster_nodes - nodes_with_mark_set
         if fatal
-          message = "Some cluster nodes didn't set #{mark}!"
+          message = "Some cluster nodes didn't set #{mark} on cluster #{cluster_name}: " \
+            "#{remaining.join(" ")}. The error has been logged to either the admin node, " \
+            "located at the corresponding node logs at '/var/log/crowbar/chef-client/' or at " \
+            "'/var/log/chef/client.log' on the corrisponding node."
           Chef::Log.fatal(message)
           raise message
         else
-          message = "Some cluster nodes didn't set #{mark}! Going on..."
+          message = "Some cluster nodes didn't set #{mark} on cluster #{cluster_name}: " \
+            "#{remaining.join(" ")}. Going on..."
           Chef::Log.warn(message)
         end
       end
