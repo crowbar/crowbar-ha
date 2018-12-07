@@ -141,7 +141,6 @@
                 "public_name": { "type": "str", "required": true }
               }
             },
-            "clone_stateless_services": { "type": "bool", "required": true },
             "op_defaults": {
               "type": "map",
               "required": true,
