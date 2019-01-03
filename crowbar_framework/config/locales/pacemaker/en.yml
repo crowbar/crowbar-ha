@@ -72,15 +72,6 @@ en:
             network_placeholder: 'A network defined in the network barclamp (admin, storage, etc.)'
             mcast_placeholder: 'An address in the multicast range, such as 239.255.0.1; it must be unique accross Pacemaker proposals'
         pacemaker_header: 'Pacemaker Parameters'
-        clone_stateless_services: 'Manage stateless active/active services with Pacemaker'
-        clone_stateless_services_hint:
-          'Stateless active/active services can be managed by Pacemaker, or can
-          run as standard services. If they are managed by Pacemaker, then
-          Pacemaker will automatically restart them on failures and will setup
-          cluster-wide constraints to ensure correct ordering when starting
-          services. If they run as standard services, then the complexity of
-          the configuration is reduced and this limits the causes for fencing
-          in case of failures.'
         crm:
           no_quorum_policy: 'Policy when cluster does not have quorum'
           no_quorum_policy_hint_html: 'Refer to the <a href="http://clusterlabs.org/doc/en-US/Pacemaker/1.1-crmsh/html/Pacemaker_Explained/_available_cluster_options.html">pacemaker documentation</a> for a description of each value.'
