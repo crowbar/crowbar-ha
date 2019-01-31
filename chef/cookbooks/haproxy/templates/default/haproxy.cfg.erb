@@ -55,8 +55,8 @@ listen  admin-stats <%= node[:haproxy][:stats][:enabled] ? node[:haproxy][:stats
 	# maximum SSL session ID length is 32 bytes.
 	stick-table type binary len 32 size 100k expire <%= content[:stick] ? content[:stick][:expire] : "32m" %>
 
-	acl clienthello req_ssl_hello_type 1
-	acl serverhello rep_ssl_hello_type 2
+	acl clienthello req.ssl_hello_type 1
+	acl serverhello res.ssl_hello_type 2
 
 	# use tcp content accepts to detects ssl client and server hello.
 	tcp-request inspect-delay 5s
