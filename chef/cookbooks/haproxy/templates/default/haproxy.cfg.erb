@@ -91,7 +91,7 @@ listen  admin-stats <%= node[:haproxy][:stats][:enabled] ? node[:haproxy][:stats
 
     <% end -%>
     <% if content[:stick] && content[:stick][:on] && !content[:stick][:on].empty? -%>
-	stick-table type ip size 1
+	stick-table type ip size 1000
 	stick on <%= content[:stick][:on] %>
 
     <% end -%>
@@ -128,8 +128,9 @@ listen  admin-stats <%= node[:haproxy][:stats][:enabled] ? node[:haproxy][:stats
         rise = " rise #{server[:rise] || 5}"
         fall = " fall #{server[:fall] || 2}"
         backup = server[:backup] ? " backup" : ""
+        on_marked_down_shutdown = server[:on_marked_down_shutdown] ? " on-marked-down shutdown-sessions" : ""
       %>
-	server <%= server[:name] %> <%= server[:address] %>:<%= server[:port] %> check<%= ssl %><%= inter %><%= fastinter %><%= downinter %><%= rise %><%= fall %><%= backup %>
+        server <%= server[:name] %> <%= server[:address] %>:<%= server[:port] %> check<%= ssl %><%= inter %><%= fastinter %><%= downinter %><%= rise %><%= fall %><%= backup %><%= on_marked_down_shutdown %>
     <% end -%>
   <% end -%>
 <% end -%>
