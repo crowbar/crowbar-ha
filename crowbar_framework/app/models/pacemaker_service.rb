@@ -536,6 +536,8 @@ class PacemakerService < ServiceObject
 
   def validate_proposal_stonith stonith_attributes, members
     case stonith_attributes["mode"]
+    when "disabled"
+      true # nothing to do
     when "manual"
       # nothing to do
     when "sbd"
