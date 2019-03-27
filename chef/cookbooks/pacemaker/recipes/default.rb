@@ -66,6 +66,7 @@ end
 # Extending this timeout unconditionally would cause a deadlock with the "Waiting for
 # cluster founder to be set up" loop in crowbar-pacemaker cookbook.
 online_timeout = node.fetch("crowbar_wall", {})[:cluster_node_added] ? 120 : 60
+is_founder = node[:pacemaker][:founder] == node[:fqdn]
 
 ruby_block "wait for cluster to be online" do
   block do
@@ -90,13 +91,13 @@ ruby_block "wait for cluster to be online" do
           end
           crm_mon = crm_mon_cmd.stdout
           ready = true
-          if !crm_mon.include?("#{cluster_size} nodes configured")
+          if !is_founder && !crm_mon.include?("#{cluster_size} nodes configured")
             ready = false
             Chef::Log.warn("cluster doesn't have #{cluster_size} nodes configured yet")
           elsif !crm_mon.include?("Online:")
             ready = false
             Chef::Log.warn("cluster doesn't have nodes online yet")
-          elsif crm_names.sort != nodes_names.sort
+          elsif !is_founder && crm_names.sort != nodes_names.sort
             ready = false
             Chef::Log.warn("crm_node -l listed nodes #{crm_names.sort}, " \
                            "not #{nodes_names.sort} as expected")
