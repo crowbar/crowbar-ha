@@ -30,6 +30,11 @@ end
 include_recipe "crowbar-pacemaker::quorum_policy"
 include_recipe "crowbar-pacemaker::stonith"
 
+# If SBD is configured for STONITH, the founder node needs to restart the
+# corosync service and wait for the cluster to come online one more time
+# before it's fully set up. That may take an additional 60 seconds.
+founder_timeout = node[:pacemaker][:stonith][:mode] == "sbd" ? 180 : 120
+
 # We let the founder go first, so it can generate the authkey and some other
 # initial pacemaker configuration bits; we do it in the compile phase of the
 # chef run because the non-founder nodes will look during the compile phase for
@@ -39,7 +44,7 @@ unless CrowbarPacemakerHelper.is_cluster_founder?(node)
   begin
     # we use a long timeout because the wait / attribute-set are in two different
     # phases, and this wait is fatal in case of errors
-    Timeout.timeout(120) do
+    Timeout.timeout(founder_timeout) do
       Chef::Log.info("Waiting for cluster founder to be set up...")
       loop do
         founder = CrowbarPacemakerHelper.cluster_founder(node)
