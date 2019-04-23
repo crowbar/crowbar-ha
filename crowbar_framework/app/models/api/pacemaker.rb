@@ -51,7 +51,7 @@ module Api
         ).map! do |node|
           node[:pacemaker][:founder]
         end.uniq
-        founders = cluster_founders_names.map { |name| NodeObject.find_by_name(name) }
+        founders = cluster_founders_names.map { |name| NodeObject.find_by_name(name) }.compact
         return ret if founders.empty?
 
         service_object = CrowbarService.new(Rails.logger)
