@@ -58,7 +58,7 @@ module CrowbarPacemakerCIBAttribute
     raise map_name_error if output =~ /^Could not map name=/
     raise unexpected_output_error if output !~ /^scope=nodes\s+name=#{attribute}\s+value=(.*)$/
 
-    Chef::Log.debug("CrowbarPacemakerCIBAttribute.get: #{node}:#{attribute}:#{Regexp.last_match(1)}")
+    Chef::Log.info("CrowbarPacemakerCIBAttribute.get: #{node}:#{attribute}:#{Regexp.last_match(1)}")
     Regexp.last_match(1)
   end
 
@@ -68,8 +68,9 @@ module CrowbarPacemakerCIBAttribute
     validate_node(node)
     validate_attribute(attribute)
     validate_value(value)
-    `crm_attribute --name=#{attribute} --node=#{node} --update=#{value} &> /dev/null`
-    Chef::Log.debug("CrowbarPacemakerCIBAttribute.set: #{node}:#{attribute}:#{value}")
+    out = `crm_attribute --name=#{attribute} --node=#{node} --update=#{value} 2>&1`
+    Chef::Log.info("CrowbarPacemakerCIBAttribute.set: #{node}:#{attribute}:#{value}")
+    Chef::Log.info("CrowbarPacemakerCIBAttribute.set: out: #{out}")
   end
 
   def self.unset(node, attribute)
@@ -77,7 +78,9 @@ module CrowbarPacemakerCIBAttribute
     # $ crm_attribute --name=crowbar_sync-pacemaker_setup --node=d52-54-77-77-77-01 --delete
     validate_node(node)
     validate_attribute(attribute)
-    `crm_attribute --name=#{attribute} --node=#{node} --delete &> /dev/null`
+    out = `crm_attribute --name=#{attribute} --node=#{node} --delete 2>&1`
+    Chef::Log.info("CrowbarPacemakerCIBAttribute.unset: #{node}:#{attribute}")
+    Chef::Log.info("CrowbarPacemakerCIBAttribute.unset: out: #{out}")
   end
 
   def self.list(node)

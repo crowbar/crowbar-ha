@@ -173,11 +173,16 @@ module CrowbarPacemakerSynchronization
   end
 
   def self.reset_marks(node)
+    Chef::Log.info("reset_marks: start on #{node[:hostname]}.")
     attributes = CrowbarPacemakerCIBAttribute.list(node[:hostname])
+    Chef::Log.info("reset_marks: all attributes: #{attributes}")
     attributes.select! { |k, v| k =~ /^#{prefix}/ }
+    Chef::Log.info("reset_marks: attributes with #{prefix}: #{attributes}")
     attributes.each_key do |attribute|
+      Chef::Log.info("reset_marks: unset #{attribute}")
       CrowbarPacemakerCIBAttribute.unset(node[:hostname], attribute)
     end
+    Chef::Log.info("reset_marks: end on #{node[:hostname]}.")
   end
 
   def self.migrate_sync_marks_v1(node)

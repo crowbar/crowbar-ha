@@ -82,10 +82,14 @@ if node.normal_attrs[:pacemaker][:sync_marks]
   dirty = true
 end
 
+Chef::Log.info("reset_marks: founder: #{CrowbarPacemakerHelper.is_cluster_founder?(node)}")
+Chef::Log.info("reset_marks: reset_sync_marks: #{node[:pacemaker][:reset_sync_marks]}")
 if CrowbarPacemakerHelper.is_cluster_founder?(node) && node[:pacemaker][:reset_sync_marks]
   # we can't reset sync marks if the pacemaker stack is not set up...
+  Chef::Log.info("reset_marks: setup: #{node[:pacemaker][:setup]}")
   if node[:pacemaker][:setup]
     CrowbarPacemakerHelper.cluster_nodes(node).each do |cluster_node|
+      Chef::Log.info("reset_marks: #{cluster_node[:hostname]}")
       CrowbarPacemakerSynchronization.reset_marks(cluster_node)
     end
   end
