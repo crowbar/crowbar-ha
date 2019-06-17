@@ -21,6 +21,7 @@ def get_options resource
     {}
   end
   timeout = sync_mark_config.fetch("default_timeout", 60)
+  timeout_multiplier = sync_mark_config.fetch("timeout_multiplier", 1.0)
   action = nil
   mark = nil
 
@@ -44,6 +45,8 @@ def get_options resource
   end
 
   raise "Missing mark attribute" if mark.nil?
+
+  timeout = (timeout * timeout_multiplier).to_i
 
   Chef::Log.info("Using timeout #{timeout} for sync_mark #{mark}")
 
