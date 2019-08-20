@@ -60,7 +60,7 @@ end
 # chef-client can only use it immediately if we install it at
 # recipe compile-time, not run-time:
 # from the next run onwards:
-rubygem_ruby_shadow = "ruby#{node["languages"]["ruby"]["version"].to_f}-rubygem-ruby-shadow"
+rubygem_ruby_shadow = "ruby2.1-rubygem-ruby-shadow"
 pkg = package rubygem_ruby_shadow do
   action :nothing
 end
