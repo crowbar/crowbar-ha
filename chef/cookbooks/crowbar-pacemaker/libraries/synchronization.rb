@@ -184,7 +184,7 @@ module CrowbarPacemakerSynchronization
           message = "Some cluster nodes didn't set #{mark} on cluster #{cluster_name}: " \
             "#{remaining.join(" ")}. The error has been logged to either the admin node, " \
             "located at the corresponding node logs at '/var/log/crowbar/chef-client/' or at " \
-            "'/var/log/chef/client.log' on the corrisponding node."
+            "'/var/log/chef/client.log' on the corresponding node."
           Chef::Log.fatal(message)
           raise message
         else
