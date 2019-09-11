@@ -55,7 +55,7 @@ module CrowbarPacemakerSynchronization
   end
 
   # See "Synchronization helpers" documentation
-  def self.wait_for_mark_from_founder(node, mark, fatal = false, timeout = 60)
+  def self.wait_for_mark_from_founder(node, mark, fatal = false, timeout = 60, set_mark_workaround = false)
     return unless CrowbarPacemakerHelper.cluster_enabled?(node)
     return if CrowbarPacemakerHelper.is_cluster_founder?(node)
     if CrowbarPacemakerHelper.being_upgraded?(node)
@@ -64,6 +64,7 @@ module CrowbarPacemakerSynchronization
       return
     end
 
+    attribute = "#{prefix}#{mark}"
     founder_name = CrowbarPacemakerHelper.cluster_founder_name(node)
     cluster_name = CrowbarPacemakerHelper.cluster_name(node)
 
@@ -71,7 +72,7 @@ module CrowbarPacemakerSynchronization
     begin
       Timeout.timeout(timeout) do
         loop do
-          if CrowbarPacemakerCIBAttribute.get(founder_name, "#{prefix}#{mark}", "0") != "0"
+          if CrowbarPacemakerCIBAttribute.get(founder_name, attribute, "0") != "0"
             Chef::Log.info("Cluster founder #{founder_name} has set #{mark} on cluster " \
               "#{cluster_name}.")
             break
@@ -79,6 +80,15 @@ module CrowbarPacemakerSynchronization
           Chef::Log.debug("Waiting for cluster founder #{founder_name} to set #{mark} " \
             "on cluster #{cluster_name}...")
           sleep(5)
+          # If crm_attribute from node hits CIB at the same time when other node changes CIB,
+          # the attribute change could get lost and founder will time out waiting for the mark.
+          # Re-setting the mark periodically (while waiting for the founder to detect marks from
+          # all nodes) is a quick workaround for this problem.
+          if set_mark_workaround
+            Chef::Log.info("Setting synchronization cluster mark #{mark} on #{node[:hostname]} " \
+              "for cluster #{cluster_name} again (workaround for pacemaker race condition).")
+            CrowbarPacemakerCIBAttribute.set(node[:hostname], attribute, "1")
+          end
         end # loop
       end # Timeout
     rescue Timeout::Error
@@ -130,7 +140,7 @@ module CrowbarPacemakerSynchronization
       Chef::Log.info("Setting synchronization cluster mark #{mark} on #{node[:hostname]} " \
         "for cluster #{cluster_name}.")
       CrowbarPacemakerCIBAttribute.set(node[:hostname], attribute, "1")
-      return wait_for_mark_from_founder(node, mark, fatal, timeout)
+      return wait_for_mark_from_founder(node, mark, fatal, timeout, true)
     end
 
     # founder waits for the mark to be set on all non-founders, and then sets
