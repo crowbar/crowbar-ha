@@ -74,6 +74,12 @@ if node[:pacemaker][:haproxy][:clusters].key?(cluster_name) && node[:pacemaker][
   # Compatibility with existing deployment: we need to drop the group to create
   # the clone
   group_name = "g-#{service_name}"
+  # drop location constraint first as it would get reassigned to some child of the group
+  # otherwise. See: https://github.com/ClusterLabs/crmsh/issues/140
+  pacemaker_location openstack_pacemaker_controller_only_location_for group_name do
+    action :delete
+    only_if { CrowbarPacemakerHelper.is_cluster_founder?(node) }
+  end
   pacemaker_group group_name do
     action [:stop, :delete]
     only_if { CrowbarPacemakerHelper.is_cluster_founder?(node) }
