@@ -17,7 +17,6 @@
 # limitations under the License.
 #
 
-#FIXME: delete group when it's not needed anymore
 #FIXME: need to find/write OCF for haproxy
 
 # With the default bufsize, getting a keystone PKI token from its ID doesn't
@@ -70,15 +69,6 @@ if node[:pacemaker][:haproxy][:clusters].key?(cluster_name) && node[:pacemaker][
 
   cluster_vhostname = CrowbarPacemakerHelper.cluster_vhostname(node)
   service_name = "haproxy"
-
-  # Compatibility with existing deployment: we need to drop the group to create
-  # the clone
-  group_name = "g-#{service_name}"
-  pacemaker_group group_name do
-    action [:stop, :delete]
-    only_if { CrowbarPacemakerHelper.is_cluster_founder?(node) }
-    only_if "crm configure show #{group_name}"
-  end
 
   # Create VIP for HAProxy
   node[:pacemaker][:haproxy][:clusters][cluster_name][:networks].each do |network, enabled|
