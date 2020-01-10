@@ -29,6 +29,8 @@ attribute :mode,    kind_of: String,  default: "http", equal_to: ["http", "tcp",
 attribute :balance, kind_of: String,  default: "",
           equal_to: ["", "roundrobin", "static-rr", "leastconn", "first", "source"]
 attribute :use_ssl, kind_of: [TrueClass, FalseClass], default: false
+attribute :terminate_ssl, kind_of: [TrueClass, FalseClass], default: false
+attribute :pemfile, kind_of: String,  default: ""
 attribute :stick,   kind_of: Hash,    default: {}
 attribute :options, kind_of: Array,   default: []
 attribute :default_server, kind_of: String,  default: ""
