@@ -42,8 +42,14 @@ action :create do
   section["address"] = new_resource.address
   section["port"] = new_resource.port
   section["use_ssl"] = new_resource.use_ssl
+  section["terminate_ssl"] = new_resource.terminate_ssl
   if new_resource.use_ssl
-    section["mode"] = "tcp"
+    if new_resource.terminate_ssl
+      section["mode"] = "http"
+      section["pemfile"] = new_resource.pemfile
+    else
+      section["mode"] = "tcp"
+    end
   else
     section["mode"] = new_resource.mode
   end
@@ -55,7 +61,7 @@ action :create do
   section["options"] = new_resource.options || []
   if section["options"].empty? || section["options"].include?("defaults")
     section["options"].delete("defaults")
-    if section["use_ssl"]
+    if section["use_ssl"] && !section["terminate_ssl"]
       section["options"] = [["tcpka", "tcplog"], section["options"]].flatten
     elsif section["mode"] == "http"
       section["options"] = [["tcpka", "httplog", "forwardfor"], section["options"]].flatten
