@@ -39,13 +39,17 @@ listen  admin-stats <%= node[:haproxy][:stats][:enabled] ? node[:haproxy][:stats
 
     <% content = node[:haproxy][:sections][type][name] -%>
 <%= type %> <%= name %>
+    <% if content[:terminate_ssl] -%>
+	bind <%= content[:address] %>:<%= content[:port] %> ssl crt <%= content[:pemfile] %>
+    <% else -%>
 	bind <%= content[:address] %>:<%= content[:port] %>
+    <% end -%>
 	mode <%= content[:mode] %>
     <% unless content[:balance].nil? -%>
 	balance <%= content[:balance] %>
     <% end -%>
 
-    <% if content[:use_ssl] # http://www.haproxy.com/blog/maintain-affinity-based-on-ssl-session-id/ -%>
+    <% if content[:use_ssl] && !content[:terminate_ssl]  # http://www.haproxy.com/blog/maintain-affinity-based-on-ssl-session-id/ -%>
 	# maximum SSL session ID length is 32 bytes.
 	stick-table type binary len 32 size 100k expire <%= content[:stick] ? content[:stick][:expire] : "32m" %>
 
@@ -123,8 +127,9 @@ listen  admin-stats <%= node[:haproxy][:stats][:enabled] ? node[:haproxy][:stats
         fall = " fall #{server[:fall] || 2}"
         backup = server[:backup] ? " backup" : ""
         on_marked_down_shutdown = server[:on_marked_down_shutdown] ? " on-marked-down shutdown-sessions" : ""
+        terminate_ssl = content[:terminate_ssl] ? " ssl" : ""
       %>
-        server <%= server[:name] %> <%= server[:address] %>:<%= server[:port] %> check<%= ssl %><%= inter %><%= fastinter %><%= downinter %><%= rise %><%= fall %><%= backup %><%= on_marked_down_shutdown %>
+        server <%= server[:name] %> <%= server[:address] %>:<%= server[:port] %> check<%= ssl %><%= inter %><%= fastinter %><%= downinter %><%= rise %><%= fall %><%= backup %><%= on_marked_down_shutdown %><%= terminate_ssl %>
     <% end -%>
   <% end -%>
 <% end -%>
