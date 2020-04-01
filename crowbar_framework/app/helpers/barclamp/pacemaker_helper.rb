@@ -52,8 +52,7 @@ module Barclamp
           [t(".stonith_modes.ipmi_barclamp"), "ipmi_barclamp"],
           [t(".stonith_modes.sbd"), "sbd"],
           [t(".stonith_modes.shared"), "shared"],
-          [t(".stonith_modes.per_node"), "per_node"],
-          [t(".stonith_modes.libvirt"), "libvirt"]
+          [t(".stonith_modes.per_node"), "per_node"]
         ],
         selected.to_s
       )
