@@ -82,7 +82,6 @@ en:
           sbd: 'Configured with STONITH Block Devices (SBD)'
           shared: 'Configured with one shared resource for the whole cluster'
           per_node: 'Configured with one resource per node'
-          libvirt: 'Configured for nodes running in libvirt'
         stonith:
           mode: 'Configuration mode for STONITH'
           no_nodes: 'No nodes have been assigned a pacemaker role.'
@@ -100,10 +99,6 @@ en:
             agent: 'Fencing agent'
             name: 'Node name'
             params: 'Parameters for agent'
-          libvirt:
-            dev_only: 'The libvirt STONITH configuration is not supported, it should be used for development or testing purposes only!'
-            hypervisor_ip: 'IP address of hypervisor'
-            hypervisor_ip_hint: 'Note that libvirt on your host needs to be configured to listen on TCP, with no TLS and no authentication. The firewall should also be configured to allow communication from the virtual machines.'
         notifications_header: 'Mail Notifications'
         notifications:
           smtp:
