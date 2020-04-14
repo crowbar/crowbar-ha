@@ -15,6 +15,8 @@
 # limitations under the License.
 #
 
+require "set"
+
 class PacemakerService < ServiceObject
   def initialize(thelogger = nil)
     super
@@ -530,6 +532,30 @@ class PacemakerService < ServiceObject
     end
 
     apply_cluster_roles_to_new_nodes_post_chef_call(role)
+
+    # let's not consider the first time the proposal is applied as worth
+    # sending an event
+    if !old_role.nil? && !role.nil?
+      old_attributes = old_role.default_attributes["pacemaker"]
+      new_attributes = role.default_attributes["pacemaker"]
+
+      changed_attributes = Set.new
+
+      if old_attributes["haproxy"]["public_name"] != new_attributes["haproxy"]["public_name"]
+        changed_attributes.add("haproxy.public_name")
+      end
+      if old_attributes["haproxy"]["admin_name"] != new_attributes["haproxy"]["admin_name"]
+        changed_attributes.add("haproxy.admin_name")
+      end
+
+      unless changed_attributes.empty?
+        details = {
+          cluster: "#{PacemakerServiceObject.cluster_key}:#{role.inst}",
+          attributes: changed_attributes
+        }
+        Crowbar::EventDispatcher.trigger_hooks("cluster_changed", details)
+      end
+    end
 
     @logger.debug("Pacemaker apply_role_post_chef_call: leaving")
   end
