@@ -18,7 +18,7 @@ when "suse"
   default[:pacemaker][:platform][:packages] =
     %w(pacemaker crmsh fence-agents)
   default[:pacemaker][:platform][:remote_packages] =
-    %w(pacemaker-remote fence-agents)
+    %w(pacemaker-remote pacemaker-cli crmsh fence-agents)
   default[:pacemaker][:platform][:sbd_packages] =
     %w(sbd)
 else

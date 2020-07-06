@@ -49,7 +49,7 @@ class Chef
 
           if maintenance_mode?
             Chef::Log.info("Taking node out of Pacemaker maintenance mode")
-            system("crm --wait node ready")
+            system("crm --wait node ready #{pacemaker_node_name}")
           else
             # This shouldn't happen, and suggests that one of the recipes
             # is interfering in a way it shouldn't.
