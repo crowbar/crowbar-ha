@@ -955,6 +955,34 @@ class PacemakerService < ServiceObject
     end
   end
 
+  def transition(inst, name, state)
+    @logger.debug("Pacemaker transition: entering: #{name} for #{state}")
+
+    if state == "delete"
+      proposal = Proposal.find_by(barclamp: @bc_name, name: inst)
+      stonith_mode = proposal["attributes"]["pacemaker"]["stonith"]["mode"]
+
+      # remove node from stonith cfg
+      proposal["attributes"]["pacemaker"]["stonith"][
+        stonith_mode]["nodes"].delete(name)
+      if proposal["attributes"]["pacemaker"]["stonith"]["per_node"]["nodes"]
+        proposal["attributes"]["pacemaker"]["stonith"][
+          "per_node"]["nodes"].delete(name)
+      end
+
+      # remove from pacemaker-cluster-member
+      proposal["deployment"]["pacemaker"]["elements"][
+        "pacemaker-cluster-member"].delete(name)
+
+      # Save and commit
+      proposal.save
+      proposal_commit(inst, in_queue: false, validate: false, validate_after_save: false)
+    end
+
+    @logger.debug("Pacemaker transition: exiting: #{name} for #{state}")
+    [200, { name: name }]
+  end
+
   private
 
   def pacemaker_node_name(node, remotes)
