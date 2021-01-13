@@ -98,6 +98,8 @@ node.save if dirty
 
 # make sure all ssh keys are deployed before joining the cluster to allow
 # alert handlers to ssh to this node if needed.
+# Also include each member of the cluster so they can communitcate or rsync if necessary.
+include_recipe "crowbar-pacemaker::mutual_ssh"
 include_recipe "provisioner::keys"
 
 include_recipe "pacemaker::default"
@@ -126,7 +128,6 @@ end
 
 include_recipe "crowbar-pacemaker::attributes"
 include_recipe "crowbar-pacemaker::maintenance-mode"
-include_recipe "crowbar-pacemaker::mutual_ssh"
 
 include_recipe "crowbar-pacemaker::openstack"
 
