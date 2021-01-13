@@ -698,6 +698,12 @@ class PacemakerService < ServiceObject
     member_nodes = members.map { |n| NodeObject.find_node_by_name n }
     remotes = elements["pacemaker-remote"] || []
 
+    if members.length.even? && members.length > 2
+      validation_error I18n.t(
+        "barclamp.#{bc_name}.validation.cluster_size_even"
+      )
+    end
+
     if elements.key?("hawk-server")
       elements["hawk-server"].each do |n|
         @logger.debug("checking #{n}")
